@@ -1,6 +1,5 @@
 #include <util/delay.h>
 #include "ym2612.h"
-#include "song.h"
 #include "ym_test.h"
 #include "vgm.h"
 #include "display.h"

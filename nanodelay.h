@@ -1,3 +1,5 @@
+#pragma once
+
 //10 ns of delay * multiplier. Teensy 3.5 specific value due to clock speed. Adjust as needed.
 inline void delay10ns(int multiplier) {
   /* Delays ~10ns * multipier.

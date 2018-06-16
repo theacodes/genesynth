@@ -1,5 +1,7 @@
 #pragma once
 #include <SdFat.h>
+#include "ym2612.h"
+#include "psg.h"
 
 #define SAMPLE_RATE 44100
 // 1/44100 = 22.7 uS, will round to 22
@@ -128,8 +130,8 @@ void vgm_loop() {
 
     // Send a byte to the SN.
     case 0x50: {
-      // TODO.
       byte data = vgm_file.read();
+      psg_send_byte(data);
       last_time_us = loop_start_us;
       sleep_time_us = SINGLE_SAMPLE_WAIT;
 
