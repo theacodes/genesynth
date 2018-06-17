@@ -71,35 +71,6 @@ inline static void ym_set_data(byte b)
   }
 }
 
-void ym_set_reg(byte address, byte data) {
-  // Write the register address first.
-  digitalWriteFast(YM_A1, LOW);
-  digitalWriteFast(YM_A0, LOW);
-  ym_set_data(address);
-  // technically we should give *some* time between setting the bytes and
-  // pulling the pins, but it seems to work fine without that.
-  digitalWriteFast(YM_CS, LOW);
-  digitalWriteFast(YM_WR, LOW);
-  // We shouldn't raise the WR and CS until at least YM_WRITE_WAIT have passed.
-  delay10ns(YM_WRITE_WAIT);
-  digitalWriteFast(YM_WR, HIGH);
-  digitalWriteFast(YM_CS, HIGH);
-  // We must wait for the chip to finish reading our data before loading in the
-  // next byte.
-  //delay10ns(YM_DATA_WAIT);
-  delay10ns(1);
-
-  // Same as above, but with A0 high to write the register data.
-  digitalWriteFast(YM_A0, HIGH);
-  ym_set_data(data);
-  digitalWriteFast(YM_CS, LOW);
-  digitalWriteFast(YM_WR, LOW);
-  delay10ns(YM_WRITE_WAIT);
-  digitalWriteFast(YM_WR, HIGH);
-  digitalWriteFast(YM_CS, HIGH);
-  delay10ns(YM_DATA_WAIT);
-}
-
 void ym_set_reg(byte address, byte data, int port) {
   // Write the register address first.
   digitalWriteFast(YM_A1, port);
@@ -126,4 +97,8 @@ void ym_set_reg(byte address, byte data, int port) {
   digitalWriteFast(YM_WR, HIGH);
   digitalWriteFast(YM_CS, HIGH);
   delay10ns(YM_DATA_WAIT);
+}
+
+void ym_set_reg(byte address, byte data){
+  return ym_set_reg(address, data, 0);
 }

@@ -6,6 +6,7 @@
 
 #define STATUS_LED 13
 #define YM_CLOCK 4
+#define PSG_CLOCK 5
 
 static void wait_for_serial_monitor() {
   pinMode(STATUS_LED, OUTPUT);
@@ -22,8 +23,15 @@ static void wait_for_serial_monitor() {
 static void setup_ym_clock() {
   /* Temporary. Uses PWM to generate an 8Mhz clock for the YM2612 */
   pinMode(YM_CLOCK, OUTPUT);
-  analogWriteFrequency(YM_CLOCK, 8000000);
+  analogWriteFrequency(YM_CLOCK, 7670000);
   analogWrite(YM_CLOCK, 128);
+}
+
+static void setup_psg_clock() {
+  /* Temporary. Uses PWM to generate an 4Mhz clock for the PSG */
+  pinMode(PSG_CLOCK, OUTPUT);
+  analogWriteFrequency(PSG_CLOCK, 3570000);
+  analogWrite(PSG_CLOCK, 128);
 }
 
 // the setup routine runs once when you press reset:
@@ -37,11 +45,14 @@ void setup() {
 
   // Setup clocks
   setup_ym_clock();
+  setup_psg_clock();
   delay(50); // wait a second for the clock.
 
   // Setup sound chips.
   ym_setup();
   ym_reset();
+  psg_setup();
+  psg_reset();
 
   // Trigger the YM test code.
   //ym_test();
