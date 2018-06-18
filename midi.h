@@ -12,6 +12,11 @@ UsbTransport sUsbTransport;
 MIDI_CREATE_INSTANCE(UsbTransport, sUsbTransport, MIDI);
 
 
+
+// TEMPORARY
+byte midi_channel_note[3] = {0, 0, 0};
+
+
 void handleNoteOn(byte channel, byte note, byte velocity) {
   display.print("Note on!");
   //                       Input clock (Hz) (3579545)
@@ -23,16 +28,19 @@ void handleNoteOn(byte channel, byte note, byte velocity) {
   display.setCursor(0, 3);
   display.print("Note on!");
   display.setCursor(0, 5);
-  display.print(channel);
+  display.print(velocity);
 
   psg_set_channel_freq(channel-1, pitch);
-  psg_set_channel_vol(channel-1, 0x00);
+  psg_set_channel_vol(channel-1, velocity);
+  midi_channel_note[channel-1] = note;
 }
 
-void handleNoteOff(byte channel, byte pitch, byte velocity) {
+void handleNoteOff(byte channel, byte note, byte velocity) {
+  if(midi_channel_note[channel-1] != note) return;
+
   display.setCursor(0, 3);
   display.print("Note off!");
-  psg_set_channel_vol(channel-1, 0x0F);
+  psg_set_channel_vol(channel-1, 0);
 }
 
 // -----------------------------------------------------------------------------

@@ -2,6 +2,7 @@
 
 #include <util/delay.h> // For timing
 #include "nanodelay.h"
+#include "display.h"
 
 // Pin 14-22 to PSG DATA (shared with YM)
 //#define PSG_DATA 14
@@ -62,7 +63,11 @@ void psg_set_channel_freq(int channel, float freq) {
 }
 
 void psg_set_channel_vol(int channel, byte vol) {
-  byte cmd = PSG_LATCH | PSG_VOL_REG | PSG_CHANNEL_SELECT[channel] | (vol & PSG_LSB_MASK);
+  // Map volume from 0-127 to 0-15, and then invert it.
+  byte vol_value = 15 - byte(float(vol) / 127.f * 15.f);
+  display.setCursor(0, 7);
+  display.print(vol_value);
+  byte cmd = PSG_LATCH | PSG_VOL_REG | PSG_CHANNEL_SELECT[channel] | (vol_value & PSG_LSB_MASK);
   psg_send_byte(cmd);
   delay(1); // TODO
 }
