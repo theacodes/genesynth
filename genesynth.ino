@@ -3,6 +3,7 @@
 #include "ym_test.h"
 #include "vgm.h"
 #include "display.h"
+#include "midi.h"
 
 #define STATUS_LED 13
 #define YM_CLOCK 4
@@ -54,6 +55,9 @@ void setup() {
   psg_setup();
   psg_reset();
 
+  // Setup MIDI
+  midi_setup();
+
   // Trigger the YM test code.
   //ym_test();
 
@@ -64,11 +68,10 @@ void setup() {
   // delay(1000);
 
   // Initialize the VGM player.
-  vgm_init();
+  //vgm_init();
 }
 
 void loop() {
-  vgm_loop();
-  //song();
-  //delay(100);
+  //vgm_loop();
+  midi_loop();
 }

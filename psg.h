@@ -7,8 +7,22 @@
 //#define PSG_DATA 14
 const byte PSG_DATA[] = {39, 38, 37, 36, 35, 27, 26, 25};
 #define PSG_WE 34
-
 #define PSG_WAIT 500
+
+#define PSG_LATCH 0b10000000
+
+const char PSG_CHANNEL_SELECT[] = {
+  0b00000000,  // Tone 1
+  0b00100000,  // Tone 2
+  0b01000000,  // Tone 3
+  0b01100000  // White Noise
+};
+
+#define PSG_VOL_REG 0b00010000
+#define PSG_TONE_REG 0b00000000
+
+#define PSG_LSB_MASK 0b00001111  // 4-bits LSB of data
+#define PSG_MSB_MASK 0b00111111  // 6-bits MSB of data
 
 
 void psg_setup() {
@@ -29,8 +43,28 @@ void psg_send_byte(byte data) {
   }
   digitalWriteFast(PSG_WE, LOW);
   delay10ns(PSG_WAIT);
-  //delay(1);
   digitalWriteFast(PSG_WE, HIGH);
+}
+
+void psg_set_channel_freq(int channel, float freq) {
+  uint16_t pitch_value = 3570000 / float(32 * freq);
+
+  if (pitch_value > 1023) {
+    return;
+  }
+
+  byte cmd = PSG_LATCH | PSG_TONE_REG | PSG_CHANNEL_SELECT[channel] | (pitch_value & PSG_LSB_MASK);
+  psg_send_byte(cmd);
+  delay(1); // TODO
+  byte data = pitch_value >> 4;
+  psg_send_byte(data);
+  delay(1);
+}
+
+void psg_set_channel_vol(int channel, byte vol) {
+  byte cmd = PSG_LATCH | PSG_VOL_REG | PSG_CHANNEL_SELECT[channel] | (vol & PSG_LSB_MASK);
+  psg_send_byte(cmd);
+  delay(1); // TODO
 }
 
 void psg_reset() {
