@@ -55,11 +55,12 @@ void setup() {
   psg_setup();
   psg_reset();
 
+  // Trigger the YM test code.
+  ym_test();
+
   // Setup MIDI
   midi_setup();
 
-  // Trigger the YM test code.
-  //ym_test();
 
   // Output a single note to say hello.
   // elapsedMicros timer;

@@ -48,6 +48,9 @@ void psg_send_byte(byte data) {
 }
 
 void psg_set_channel_freq(int channel, float freq) {
+  //                       Input clock (Hz) (3579545)
+  // Frequency (Hz) = ----------------------------------
+  //                   2 x register value x divider (16)
   uint16_t pitch_value = 3570000 / float(32 * freq);
 
   if (pitch_value > 1023) {
