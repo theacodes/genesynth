@@ -27,11 +27,9 @@ void handleNoteOn(byte channel, byte note, byte velocity) {
 
   display.setCursor(0, 3);
   display.print("Note on!");
-  display.setCursor(0, 5);
-  display.print(velocity);
 
   psg_set_channel_freq(channel-1, pitch);
-  psg_set_channel_vol(channel-1, velocity);
+  psg_set_channel_vol(channel-1, 255);
   midi_channel_note[channel-1] = note;
 }
 
