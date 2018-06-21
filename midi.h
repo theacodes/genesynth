@@ -45,15 +45,20 @@ void handleNoteOn(byte channel, byte note, byte velocity) {
   // ym_set_reg(0xA0, (freq & 0xFF));
   // delay(1);
 
-  ym_set_reg(0xA4, (block << 3) | (freq_int >> 8));
-  delay(1);
-  ym_set_reg(0xA0, freq_int & 0xFF);
-  delay(1);
-
-  ym_set_reg(0x28, 0x00); // Key off
-  delay(1);
-  ym_set_reg(0x28, 0xF0); // Key on
-  midi_channel_note[channel-1] = note;
+  int i = 0;
+  for(; i < 3; i++) {
+    if(midi_channel_note[i] == 0) {
+      ym_set_reg(0x28, i); // Key off
+      delay(1);
+      ym_set_reg(0xA4 + i, (block << 3) | (freq_int >> 8));
+      delay(1);
+      ym_set_reg(0xA0 + i, freq_int & 0xFF);
+      delay(1);
+      ym_set_reg(0x28, 0xF0+i); // Key on
+      midi_channel_note[i] = note;
+      break;
+    }
+  }
 
   display.clear();
   display.setCursor(0, 3);
@@ -64,14 +69,20 @@ void handleNoteOn(byte channel, byte note, byte velocity) {
   display.print(freq);
   display.setCursor(0, 6);
   display.print(freq_int);
+  display.setCursor(0, 7);
+  display.print(i);
 }
 
 void handleNoteOff(byte channel, byte note, byte velocity) {
-  if(midi_channel_note[channel-1] != note) return;
+  for(int i = 0; i < 3; i++) {
+    if(midi_channel_note[i] == note) {
+      midi_channel_note[i] = 0;
+      ym_set_reg(0x28, i); // Key off
+    }
+  }
 
   display.setCursor(0, 3);
   display.print("Note off!");
-  ym_set_reg(0x28, 0x00); // Key off
   //psg_set_channel_vol(channel-1, 0);
 }
 

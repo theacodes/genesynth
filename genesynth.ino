@@ -56,7 +56,8 @@ void setup() {
   psg_reset();
 
   // Trigger the YM test code.
-  ym_test();
+  //ym_test();
+  ym_test_patch();
 
   // Setup MIDI
   midi_setup();
