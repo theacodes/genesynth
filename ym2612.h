@@ -3,7 +3,7 @@
 #include <util/delay.h> // For timing
 #include "nanodelay.h"
 
-// Pin 14-22 to YM DATA
+// Pin 14-21 to YM DATA
 #define YM_DATA 14
 // Pin 33 to YM IC
 #define YM_IC 33

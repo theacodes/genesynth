@@ -15,16 +15,11 @@ MIDI_CREATE_INSTANCE(UsbTransport, sUsbTransport, MIDI);
 
 
 // TEMPORARY
-byte midi_channel_note[3] = {0, 0, 0};
+byte ym_channel_note[3] = {0, 0, 0};
+byte psg_channel_note[3] = {0, 0, 0};
 
 
-void handleNoteOn(byte channel, byte note, byte velocity) {
-  display.print("Note on!");
-  float pitch = pow(2, float(note - 69) / 12) * 440;
-
-  //psg_set_channel_freq(channel-1, pitch);
-  //psg_set_channel_vol(channel-1, 255);
-
+void ymNoteOn(float pitch, byte note, byte velocity) {
   // From YM2612 Datasheet:
   // Freq Number = (144 * note * 2^20 / Clock) / 2^(block-1)
   float freq = pitch * 144 * pow(2.f, 20) / 7670000;
@@ -40,14 +35,9 @@ void handleNoteOn(byte channel, byte note, byte velocity) {
   // --block;
   // freq >>= 7;
 
-  // ym_set_reg(0xA4, (freq >> 8) | (block << 3));
-  // delay(1);
-  // ym_set_reg(0xA0, (freq & 0xFF));
-  // delay(1);
-
   int i = 0;
   for(; i < 3; i++) {
-    if(midi_channel_note[i] == 0) {
+    if(ym_channel_note[i] == 0) {
       ym_set_reg(0x28, i); // Key off
       delay(1);
       ym_set_reg(0xA4 + i, (block << 3) | (freq_int >> 8));
@@ -55,16 +45,11 @@ void handleNoteOn(byte channel, byte note, byte velocity) {
       ym_set_reg(0xA0 + i, freq_int & 0xFF);
       delay(1);
       ym_set_reg(0x28, 0xF0+i); // Key on
-      midi_channel_note[i] = note;
+      ym_channel_note[i] = note;
       break;
     }
   }
 
-  display.clear();
-  display.setCursor(0, 3);
-  display.print("Note on!");
-  display.setCursor(0, 4);
-  display.print(pitch);
   display.setCursor(0, 5);
   display.print(freq);
   display.setCursor(0, 6);
@@ -73,17 +58,64 @@ void handleNoteOn(byte channel, byte note, byte velocity) {
   display.print(i);
 }
 
-void handleNoteOff(byte channel, byte note, byte velocity) {
+void psgNoteOn(float pitch, byte note, byte velocity) {
+  int i = 0;
+  for(; i < 3; i++) {
+    if(psg_channel_note[i] == 0) {
+      psg_set_channel_freq(i, pitch);
+      psg_set_channel_vol(i, 255);
+      psg_channel_note[i] = note;
+      break;
+    }
+  }
+}
+
+void handleNoteOn(byte channel, byte note, byte velocity) {
+  display.print("Note on!");
+  float pitch = pow(2, float(note - 69) / 12) * 440;
+
+  if(channel == 1) {
+    ymNoteOn(pitch, note, velocity);
+  }
+  else if (channel == 2) {
+    psgNoteOn(pitch, note, velocity);
+  }
+
+  display.clear();
+  display.setCursor(0, 3);
+  display.print("Note on!");
+  display.setCursor(0, 4);
+  display.print(pitch);
+}
+
+void ymNoteOff(byte note, byte velocity) {
   for(int i = 0; i < 3; i++) {
-    if(midi_channel_note[i] == note) {
-      midi_channel_note[i] = 0;
+    if(ym_channel_note[i] == note) {
+      ym_channel_note[i] = 0;
       ym_set_reg(0x28, i); // Key off
     }
+  }
+}
+
+void psgNoteOff(byte note, byte velocity) {
+  for(int i = 0; i < 3; i++) {
+    if(psg_channel_note[i] == note) {
+      psg_channel_note[i] = 0;
+      psg_set_channel_vol(i, 0);
+    }
+  }
+}
+
+void handleNoteOff(byte channel, byte note, byte velocity) {
+  if(channel == 1) {
+    ymNoteOff(note, velocity);
+  }
+  else if (channel == 2) {
+    psgNoteOff(note, velocity);
   }
 
   display.setCursor(0, 3);
   display.print("Note off!");
-  //psg_set_channel_vol(channel-1, 0);
 }
 
 // -----------------------------------------------------------------------------

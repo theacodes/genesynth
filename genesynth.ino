@@ -57,7 +57,7 @@ void setup() {
 
   // Trigger the YM test code.
   //ym_test();
-  ym_test_patch();
+  ym_test_patch2();
 
   // Setup MIDI
   midi_setup();

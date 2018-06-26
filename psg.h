@@ -4,9 +4,9 @@
 #include "nanodelay.h"
 #include "display.h"
 
-// Pin 14-22 to PSG DATA (shared with YM)
-//#define PSG_DATA 14
-const byte PSG_DATA[] = {39, 38, 37, 36, 35, 27, 26, 25};
+// Pin 14-21 to PSG DATA (shared with YM)
+const byte PSG_DATA[] = {14, 15, 16, 17, 18, 19, 20, 21};
+//const byte PSG_DATA[] = {39, 38, 37, 36, 35, 27, 26, 25};
 #define PSG_WE 34
 #define PSG_WAIT 500
 
