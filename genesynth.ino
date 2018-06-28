@@ -4,6 +4,7 @@
 #include "vgm.h"
 #include "display.h"
 #include "midi.h"
+#include "opn_parser.h"
 
 #define STATUS_LED 13
 #define YM_CLOCK 4
@@ -41,6 +42,7 @@ void setup() {
   //wait_for_serial_monitor();
   Serial.println("Started");
 
+
   // Initialize the display
   display_init();
 
@@ -55,25 +57,23 @@ void setup() {
   psg_setup();
   psg_reset();
 
-  // Trigger the YM test code.
-  //ym_test();
-  ym_test_patch2();
+
+  // Load patch
+  auto patch = parse_opn_patch();
+  patch.write_to_channel(0);
+  patch.write_to_channel(1);
+  patch.write_to_channel(2);
+  //ym_test_patch();
+
 
   // Setup MIDI
   midi_setup();
-
-
-  // Output a single note to say hello.
-  // elapsedMicros timer;
-  // setreg(0x28, 0xF0); // Key on
-  // Serial.println(timer);
-  // delay(1000);
 
   // Initialize the VGM player.
   //vgm_init();
 }
 
 void loop() {
-  //vgm_loop();
   midi_loop();
+  //vgm_loop();
 }
