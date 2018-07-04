@@ -1,5 +1,7 @@
 #include "thea.h"
 
+namespace thea {
+
 uint8_t tileset[61][8] = {
     {
         0b00000000,
@@ -612,6 +614,7 @@ uint8_t tileset[61][8] = {
         0b11110011,
     },
 };
+
 const uint8_t tilemap[128] = {
       4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,
      53,  35,  35,  21,  26,  44,  26,  44,  13,  35,  25,   4,  30,  46,   4,   4,
@@ -631,4 +634,6 @@ void show_thea(U8X8 *u8x8) {
         uint8_t y = i / 16;
         u8x8->drawTile(x, y, 1, tileset[tilemap[i]]);
     }
+};
+
 };

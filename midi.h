@@ -38,13 +38,13 @@ void ymNoteOn(float pitch, byte note, byte velocity) {
   int i = 0;
   for(; i < 3; i++) {
     if(ym_channel_note[i] == 0) {
-      ym_set_reg(0x28, i); // Key off
+      thea::ym2612::set_reg(0x28, i); // Key off
       delay(1);
-      ym_set_reg(0xA4 + i, (block << 3) | (freq_int >> 8));
+      thea::ym2612::set_reg(0xA4 + i, (block << 3) | (freq_int >> 8));
       delay(1);
-      ym_set_reg(0xA0 + i, freq_int & 0xFF);
+      thea::ym2612::set_reg(0xA0 + i, freq_int & 0xFF);
       delay(1);
-      ym_set_reg(0x28, 0xF0+i); // Key on
+      thea::ym2612::set_reg(0x28, 0xF0+i); // Key on
       ym_channel_note[i] = note;
       break;
     }
@@ -92,7 +92,7 @@ void ymNoteOff(byte note, byte velocity) {
   for(int i = 0; i < 3; i++) {
     if(ym_channel_note[i] == note) {
       ym_channel_note[i] = 0;
-      ym_set_reg(0x28, i); // Key off
+      thea::ym2612::set_reg(0x28, i); // Key off
     }
   }
 }

@@ -1,6 +1,5 @@
 #include <util/delay.h>
 #include "ym2612.h"
-#include "ym_test.h"
 #include "vgm.h"
 #include "display.h"
 #include "midi.h"
@@ -46,7 +45,7 @@ void setup() {
 
   // Initialize the display
   display_init();
-  show_thea(&display);
+  thea::show_thea(&display);
 
   // Setup clocks
   setup_ym_clock();
@@ -54,8 +53,8 @@ void setup() {
   delay(50); // wait a second for the clock.
 
   // Setup sound chips.
-  ym_setup();
-  ym_reset();
+  thea::ym2612::setup();
+  thea::ym2612::reset();
   psg_setup();
   psg_reset();
 
@@ -65,7 +64,6 @@ void setup() {
   patch.write_to_channel(0);
   patch.write_to_channel(1);
   patch.write_to_channel(2);
-  //ym_test_patch();
 
 
   // Setup MIDI

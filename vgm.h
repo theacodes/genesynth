@@ -142,7 +142,7 @@ void vgm_loop() {
     case 0x52: {
       byte reg = vgm_file.read();
       byte data = vgm_file.read();
-      ym_set_reg(reg, data, 0);
+      thea::ym2612::set_reg(reg, data, 0);
       last_time_us = loop_start_us;
       sleep_time_us = SINGLE_SAMPLE_WAIT;
 
@@ -152,7 +152,7 @@ void vgm_loop() {
     case 0x53: {
       byte reg = vgm_file.read();
       byte data = vgm_file.read();
-      ym_set_reg(reg, data, 1);
+      thea::ym2612::set_reg(reg, data, 1);
       last_time_us = loop_start_us;
       sleep_time_us = SINGLE_SAMPLE_WAIT;
 
@@ -249,7 +249,7 @@ void vgm_loop() {
       uint32_t wait_samples = cmd & 0x0F;
       byte data = pcm_buffer[pcm_buffer_pos];
       pcm_buffer_pos++;
-      ym_set_reg(0x2A, data, 1);
+      thea::ym2612::set_reg(0x2A, data, 1);
 
       last_time_us = loop_start_us;
       sleep_time_us = SINGLE_SAMPLE_WAIT * wait_samples;
