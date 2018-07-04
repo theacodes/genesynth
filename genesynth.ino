@@ -5,6 +5,7 @@
 #include "display.h"
 #include "midi.h"
 #include "opn_parser.h"
+#include "thea.h"
 
 #define STATUS_LED 13
 #define YM_CLOCK 4
@@ -45,6 +46,7 @@ void setup() {
 
   // Initialize the display
   display_init();
+  show_thea(&display);
 
   // Setup clocks
   setup_ym_clock();
