@@ -1,4 +1,6 @@
-#pragma once
+#ifndef THEA_MIDI_H
+#define THEA_MIDI_H
+
 #include <MIDI.h>
 #include <midi_UsbTransport.h>
 #include "psg.h"
@@ -132,3 +134,5 @@ void midi_loop()
 {
     MIDI.read();
 }
+
+#endif

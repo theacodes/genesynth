@@ -1,7 +1,8 @@
 #include <util/delay.h>
+
 #include "ym2612.h"
-#include "vgm.h"
 #include "display.h"
+#include "vgm.h"
 #include "midi.h"
 #include "opn_parser.h"
 #include "thea.h"
@@ -70,10 +71,10 @@ void setup() {
   midi_setup();
 
   // Initialize the VGM player.
-  //vgm_init();
+  //thea::vgm::init();
 }
 
 void loop() {
   midi_loop();
-  //vgm_loop();
+  //thea::vgm::vgm_loop();
 }

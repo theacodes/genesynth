@@ -1,4 +1,5 @@
-#pragma once
+#ifndef THEA_OPN_PARSER_H
+#define THEA_OPN_PARSER_H
 
 #include <cstring>
 #include "ym2612.h"
@@ -142,3 +143,5 @@ thea::ym2612::ChannelPatch parse_opn_patch() {
 
     return patch;
 }
+
+#endif

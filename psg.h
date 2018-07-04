@@ -1,4 +1,5 @@
-#pragma once
+#ifndef THEA_PSG_H
+#define THEA_PSG_H
 
 #include <util/delay.h> // For timing
 #include "nanodelay.h"
@@ -80,3 +81,6 @@ void psg_reset() {
   psg_send_byte(0xdf);
   psg_send_byte(0xff);
 }
+
+
+#endif

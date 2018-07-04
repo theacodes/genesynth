@@ -1,4 +1,5 @@
-#pragma once
+#ifndef THEA_YM2612_H
+#define THEA_YM2612_H
 
 namespace thea {
 namespace ym2612 {
@@ -78,3 +79,5 @@ void load_test_patch2();
 
 }; //namespace ym2612
 }; //namespace thea
+
+#endif

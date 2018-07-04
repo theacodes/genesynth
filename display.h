@@ -1,4 +1,5 @@
-#pragma once
+#ifndef THEA_DISPLAY_H
+#define THEA_DISPLAY_H
 
 #include <U8x8lib.h>
 
@@ -18,3 +19,5 @@ void display_init(void) {
   display.setCursor(0, 1);
   display.print("this at home!");
 }
+
+#endif
