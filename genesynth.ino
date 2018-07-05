@@ -62,11 +62,7 @@ void setup() {
 
 
   // Load patch
-  auto patch = thea::opn::parse();
-  patch.write_to_channel(0);
-  patch.write_to_channel(1);
-  patch.write_to_channel(2);
-
+  thea::ym2612::ChannelPatch patch;
 
   // Setup MIDI
   midi_setup();
@@ -76,8 +72,9 @@ void setup() {
 
   // Test patch loading
   thea::patch_loader::init();
-  while(!thea::patch_loader::load_next(&patch)){
-    Serial.println("meep");
+  while(thea::patch_loader::load_next(&patch)){
+    Serial.println("loaded patch.");
+    delay(50);
   }
 }
 

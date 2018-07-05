@@ -24,7 +24,7 @@
 namespace thea {
 namespace opn {
 
-thea::ym2612::ChannelPatch parse();
+bool parse(const char* filename, thea::ym2612::ChannelPatch* patch);
 
 } // namespace opn
 } // namespace thea

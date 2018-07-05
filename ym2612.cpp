@@ -119,25 +119,25 @@ void ChannelPatch::write_to_channel(uint8_t channel) {
 
     uint8_t operator_offset = 4 * i;
     set_reg(0x30 + operator_offset + channel, dt1_mul_byte);
-    delay(1);
+    delay(2);
     set_reg(0x40 + operator_offset + channel, tl_byte);
-    delay(1);
+    delay(2);
     set_reg(0x50 + operator_offset + channel, rs_ar_byte);
-    delay(1);
+    delay(2);
     set_reg(0x60 + operator_offset + channel, am_d1r_byte);
-    delay(1);
+    delay(2);
     set_reg(0x70 + operator_offset + channel, d2r_byte);
-    delay(1);
+    delay(2);
     set_reg(0x80 + operator_offset + channel, d1l_rr_byte);
-    delay(1);
+    delay(2);
   }
 
   // Setup channel
   uint8_t feedback_algorithm_byte = (feedback << 3) | (algorithm & 0x7);
   set_reg(0xB0 + channel, feedback_algorithm_byte);
-  delay(1);
+  delay(2);
   set_reg(0xB4 + channel, 0xC0); // Enable output on both speakers (for now)
-  delay(1);
+  delay(2);
 };
 
 void load_test_patch() {

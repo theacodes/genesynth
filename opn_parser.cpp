@@ -7,20 +7,15 @@
 namespace thea {
 namespace opn {
 
-
-SdFatSdio parser_sd;
-
-thea::ym2612::ChannelPatch parse() {
-    thea::ym2612::ChannelPatch patch;
+bool parse(const char* filename, thea::ym2612::ChannelPatch* patch) {
     char colon;
     int skipint;
 
-    parser_sd.begin();
-    ifstream file("patch.opn");
+    ifstream file(filename);
 
     if(!file.is_open()) {
         Serial.println("Bad");
-        return patch;
+        return false;
     }
 
     while(!file.eof()) {
@@ -53,8 +48,8 @@ thea::ym2612::ChannelPatch parse() {
             //PAN   FL(feedback) CON(algorithm) AMS(Amp mod) PMS(Phase mod?) SLOT(?) NE(noise)
             file >> colon
                 >> skipint
-                >> patch.feedback
-                >> patch.algorithm
+                >> patch->feedback
+                >> patch->algorithm
                 >> skipint
                 >> skipint
                 >> skipint
@@ -99,32 +94,32 @@ thea::ym2612::ChannelPatch parse() {
             >> skipint
             >> am;
 
-        patch.operators[oper].AR = ar;
-        patch.operators[oper].D1R = d1r;
-        patch.operators[oper].D2R = d2r;
-        patch.operators[oper].RR = rr;
-        patch.operators[oper].D1L = d1l;
-        patch.operators[oper].TL = tl;
-        patch.operators[oper].RS = rs;
-        patch.operators[oper].MUL = mul;
-        patch.operators[oper].DT1 = dt1;
-        patch.operators[oper].AM = am;
+        patch->operators[oper].AR = ar;
+        patch->operators[oper].D1R = d1r;
+        patch->operators[oper].D2R = d2r;
+        patch->operators[oper].RR = rr;
+        patch->operators[oper].D1L = d1l;
+        patch->operators[oper].TL = tl;
+        patch->operators[oper].RS = rs;
+        patch->operators[oper].MUL = mul;
+        patch->operators[oper].DT1 = dt1;
+        patch->operators[oper].AM = am;
 
-        Serial.printf("%i %i %i %i %i %i %i %i %i %i %i",
+        Serial.printf("%i %i %i %i %i %i %i %i %i %i %i\n",
             oper,
-            patch.operators[oper].AR,
-            patch.operators[oper].D1R,
-            patch.operators[oper].D2R,
-            patch.operators[oper].RR,
-            patch.operators[oper].D1L,
-            patch.operators[oper].TL,
-            patch.operators[oper].RS,
-            patch.operators[oper].MUL,
-            patch.operators[oper].DT1,
-            patch.operators[oper].AM);
+            patch->operators[oper].AR,
+            patch->operators[oper].D1R,
+            patch->operators[oper].D2R,
+            patch->operators[oper].RR,
+            patch->operators[oper].D1L,
+            patch->operators[oper].TL,
+            patch->operators[oper].RS,
+            patch->operators[oper].MUL,
+            patch->operators[oper].DT1,
+            patch->operators[oper].AM);
     }
 
-    return patch;
+    return true;
 }
 
 } // namespace opn
