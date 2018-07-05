@@ -108,6 +108,9 @@ void set_reg(uint8_t address, uint8_t data){
 }
 
 void ChannelPatch::write_to_channel(uint8_t channel) {
+  int port = channel < 3 ? 0 : 1;
+  channel = channel % 3;
+  Serial.printf("Channel: %i, Port: %i\n", channel, port);
   // Setup operators.
   for(int i = 0; i < 4; i++) {
     uint8_t dt1_mul_byte = (operators[i].DT1 << 4) & (operators[i].MUL & 0xF);
@@ -118,25 +121,25 @@ void ChannelPatch::write_to_channel(uint8_t channel) {
     uint8_t d1l_rr_byte = (operators[i].D1L << 4) | (operators[i].RR & 0xF);
 
     uint8_t operator_offset = 4 * i;
-    set_reg(0x30 + operator_offset + channel, dt1_mul_byte);
+    set_reg(0x30 + operator_offset + channel, dt1_mul_byte, port);
     delay(2);
-    set_reg(0x40 + operator_offset + channel, tl_byte);
+    set_reg(0x40 + operator_offset + channel, tl_byte, port);
     delay(2);
-    set_reg(0x50 + operator_offset + channel, rs_ar_byte);
+    set_reg(0x50 + operator_offset + channel, rs_ar_byte, port);
     delay(2);
-    set_reg(0x60 + operator_offset + channel, am_d1r_byte);
+    set_reg(0x60 + operator_offset + channel, am_d1r_byte, port);
     delay(2);
-    set_reg(0x70 + operator_offset + channel, d2r_byte);
+    set_reg(0x70 + operator_offset + channel, d2r_byte, port);
     delay(2);
-    set_reg(0x80 + operator_offset + channel, d1l_rr_byte);
+    set_reg(0x80 + operator_offset + channel, d1l_rr_byte, port);
     delay(2);
   }
 
   // Setup channel
   uint8_t feedback_algorithm_byte = (feedback << 3) | (algorithm & 0x7);
-  set_reg(0xB0 + channel, feedback_algorithm_byte);
+  set_reg(0xB0 + channel, feedback_algorithm_byte, port);
   delay(2);
-  set_reg(0xB4 + channel, 0xC0); // Enable output on both speakers (for now)
+  set_reg(0xB4 + channel, 0xC0, port); // Enable output on both speakers (for now)
   delay(2);
 };
 

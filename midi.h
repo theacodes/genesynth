@@ -17,7 +17,7 @@ MIDI_CREATE_INSTANCE(UsbTransport, sUsbTransport, MIDI);
 
 
 // TEMPORARY
-byte ym_channel_note[3] = {0, 0, 0};
+byte ym_channel_note[6] = {0, 0, 0, 0, 0, 0};
 byte psg_channel_note[3] = {0, 0, 0};
 
 
@@ -37,17 +37,21 @@ void ymNoteOn(float pitch, byte note, byte velocity) {
   // --block;
   // freq >>= 7;
 
-  int i = 0;
-  for(; i < 3; i++) {
+  size_t i = 0;
+  for(; i < sizeof(ym_channel_note); i++) {
     if(ym_channel_note[i] == 0) {
-      thea::ym2612::set_reg(0x28, i); // Key off
-      delay(1);
-      thea::ym2612::set_reg(0xA4 + i, (block << 3) | (freq_int >> 8));
-      delay(1);
-      thea::ym2612::set_reg(0xA0 + i, freq_int & 0xFF);
-      delay(1);
-      thea::ym2612::set_reg(0x28, 0xF0+i); // Key on
+      int port = i < 3 ? 0 : 1;
+      uint8_t channel_offset = (i % 3);
+      uint8_t key_offset = channel_offset | (port << 2);
+      thea::ym2612::set_reg(0x28, key_offset); // Key off
+      delay(3);
+      thea::ym2612::set_reg(0xA4 + channel_offset, (block << 3) | (freq_int >> 8), port); // freq
+      delay(3);
+      thea::ym2612::set_reg(0xA0 + channel_offset, freq_int & 0xFF, port);
+      delay(3);
+      thea::ym2612::set_reg(0x28, 0xF0 | key_offset); // Key on
       ym_channel_note[i] = note;
+      Serial.printf("Sending note %i to channel %i, offset %i, key %i\n", note, i, channel_offset, key_offset);
       break;
     }
   }
@@ -58,6 +62,18 @@ void ymNoteOn(float pitch, byte note, byte velocity) {
   thea::display::display.print(freq_int);
   thea::display::display.setCursor(0, 7);
   thea::display::display.print(i);
+}
+
+void ymNoteOff(byte note, byte velocity) {
+  for(size_t i = 0; i < sizeof(ym_channel_note); i++) {
+    if(ym_channel_note[i] == note) {
+      int port = i < 3 ? 0 : 1;
+      uint8_t channel_offset = (i % 3);
+      uint8_t key_offset = channel_offset | (port << 2);
+      ym_channel_note[i] = 0;
+      thea::ym2612::set_reg(0x28, key_offset); // Key off
+    }
+  }
 }
 
 void psgNoteOn(float pitch, byte note, byte velocity) {
@@ -88,15 +104,6 @@ void handleNoteOn(byte channel, byte note, byte velocity) {
   thea::display::display.print("Note on!");
   thea::display::display.setCursor(0, 4);
   thea::display::display.print(pitch);
-}
-
-void ymNoteOff(byte note, byte velocity) {
-  for(int i = 0; i < 3; i++) {
-    if(ym_channel_note[i] == note) {
-      ym_channel_note[i] = 0;
-      thea::ym2612::set_reg(0x28, i); // Key off
-    }
-  }
 }
 
 void psgNoteOff(byte note, byte velocity) {

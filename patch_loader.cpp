@@ -60,6 +60,9 @@ bool load_next(thea::ym2612::ChannelPatch* patch) {
   patch->write_to_channel(0);
   patch->write_to_channel(1);
   patch->write_to_channel(2);
+  patch->write_to_channel(3);
+  patch->write_to_channel(4);
+  patch->write_to_channel(5);
 
   return true;
 };
