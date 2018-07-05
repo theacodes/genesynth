@@ -61,7 +61,7 @@ void setup() {
 
 
   // Load patch
-  auto patch = parse_opn_patch();
+  auto patch = thea::opn::parse();
   patch.write_to_channel(0);
   patch.write_to_channel(1);
   patch.write_to_channel(2);
