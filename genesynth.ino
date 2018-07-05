@@ -45,8 +45,8 @@ void setup() {
 
 
   // Initialize the display
-  display_init();
-  thea::show_thea(&display);
+  thea::display::init();
+  thea::show_thea(&thea::display::display);
 
   // Setup clocks
   setup_ym_clock();

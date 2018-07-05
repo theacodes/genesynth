@@ -3,7 +3,6 @@
 
 #include <util/delay.h> // For timing
 #include "nanodelay.h"
-#include "display.h"
 
 // Pin 14-21 to PSG DATA (shared with YM)
 const byte PSG_DATA[] = {14, 15, 16, 17, 18, 19, 20, 21};

@@ -52,12 +52,12 @@ void ymNoteOn(float pitch, byte note, byte velocity) {
     }
   }
 
-  display.setCursor(0, 5);
-  display.print(freq);
-  display.setCursor(0, 6);
-  display.print(freq_int);
-  display.setCursor(0, 7);
-  display.print(i);
+  thea::display::display.setCursor(0, 5);
+  thea::display::display.print(freq);
+  thea::display::display.setCursor(0, 6);
+  thea::display::display.print(freq_int);
+  thea::display::display.setCursor(0, 7);
+  thea::display::display.print(i);
 }
 
 void psgNoteOn(float pitch, byte note, byte velocity) {
@@ -73,7 +73,7 @@ void psgNoteOn(float pitch, byte note, byte velocity) {
 }
 
 void handleNoteOn(byte channel, byte note, byte velocity) {
-  display.print("Note on!");
+  thea::display::display.print("Note on!");
   float pitch = pow(2, float(note - 69) / 12) * 440;
 
   if(channel == 1) {
@@ -83,11 +83,11 @@ void handleNoteOn(byte channel, byte note, byte velocity) {
     psgNoteOn(pitch, note, velocity);
   }
 
-  display.clear();
-  display.setCursor(0, 3);
-  display.print("Note on!");
-  display.setCursor(0, 4);
-  display.print(pitch);
+  thea::display::display.clear();
+  thea::display::display.setCursor(0, 3);
+  thea::display::display.print("Note on!");
+  thea::display::display.setCursor(0, 4);
+  thea::display::display.print(pitch);
 }
 
 void ymNoteOff(byte note, byte velocity) {
@@ -116,8 +116,8 @@ void handleNoteOff(byte channel, byte note, byte velocity) {
     psgNoteOff(note, velocity);
   }
 
-  display.setCursor(0, 3);
-  display.print("Note off!");
+  thea::display::display.setCursor(0, 3);
+  thea::display::display.print("Note off!");
 }
 
 // -----------------------------------------------------------------------------
