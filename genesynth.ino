@@ -4,6 +4,7 @@
 #include "display.h"
 #include "vgm.h"
 #include "midi.h"
+#include "patch_loader.h"
 #include "opn_parser.h"
 #include "thea.h"
 
@@ -40,7 +41,7 @@ static void setup_psg_clock() {
 // the setup routine runs once when you press reset:
 void setup() {
   Serial.begin(9600);
-  //wait_for_serial_monitor();
+  wait_for_serial_monitor();
   Serial.println("Started");
 
 
@@ -72,6 +73,12 @@ void setup() {
 
   // Initialize the VGM player.
   //thea::vgm::init();
+
+  // Test patch loading
+  thea::patch_loader::init();
+  while(!thea::patch_loader::load_next(&patch)){
+    Serial.println("meep");
+  }
 }
 
 void loop() {

@@ -1,13 +1,15 @@
 #ifndef THEA_YM2612_H
 #define THEA_YM2612_H
 
+#include <stdint.h>
+
 namespace thea {
 namespace ym2612 {
 
 void setup();
 void reset();
-void set_reg(byte address, byte data, int port);
-void set_reg(byte address, byte data);
+void set_reg(uint8_t address, uint8_t data, int port);
+void set_reg(uint8_t address, uint8_t data);
 
 
 class OperatorPatch {

@@ -75,7 +75,7 @@ inline static void set_data_lines(byte b)
   }
 }
 
-void set_reg(byte address, byte data, int port) {
+void set_reg(uint8_t address, uint8_t data, int port) {
   // Write the register address first.
   digitalWriteFast(YM_A1, port);
   digitalWriteFast(YM_A0, LOW);
@@ -103,7 +103,7 @@ void set_reg(byte address, byte data, int port) {
   delay10ns(YM_DATA_WAIT);
 }
 
-void set_reg(byte address, byte data){
+void set_reg(uint8_t address, uint8_t data){
   return set_reg(address, data, 0);
 }
 
