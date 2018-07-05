@@ -56,8 +56,8 @@ void setup() {
   // Setup sound chips.
   thea::ym2612::setup();
   thea::ym2612::reset();
-  psg_setup();
-  psg_reset();
+  thea::psg::setup();
+  thea::psg::reset();
 
 
   // Load patch

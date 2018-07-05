@@ -64,8 +64,8 @@ void psgNoteOn(float pitch, byte note, byte velocity) {
   int i = 0;
   for(; i < 3; i++) {
     if(psg_channel_note[i] == 0) {
-      psg_set_channel_freq(i, pitch);
-      psg_set_channel_vol(i, 255);
+      thea::psg::set_channel_freq(i, pitch);
+      thea::psg::set_channel_vol(i, 255);
       psg_channel_note[i] = note;
       break;
     }
@@ -103,7 +103,7 @@ void psgNoteOff(byte note, byte velocity) {
   for(int i = 0; i < 3; i++) {
     if(psg_channel_note[i] == note) {
       psg_channel_note[i] = 0;
-      psg_set_channel_vol(i, 0);
+      thea::psg::set_channel_vol(i, 0);
     }
   }
 }

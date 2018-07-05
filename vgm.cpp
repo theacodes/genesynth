@@ -136,7 +136,7 @@ void loop() {
     // Send a byte to the SN.
     case 0x50: {
       byte data = vgm_file.read();
-      psg_send_byte(data);
+      thea::psg::send_byte(data);
       last_time_us = loop_start_us;
       sleep_time_us = SINGLE_SAMPLE_WAIT;
 
