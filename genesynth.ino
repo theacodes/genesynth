@@ -5,7 +5,7 @@
 #include "vgm.h"
 #include "midi.h"
 #include "patch_loader.h"
-#include "opn_parser.h"
+#include "opm_parser.h"
 #include "thea.h"
 
 #define STATUS_LED 13
@@ -41,7 +41,7 @@ static void setup_psg_clock() {
 // the setup routine runs once when you press reset:
 void setup() {
   Serial.begin(9600);
-  //wait_for_serial_monitor();
+  wait_for_serial_monitor();
   Serial.println("Started");
 
 
@@ -61,21 +61,19 @@ void setup() {
   thea::psg::reset();
 
 
-  // Load patch
+  // Load first patch
+  thea::patch_loader::init();
   thea::ym2612::ChannelPatch patch;
+  thea::patch_loader::load_nth(0, &patch);
+  for(int i = 0; i < 6; i++) {
+    patch.write_to_channel(i);
+  }
 
   // Setup MIDI
   midi_setup();
 
   // Initialize the VGM player.
   //thea::vgm::init();
-
-  // Test patch loading
-  thea::patch_loader::init();
-  while(thea::patch_loader::load_next(&patch)){
-    Serial.println("loaded patch.");
-    delay(50);
-  }
 }
 
 void loop() {

@@ -1,10 +1,10 @@
-#ifndef THEA_OPN_PARSER_H
-#define THEA_OPN_PARSER_H
+#ifndef THEA_OPM_PARSER_H
+#define THEA_OPM_PARSER_H
 
 #include "ym2612.h"
 
-/* OPN Patch parser */
-/* OPN Patch format:
+/* OPM Patch parser */
+/* OPM Patch format:
 
   //MiOPMdrv sound bank Paramer Ver2002.04.22
   //LFO: LFRQ AMD PMD WF NFRQ
@@ -22,11 +22,11 @@
 */
 
 namespace thea {
-namespace opn {
+namespace opm {
 
 bool parse(const char* filename, thea::ym2612::ChannelPatch* patch);
 
-} // namespace opn
+} // namespace opm
 } // namespace thea
 
 #endif

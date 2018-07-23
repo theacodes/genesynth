@@ -8,10 +8,9 @@ namespace patch_loader {
 
 void init();
 
-void load_prev();
-bool load_next(thea::ym2612::ChannelPatch* patch);
+bool load_nth(int n, thea::ym2612::ChannelPatch* patch);
 
-} // namespace opn
+} // namespace patch_loader
 } // namespace thea
 
 #endif

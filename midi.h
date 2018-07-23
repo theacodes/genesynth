@@ -6,6 +6,7 @@
 #include "psg.h"
 #include "ym2612.h"
 #include "display.h"
+#include "patch_loader.h"
 
 static const unsigned sUsbTransportBufferSize = 16;
 typedef midi::UsbTransport<sUsbTransportBufferSize> UsbTransport;
@@ -127,12 +128,28 @@ void handleNoteOff(byte channel, byte note, byte velocity) {
   thea::display::display.print("Note off!");
 }
 
+
+void handleProgramChange(byte channel, byte program) {
+  if(channel != 1) return;
+
+  thea::ym2612::ChannelPatch patch;
+  thea::patch_loader::load_nth(program, &patch);
+
+  for(int i = 0; i < 6; i++) {
+    patch.write_to_channel(i);
+  }
+
+  thea::display::display.setCursor(0, 0);
+  thea::display::display.print("Loaded patch!");
+}
+
 // -----------------------------------------------------------------------------
 
 void midi_setup()
 {
     MIDI.setHandleNoteOn(handleNoteOn);
     MIDI.setHandleNoteOff(handleNoteOff);
+    MIDI.setHandleProgramChange(handleProgramChange);
     // Initiate MIDI communications, listen to all channels
     MIDI.begin(MIDI_CHANNEL_OMNI);
 }

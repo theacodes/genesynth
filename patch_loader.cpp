@@ -2,7 +2,7 @@
 #include <cstring>
 #include "SdFat.h"
 
-#include "opn_parser.h"
+#include "opm_parser.h"
 #include "patch_loader.h"
 
 namespace thea {
@@ -33,8 +33,8 @@ bool load_next_file_with_extension(SdFile* file, const char* extension) {
   do {
     if(file->isOpen()) file->close();
     bool success = file->openNext(sd.vwd(), O_READ);
-    /* Todo: wrap-around */
-    if(!success) return false;
+    if(!success) sd.vwd()->rewind(); // wrap around.
+    // TODO: Fix degenerative case where there isn't any files
     file->getName(filename, MAX_FILE_NAME_SIZE);
   }
   while(strncmp(extension, get_extension(filename), 3) != 0);
@@ -42,8 +42,15 @@ bool load_next_file_with_extension(SdFile* file, const char* extension) {
   return true;
 }
 
-bool load_next(thea::ym2612::ChannelPatch* patch) {
-  if(!load_next_file_with_extension(&current_file, "opn")) {
+bool load_nth(int n, thea::ym2612::ChannelPatch* patch) {
+  sd.vwd()->rewind();
+  for(;n >= 0; n--) {
+    Serial.printf("%i\n", n);
+    load_next_file_with_extension(&current_file, "opm");
+  }
+
+  if(!current_file.isOpen()) {
+    Serial.println("File is not open.");
     return false;
   }
 
@@ -54,18 +61,10 @@ bool load_next(thea::ym2612::ChannelPatch* patch) {
 
   current_file.close(); // It will be re-opened as a stream.
 
-  thea::opn::parse(filename, patch);
-
-  // TODO: Move this out of here.
-  patch->write_to_channel(0);
-  patch->write_to_channel(1);
-  patch->write_to_channel(2);
-  patch->write_to_channel(3);
-  patch->write_to_channel(4);
-  patch->write_to_channel(5);
+  thea::opm::parse(filename, patch);
 
   return true;
 };
 
-} // namespace opn
+} // namespace opm
 } // namespace thea

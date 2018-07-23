@@ -2,10 +2,10 @@
 #include "SdFat.h"
 
 #include "ym2612.h"
-#include "opn_parser.h"
+#include "opm_parser.h"
 
 namespace thea {
-namespace opn {
+namespace opm {
 
 bool parse(const char* filename, thea::ym2612::ChannelPatch* patch) {
     char colon;
@@ -122,5 +122,5 @@ bool parse(const char* filename, thea::ym2612::ChannelPatch* patch) {
     return true;
 }
 
-} // namespace opn
+} // namespace opm
 } // namespace thea
