@@ -107,6 +107,41 @@ void set_reg(uint8_t address, uint8_t data){
   return set_reg(address, data, 0);
 }
 
+
+void set_channel_freq(int channel, float freq){
+  // From YM2612 Datasheet:
+  // Freq Number = (144 * note * 2^20 / Clock) / 2^(block-1)
+  // Figure out the base frequency number first, then start iterating through
+  // blocks until it's within range 0 < freq_int < 2000
+  float base_freq = freq * 144 * pow(2.f, 20) / 7670000;
+  uint32_t freq_int = 2001;
+
+  int block = 1;
+  while (freq_int > 2000) {
+    freq_int = base_freq / pow(2.f, block-1);
+    block++;
+  }
+
+  int port = channel < 3 ? 0 : 1;
+  uint8_t channel_offset = (channel % 3);
+  uint8_t key_offset = channel_offset | (port << 2);
+  // Note this presently turns the key off then back on, when it comes time
+  // to implement modulation/pitch bend I'll need to fix this.
+  set_reg(0x28, key_offset); // Key off
+  delay(3);
+  set_reg(
+    0xA4 + channel_offset,
+    (block << 3) | (freq_int >> 8),
+    port); // freq
+  delay(3);
+  set_reg(
+    0xA0 + channel_offset,
+    freq_int & 0xFF,
+    port);
+  delay(3);
+  set_reg(0x28, 0xF0 | key_offset); // Key on
+}
+
 void ChannelPatch::write_to_channel(uint8_t channel) {
   int port = channel < 3 ? 0 : 1;
   channel = channel % 3;

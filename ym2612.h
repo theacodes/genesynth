@@ -10,7 +10,7 @@ void setup();
 void reset();
 void set_reg(uint8_t address, uint8_t data, int port);
 void set_reg(uint8_t address, uint8_t data);
-
+void set_channel_freq(int channel, float freq);
 
 class OperatorPatch {
 public:
