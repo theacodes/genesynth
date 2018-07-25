@@ -26,14 +26,10 @@ void ymNoteOn(float pitch, byte note, byte velocity) {
     if(ym_channel_note[i] == 0) {
       thea::ym2612::set_channel_freq(i, pitch);
       ym_channel_note[i] = note;
+      thea::display::display_state.fm_channels[i] = true;
       break;
     }
   }
-
-  thea::display::display.clear();
-  thea::display::display.setCursor(0, 0);
-  thea::display::display.printf(
-    "Note on!\nNote: %i\nChannel: %i", note, i);
 }
 
 void ymNoteOff(byte note, byte velocity) {
@@ -42,8 +38,9 @@ void ymNoteOff(byte note, byte velocity) {
       int port = i < 3 ? 0 : 1;
       uint8_t channel_offset = (i % 3);
       uint8_t key_offset = channel_offset | (port << 2);
-      ym_channel_note[i] = 0;
       thea::ym2612::set_reg(0x28, key_offset); // Key off
+      ym_channel_note[i] = 0;
+      thea::display::display_state.fm_channels[i] = false;
     }
   }
 }
@@ -55,6 +52,7 @@ void psgNoteOn(float pitch, byte note, byte velocity) {
       thea::psg::set_channel_freq(i, pitch);
       thea::psg::set_channel_vol(i, 255);
       psg_channel_note[i] = note;
+      thea::display::display_state.sq_channels[i] = true;
       break;
     }
   }
@@ -74,8 +72,9 @@ void handleNoteOn(byte channel, byte note, byte velocity) {
 void psgNoteOff(byte note, byte velocity) {
   for(int i = 0; i < 3; i++) {
     if(psg_channel_note[i] == note) {
-      psg_channel_note[i] = 0;
       thea::psg::set_channel_vol(i, 0);
+      psg_channel_note[i] = 0;
+      thea::display::display_state.sq_channels[i] = false;
     }
   }
 }
@@ -120,7 +119,7 @@ void midi_setup()
 
 void midi_loop()
 {
-    MIDI.read();
+  while(MIDI.read()) {};
 }
 
 #endif

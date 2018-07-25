@@ -41,13 +41,13 @@ static void setup_psg_clock() {
 // the setup routine runs once when you press reset:
 void setup() {
   Serial.begin(9600);
-  wait_for_serial_monitor();
+  //wait_for_serial_monitor();
   Serial.println("Started");
 
 
   // Initialize the display
   thea::display::init();
-  thea::show_thea(&thea::display::display);
+  //thea::show_thea(&thea::display::display);
 
   // Setup clocks
   setup_ym_clock();
@@ -78,5 +78,6 @@ void setup() {
 
 void loop() {
   midi_loop();
+  thea::display::loop();
   //thea::vgm::vgm_loop();
 }
