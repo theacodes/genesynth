@@ -1,8 +1,7 @@
-#ifndef THEA_MIDI_H
-#define THEA_MIDI_H
-
+#include <Arduino.h>
 #include <MIDI.h>
 #include <midi_UsbTransport.h>
+#include "midi_interface.h"
 #include "psg.h"
 #include "ym2612.h"
 #include "display.h"
@@ -10,12 +9,13 @@
 
 static const unsigned sUsbTransportBufferSize = 16;
 typedef midi::UsbTransport<sUsbTransportBufferSize> UsbTransport;
-
 UsbTransport sUsbTransport;
-
 MIDI_CREATE_INSTANCE(UsbTransport, sUsbTransport, MIDI);
 
+namespace thea {
+namespace midi_interface {
 
+thea::ym2612::ChannelPatch patch;
 byte ym_channel_note[6] = {0, 0, 0, 0, 0, 0};
 byte psg_channel_note[3] = {0, 0, 0};
 
@@ -95,7 +95,6 @@ void handleNoteOff(byte channel, byte note, byte velocity) {
 void handleProgramChange(byte channel, byte program) {
   if(channel != 1) return;
 
-  thea::ym2612::ChannelPatch patch;
   thea::patch_loader::load_nth(program, &patch);
 
   for(int i = 0; i < 6; i++) {
@@ -106,20 +105,81 @@ void handleProgramChange(byte channel, byte program) {
   thea::display::display.print("Loaded patch!");
 }
 
+void handleControlChange(byte channel, byte control, byte value) {
+  if(channel != 1) return;
+
+  Serial.printf("Got control change %i: %i\n", control, value);
+
+  thea::ym2612::ChannelPatch::WriteOption option = thea::ym2612::ChannelPatch::WriteOption::ALL;
+
+  switch(control) {
+    case 20:
+      patch.operators[0].DT1 = map(value, 0, 127, 0, 7);
+      option = thea::ym2612::ChannelPatch::WriteOption::OP0_DT1;
+      break;
+    case 21:
+      patch.operators[0].MUL = map(value, 0, 127, 0, 15);
+      option = thea::ym2612::ChannelPatch::WriteOption::OP0_MUL;
+      break;
+    case 22:
+      patch.operators[0].TL = value;
+      option = thea::ym2612::ChannelPatch::WriteOption::OP0_TL;
+      break;
+    case 23:
+      patch.operators[0].AR = map(value, 0, 127, 0, 31);
+      option = thea::ym2612::ChannelPatch::WriteOption::OP0_AR;
+      break;
+    case 24:
+      patch.operators[0].D1R = map(value, 0, 127, 0, 31);
+      option = thea::ym2612::ChannelPatch::WriteOption::OP0_D1R;
+      break;
+    case 25:
+      patch.operators[0].D2R = map(value, 0, 127, 0, 31);
+      option = thea::ym2612::ChannelPatch::WriteOption::OP0_D2R;
+      break;
+    case 26:
+      patch.operators[0].D1L = map(value, 0, 127, 0, 31);
+      option = thea::ym2612::ChannelPatch::WriteOption::OP0_D1L;
+      break;
+    case 27:
+      patch.operators[0].RR = map(value, 0, 127, 0, 15);
+      option = thea::ym2612::ChannelPatch::WriteOption::OP0_RR;
+      break;
+    case 28:
+      patch.operators[0].RS = map(value, 0, 127, 0, 3);
+      option = thea::ym2612::ChannelPatch::WriteOption::OP0_RS;
+      break;
+    case 29:
+      patch.operators[0].AM = value;
+      option = thea::ym2612::ChannelPatch::WriteOption::OP0_AM;
+      break;
+
+    default:
+      Serial.printf("Unmapped controller.\n");
+      break;
+  }
+
+  for(int i = 0; i < 6; i++) {
+    patch.write_to_channel(i, option);
+  }
+}
+
 // -----------------------------------------------------------------------------
 
-void midi_setup()
+void setup()
 {
     MIDI.setHandleNoteOn(handleNoteOn);
     MIDI.setHandleNoteOff(handleNoteOff);
     MIDI.setHandleProgramChange(handleProgramChange);
+    MIDI.setHandleControlChange(handleControlChange);
     // Initiate MIDI communications, listen to all channels
     MIDI.begin(MIDI_CHANNEL_OMNI);
 }
 
-void midi_loop()
+void loop()
 {
   while(MIDI.read()) {};
 }
 
-#endif
+} // namespace midi_interface
+} // namespace thea

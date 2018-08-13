@@ -64,6 +64,57 @@ public:
 
 class ChannelPatch {
 public:
+  enum WriteOption {
+    OP0_DT1,
+    OP0_MUL,
+    OP0_TL,
+    OP0_AR,
+    OP0_D1R,
+    OP0_D2R,
+    OP0_D1L,
+    OP0_RR,
+    OP0_RS,
+    OP0_AM,
+
+    OP1_DT1,
+    OP1_MUL,
+    OP1_TL,
+    OP1_AR,
+    OP1_D1R,
+    OP1_D2R,
+    OP1_D1L,
+    OP1_RR,
+    OP1_RS,
+    OP1_AM,
+
+    OP2_DT1,
+    OP2_MUL,
+    OP2_TL,
+    OP2_AR,
+    OP2_D1R,
+    OP2_D2R,
+    OP2_D1L,
+    OP2_RR,
+    OP2_RS,
+    OP2_AM,
+
+    OP3_DT1,
+    OP3_MUL,
+    OP3_TL,
+    OP3_AR,
+    OP3_D1R,
+    OP3_D2R,
+    OP3_D1L,
+    OP3_RR,
+    OP3_RS,
+    OP3_AM,
+
+    ALGORITHM,
+    FEEDBACK,
+    LFO,
+    ALL,
+  };
+
   // 0-7 (3 bits).
   uint8_t algorithm;
   // Feedback is the degree to which operator 1 feeds back into itself.
@@ -73,7 +124,10 @@ public:
   uint8_t lfo;
   OperatorPatch operators[4];
 
-  void write_to_channel(uint8_t channel);
+  void write_to_channel(uint8_t channel, WriteOption option);
+  void write_to_channel(uint8_t channel) {
+    write_to_channel(channel, WriteOption::ALL);
+  }
 };
 
 void load_test_patch();

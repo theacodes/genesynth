@@ -142,11 +142,17 @@ void set_channel_freq(int channel, float freq){
   set_reg(0x28, 0xF0 | key_offset); // Key on
 }
 
-void ChannelPatch::write_to_channel(uint8_t channel) {
+void ChannelPatch::write_to_channel(uint8_t channel, ChannelPatch::WriteOption option) {
   int port = channel < 3 ? 0 : 1;
   channel = channel % 3;
-  Serial.printf("Channel: %i, Port: %i\n", channel, port);
+
   // Setup operators.
+
+  // wrap the write option around if its an operator specific option.
+  if(option >= WriteOption::OP1_DT1 and option <= WriteOption::OP3_AM){
+    option = WriteOption(option % WriteOption::OP0_AM);
+  }
+
   for(int i = 0; i < 4; i++) {
     uint8_t dt1_mul_byte = (operators[i].DT1 << 4) & (operators[i].MUL & 0xF);
     uint8_t tl_byte = operators[i].TL & 0x7F;
@@ -156,26 +162,50 @@ void ChannelPatch::write_to_channel(uint8_t channel) {
     uint8_t d1l_rr_byte = (operators[i].D1L << 4) | (operators[i].RR & 0xF);
 
     uint8_t operator_offset = 4 * i;
-    set_reg(0x30 + operator_offset + channel, dt1_mul_byte, port);
-    delay(2);
-    set_reg(0x40 + operator_offset + channel, tl_byte, port);
-    delay(2);
-    set_reg(0x50 + operator_offset + channel, rs_ar_byte, port);
-    delay(2);
-    set_reg(0x60 + operator_offset + channel, am_d1r_byte, port);
-    delay(2);
-    set_reg(0x70 + operator_offset + channel, d2r_byte, port);
-    delay(2);
-    set_reg(0x80 + operator_offset + channel, d1l_rr_byte, port);
-    delay(2);
+
+    if(option == WriteOption::ALL or option == WriteOption::OP0_DT1 or option == WriteOption::OP0_MUL) {
+      set_reg(0x30 + operator_offset + channel, dt1_mul_byte, port);
+      delay(2);
+    }
+
+    if(option == WriteOption::ALL or option == WriteOption::OP0_TL) {
+      set_reg(0x40 + operator_offset + channel, tl_byte, port);
+      delay(2);
+    }
+
+    if(option == WriteOption::ALL or option == WriteOption::OP0_RS or option == WriteOption::OP0_AR) {
+      set_reg(0x50 + operator_offset + channel, rs_ar_byte, port);
+      delay(2);
+    }
+
+    if(option == WriteOption::ALL or option == WriteOption::OP0_AM or option == WriteOption::OP0_D1R) {
+      set_reg(0x60 + operator_offset + channel, am_d1r_byte, port);
+      delay(2);
+    }
+
+    if(option == WriteOption::ALL or option == WriteOption::OP0_D2R) {
+      set_reg(0x70 + operator_offset + channel, d2r_byte, port);
+      delay(2);
+    }
+
+    if(option == WriteOption::ALL or option == WriteOption::OP0_D1L or option == WriteOption::OP0_RR) {
+      set_reg(0x80 + operator_offset + channel, d1l_rr_byte, port);
+      delay(2);
+    }
   }
 
   // Setup channel
   uint8_t feedback_algorithm_byte = (feedback << 3) | (algorithm & 0x7);
-  set_reg(0xB0 + channel, feedback_algorithm_byte, port);
-  delay(2);
-  set_reg(0xB4 + channel, 0xC0, port); // Enable output on both speakers (for now)
-  delay(2);
+
+  if(option == WriteOption::ALL or option == WriteOption::FEEDBACK or option == WriteOption::ALGORITHM) {
+    set_reg(0xB0 + channel, feedback_algorithm_byte, port);
+    delay(2);
+  }
+
+  if(option == WriteOption::ALL) {
+    set_reg(0xB4 + channel, 0xC0, port); // Enable output on both speakers (for now)
+    delay(2);
+  }
 };
 
 void load_test_patch() {

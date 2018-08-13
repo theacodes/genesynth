@@ -1,9 +1,10 @@
 #include <util/delay.h>
 
 #include "ym2612.h"
+#include "psg.h"
 #include "display.h"
 #include "vgm.h"
-#include "midi.h"
+#include "midi_interface.h"
 #include "patch_loader.h"
 #include "opm_parser.h"
 #include "thea.h"
@@ -70,14 +71,14 @@ void setup() {
   }
 
   // Setup MIDI
-  midi_setup();
+  thea::midi_interface::setup();
 
   // Initialize the VGM player.
   //thea::vgm::init();
 }
 
 void loop() {
-  midi_loop();
+  thea::midi_interface::loop();
   thea::display::loop();
   //thea::vgm::vgm_loop();
 }
