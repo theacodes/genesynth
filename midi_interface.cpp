@@ -108,7 +108,7 @@ void handleProgramChange(byte channel, byte program) {
 void handleControlChange(byte channel, byte control, byte value) {
   if(channel != 1) return;
 
-  Serial.printf("Got control change %i: %i\n", control, value);
+  //Serial.printf("Got control change %i: %i\n", control, value);
 
   thea::ym2612::ChannelPatch::WriteOption option = thea::ym2612::ChannelPatch::WriteOption::ALL;
 
@@ -156,12 +156,16 @@ void handleControlChange(byte channel, byte control, byte value) {
 
     default:
       Serial.printf("Unmapped controller.\n");
+      return; // Revisit
       break;
   }
 
   for(int i = 0; i < 6; i++) {
     patch.write_to_channel(i, option);
   }
+
+  thea::display::display_state.write_option = option;
+  thea::display::show(thea::display::Screen::OPEDIT, 10 * 100000);
 }
 
 // -----------------------------------------------------------------------------
@@ -174,6 +178,9 @@ void setup()
     MIDI.setHandleControlChange(handleControlChange);
     // Initiate MIDI communications, listen to all channels
     MIDI.begin(MIDI_CHANNEL_OMNI);
+
+    // Write our patch up to the display, so it can show edits.
+    thea::display::display_state.patch = &patch;
 }
 
 void loop()
