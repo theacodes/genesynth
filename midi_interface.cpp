@@ -155,7 +155,7 @@ void handleControlChange(byte channel, byte control, byte value) {
       break;
 
     default:
-      Serial.printf("Unmapped controller.\n");
+      Serial.printf("Unmapped controller %i.\n", control);
       return; // Revisit
       break;
   }
