@@ -98,18 +98,6 @@ inline static void set_data_lines(byte b)
 
 
 inline static void wait_ready(){
-  // // write the address (any address works, so we'll write 0xEE) and enable the
-  // // chip to start the read cycle.
-  // digitalWriteFast(YM_A0, LOW);
-  // output_enable();
-  // set_data_lines(0xEE);
-  // digitalWriteFast(YM_RD, LOW);
-  // digitalWriteFast(YM_CS, LOW);
-
-  // // We must wait for the chip to finish reading our address before trying to read.
-  // delay10ns(YM_WRITE_WAIT);
-  // digitalWriteFast(YM_CS, HIGH);
-
   // Switch data bus to input YM -> uC.
   input_enable();
 
@@ -136,12 +124,12 @@ inline static void wait_ready(){
   // Disable the chip and read pins.
   digitalWriteFast(YM_RD, HIGH);
   digitalWriteFast(YM_CS, HIGH);
+  delay10ns(YM_WRITE_WAIT);
 
   // Switch data bus back to ouput. uC -> YM.
   output_enable();
 
-  // DEBUG
-  Serial.printf("Waited %i\n", count);
+  // Debug
   if(count == YM_MAX_WAIT_CYCLES){
     Serial.printf("Warning, waited too many cycles for ready, last state: %x, %x, %i.\n", state, (1 << 7), state & (1 << 7));
   }
