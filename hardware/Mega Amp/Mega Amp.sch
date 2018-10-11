@@ -1,5 +1,4 @@
 EESchema Schematic File Version 4
-LIBS:Mega Amp-cache
 EELAYER 26 0
 EELAYER END
 $Descr A4 11693 8268
@@ -7,7 +6,7 @@ encoding utf-8
 Sheet 1 1
 Title "Mega Amp"
 Date "2018-10-06"
-Rev "v0"
+Rev "v1"
 Comp "thea.codes"
 Comment1 ""
 Comment2 ""
@@ -154,7 +153,7 @@ L Device:R R8
 U 1 1 5BB3BC28
 P 6050 3000
 F 0 "R8" V 5843 3000 50  0000 C CNN
-F 1 "160" V 5934 3000 50  0000 C CNN
+F 1 "160k" V 5934 3000 50  0000 C CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal" V 5980 3000 50  0001 C CNN
 F 3 "~" H 6050 3000 50  0001 C CNN
 	1    6050 3000
@@ -165,7 +164,7 @@ L Device:R R9
 U 1 1 5BB3BC56
 P 6050 4350
 F 0 "R9" V 5843 4350 50  0000 C CNN
-F 1 "160" V 5934 4350 50  0000 C CNN
+F 1 "160k" V 5934 4350 50  0000 C CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal" V 5980 4350 50  0001 C CNN
 F 3 "~" H 6050 4350 50  0001 C CNN
 	1    6050 4350
@@ -306,7 +305,7 @@ L Device:R R2
 U 1 1 5BB413FD
 P 4000 2350
 F 0 "R2" V 3793 2350 50  0000 C CNN
-F 1 "51K" V 3884 2350 50  0000 C CNN
+F 1 "6.2k" V 3884 2350 50  0000 C CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal" V 3930 2350 50  0001 C CNN
 F 3 "~" H 4000 2350 50  0001 C CNN
 	1    4000 2350
@@ -372,7 +371,7 @@ L Device:R R5
 U 1 1 5BB4319E
 P 4000 3950
 F 0 "R5" V 3793 3950 50  0000 C CNN
-F 1 "51K" V 3884 3950 50  0000 C CNN
+F 1 "6.2k" V 3884 3950 50  0000 C CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal" V 3930 3950 50  0001 C CNN
 F 3 "~" H 4000 3950 50  0001 C CNN
 	1    4000 3950
@@ -393,7 +392,7 @@ L Device:R R1
 U 1 1 5BB46524
 P 2600 3300
 F 0 "R1" H 2530 3254 50  0000 R CNN
-F 1 "R" H 2530 3345 50  0000 R CNN
+F 1 "1.3k" H 2530 3345 50  0000 R CNN
 F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal" V 2530 3300 50  0001 C CNN
 F 3 "~" H 2600 3300 50  0001 C CNN
 	1    2600 3300
@@ -419,12 +418,12 @@ Connection ~ 3000 3150
 Wire Wire Line
 	3000 3150 3000 2900
 Wire Wire Line
-	2450 2350 3150 2350
+	2450 2350 2600 2350
 Wire Wire Line
 	2450 3150 2600 3150
 Connection ~ 2600 3150
 Wire Wire Line
-	2500 3950 3150 3950
+	2500 3950 2600 3950
 $Comp
 L power:GND #PWR0105
 U 1 1 5BB4F3A4
@@ -847,4 +846,58 @@ Text GLabel 2250 5800 2    50   Input ~ 0
 Mono
 Text GLabel 2250 5500 2    50   Input ~ 0
 HeadphoneRight
+$Comp
+L Device:R R?
+U 1 1 5BBF0F53
+P 2600 2500
+F 0 "R?" H 2530 2454 50  0000 R CNN
+F 1 "2.2k" H 2530 2545 50  0000 R CNN
+F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal" V 2530 2500 50  0001 C CNN
+F 3 "~" H 2600 2500 50  0001 C CNN
+	1    2600 2500
+	-1   0    0    1   
+$EndComp
+Connection ~ 2600 2350
+Wire Wire Line
+	2600 2350 3150 2350
+$Comp
+L power:GND #PWR?
+U 1 1 5BBF0FCB
+P 2600 2650
+F 0 "#PWR?" H 2600 2400 50  0001 C CNN
+F 1 "GND" H 2605 2477 50  0000 C CNN
+F 2 "" H 2600 2650 50  0001 C CNN
+F 3 "" H 2600 2650 50  0001 C CNN
+	1    2600 2650
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R?
+U 1 1 5BBF1026
+P 2600 4100
+F 0 "R?" H 2530 4054 50  0000 R CNN
+F 1 "2.2k" H 2530 4145 50  0000 R CNN
+F 2 "Resistor_THT:R_Axial_DIN0204_L3.6mm_D1.6mm_P7.62mm_Horizontal" V 2530 4100 50  0001 C CNN
+F 3 "~" H 2600 4100 50  0001 C CNN
+	1    2600 4100
+	-1   0    0    1   
+$EndComp
+Connection ~ 2600 3950
+Wire Wire Line
+	2600 3950 3150 3950
+$Comp
+L power:GND #PWR?
+U 1 1 5BBF10A4
+P 2600 4250
+F 0 "#PWR?" H 2600 4000 50  0001 C CNN
+F 1 "GND" H 2605 4077 50  0000 C CNN
+F 2 "" H 2600 4250 50  0001 C CNN
+F 3 "" H 2600 4250 50  0001 C CNN
+	1    2600 4250
+	1    0    0    -1  
+$EndComp
+Text Notes 1600 2600 0    50   ~ 0
+Missing in v0\n(moved to motherboard)
+Text Notes 1600 4200 0    50   ~ 0
+Missing in v0\n(moved to motherboard)
 $EndSCHEMATC
