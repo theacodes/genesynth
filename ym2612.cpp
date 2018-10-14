@@ -8,6 +8,7 @@ namespace thea {
 namespace ym2612 {
 
 // Pin 14-21 to YM DATA
+// NOTE: The PCB motherboard reverses the order!
 #define YM_DATA 14
 // Pin 33 to YM IC
 #define YM_IC 33
