@@ -20,7 +20,6 @@ unsigned long screen_time = last_display_time;
 
 #define ONOFF(x) x ? 'O' : '-'
 
-U8X8_SH1106_128X64_NONAME_4W_HW_SPI display(/* cs=*/ 10, /* dc=*/ 9, /* reset=*/ 8);
 U8G2_SH1106_128X64_NONAME_2_4W_HW_SPI u8g2(/* rotation=*/ U8G2_R2, /* cs=*/ 10, /* dc=*/ 9, /* reset=*/ 8);
 
 void init(void) {
@@ -32,7 +31,7 @@ void init(void) {
 
 void screen_notes(){
   u8g2.setCursor(0, 0);
-  u8g2.print("> hydrocity1");
+  u8g2.printf("> %s", display_state.patch->name);
   u8g2.setCursor(0, 9);
   u8g2.printf(
     "fm: %c %c %c %c %c %c",
@@ -75,6 +74,73 @@ void screen_opedit(){
   u8g2.printf("Amplitude Mod %#04x\n", op.AM);
 }
 
+void sreen_envedit() {
+  auto op = display_state.patch->operators[0];
+
+  float w = 128;
+  float y_offset = 18;
+  float h = 64 - y_offset;
+
+  // Calculate normalized (0-1.0) floats for each envelope parameters
+  float level = 1.0f - (op.TL / 128.0f); // inverted.
+  float attack = op.AR / 32.0;
+  float decay = op.D1R / 32.0f;
+  float sustain = 1.0f - (op.D1L / 16.0f);
+  float release = op.RR / 16.0f;
+
+  // Attack can occupy up to 25% of the screen.
+  float attack_percentage = attack * 0.25f;
+  // Decay likewise
+  float delay_percentage = decay * 0.25f;
+  // Sustain is height, so it gets the full range.
+  float sustain_percentage = sustain;
+  // Release can occupy at most 25% of the screen.
+  float release_percentage = release * 0.25f;
+
+  // level reduces the total height of the graph. It's inverted, though.
+  y_offset += h - (h * level);
+  h *= level;
+  // Calculate graph line points.
+  int attack_x_end = attack_percentage * w;
+  int delay_x_end = attack_x_end + delay_percentage* w;
+  int sustain_y = h - sustain_percentage * h;
+  int release_x_start = w - release_percentage * w;
+
+  // Draw envelope graph
+  u8g2.setDrawColor(1);
+  u8g2.drawLine(0, y_offset+h, attack_x_end, y_offset);
+  u8g2.drawLine(attack_x_end, y_offset, delay_x_end, y_offset+sustain_y);
+  u8g2.drawLine(delay_x_end, y_offset + sustain_y, release_x_start, y_offset + sustain_y);
+  u8g2.drawLine(release_x_start, y_offset + sustain_y, w, y_offset + h);
+
+  // Draw text
+  u8g2.setCursor(0, 0);
+  u8g2.printf("> Op 1 Envelope");
+  u8g2.setCursor(0, 9);
+  switch(display_state.write_option) {
+    case thea::ym2612::ChannelPatch::WriteOption::OP0_TL:
+      u8g2.printf("Level: %i", int(level * 100));
+      break;
+    case thea::ym2612::ChannelPatch::WriteOption::OP0_AR:
+      u8g2.printf("Attack: %i", int(attack * 100));
+      break;
+    case thea::ym2612::ChannelPatch::WriteOption::OP0_D1R:
+      u8g2.printf("Decay: %i", int(decay * 100));
+      break;
+    case thea::ym2612::ChannelPatch::WriteOption::OP0_D2R:
+      u8g2.printf("TODO");
+      break;
+    case thea::ym2612::ChannelPatch::WriteOption::OP0_D1L:
+      u8g2.printf("Sustain: %i", int(sustain * 100));
+      break;
+    case thea::ym2612::ChannelPatch::WriteOption::OP0_RR:
+      u8g2.printf("Release: %i", int(release * 100));
+      break;
+    default:
+      break;
+  }
+}
+
 void loop(void) {
   // Don't display more often than needed.
   if(micros() < next_display_time) {
@@ -90,6 +156,9 @@ void loop(void) {
         break;
       case Screen::OPEDIT:
         screen_opedit();
+        break;
+      case Screen::ENVEDIT:
+        sreen_envedit();
         break;
     }
   } while ( u8g2.nextPage() );

@@ -7,19 +7,19 @@
 namespace thea {
 namespace display {
 
-extern U8X8_SH1106_128X64_NONAME_4W_HW_SPI display;
-
-
 struct DisplayState {
     bool fm_channels[6] = {false, false, false, false, false};
     bool sq_channels[3] = {false, false, false};
+    char patch_name[20];
     thea::ym2612::ChannelPatch* patch;
     thea::ym2612::ChannelPatch::WriteOption write_option;
 };
 
 enum Screen {
+    THEA,
     NOTES,
     OPEDIT,
+    ENVEDIT,
 };
 
 extern DisplayState display_state;

@@ -115,6 +115,8 @@ public:
     ALL,
   };
 
+  char name[20];
+
   // 0-7 (3 bits).
   uint8_t algorithm;
   // Feedback is the degree to which operator 1 feeds back into itself.

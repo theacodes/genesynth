@@ -86,9 +86,6 @@ void handleNoteOff(byte channel, byte note, byte velocity) {
   else if (channel == 2) {
     psgNoteOff(note, velocity);
   }
-
-  thea::display::display.setCursor(0, 3);
-  thea::display::display.print("Note off!");
 }
 
 
@@ -100,9 +97,6 @@ void handleProgramChange(byte channel, byte program) {
   for(int i = 0; i < 6; i++) {
     patch.write_to_channel(i);
   }
-
-  thea::display::display.setCursor(0, 0);
-  thea::display::display.print("Loaded patch!");
 }
 
 void handleControlChange(byte channel, byte control, byte value) {
@@ -110,7 +104,8 @@ void handleControlChange(byte channel, byte control, byte value) {
 
   //Serial.printf("Got control change %i: %i\n", control, value);
 
-  thea::ym2612::ChannelPatch::WriteOption option = thea::ym2612::ChannelPatch::WriteOption::ALL;
+  auto option = thea::ym2612::ChannelPatch::WriteOption::ALL;
+  auto screen = thea::display::Screen::OPEDIT;
 
   switch(control) {
     case 20:
@@ -124,26 +119,32 @@ void handleControlChange(byte channel, byte control, byte value) {
     case 22:
       patch.operators[0].TL = value;
       option = thea::ym2612::ChannelPatch::WriteOption::OP0_TL;
+      screen = thea::display::Screen::ENVEDIT;
       break;
     case 23:
       patch.operators[0].AR = map(value, 0, 127, 0, 31);
       option = thea::ym2612::ChannelPatch::WriteOption::OP0_AR;
+      screen = thea::display::Screen::ENVEDIT;
       break;
     case 24:
       patch.operators[0].D1R = map(value, 0, 127, 0, 31);
       option = thea::ym2612::ChannelPatch::WriteOption::OP0_D1R;
+      screen = thea::display::Screen::ENVEDIT;
       break;
     case 25:
       patch.operators[0].D2R = map(value, 0, 127, 0, 31);
       option = thea::ym2612::ChannelPatch::WriteOption::OP0_D2R;
+      screen = thea::display::Screen::ENVEDIT;
       break;
     case 26:
       patch.operators[0].D1L = map(value, 0, 127, 0, 31);
       option = thea::ym2612::ChannelPatch::WriteOption::OP0_D1L;
+      screen = thea::display::Screen::ENVEDIT;
       break;
     case 27:
       patch.operators[0].RR = map(value, 0, 127, 0, 15);
       option = thea::ym2612::ChannelPatch::WriteOption::OP0_RR;
+      screen = thea::display::Screen::ENVEDIT;
       break;
     case 28:
       patch.operators[0].RS = map(value, 0, 127, 0, 3);
@@ -165,7 +166,7 @@ void handleControlChange(byte channel, byte control, byte value) {
   }
 
   thea::display::display_state.write_option = option;
-  thea::display::show(thea::display::Screen::OPEDIT, 10 * 100000);
+  thea::display::show(screen, 10 * 100000);
 }
 
 // -----------------------------------------------------------------------------
@@ -181,6 +182,9 @@ void setup()
 
     // Write our patch up to the display, so it can show edits.
     thea::display::display_state.patch = &patch;
+
+    // Load the first patch.
+    handleProgramChange(1, 0);
 }
 
 void loop()

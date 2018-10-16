@@ -45,7 +45,6 @@ bool load_next_file_with_extension(SdFile* file, const char* extension) {
 bool load_nth(int n, thea::ym2612::ChannelPatch* patch) {
   sd.vwd()->rewind();
   for(;n >= 0; n--) {
-    Serial.printf("%i\n", n);
     load_next_file_with_extension(&current_file, "opm");
   }
 
@@ -56,12 +55,13 @@ bool load_nth(int n, thea::ym2612::ChannelPatch* patch) {
 
   char filename[MAX_FILE_NAME_SIZE];
   current_file.getName(filename, MAX_FILE_NAME_SIZE);
-
-  Serial.printf("Loading patch %s\n", filename);
+  strncpy(patch->name, filename, 20);
 
   current_file.close(); // It will be re-opened as a stream.
 
   thea::opm::parse(filename, patch);
+
+  Serial.printf("Loading patch %s\n", filename);
 
   return true;
 };

@@ -42,9 +42,9 @@ static void setup_psg_clock() {
 // the setup routine runs once when you press reset:
 void setup() {
   Serial.begin(9600);
-  wait_for_serial_monitor();
+  // (Optional) Wait for serial monitoring.
+  //wait_for_serial_monitor();
   Serial.println("Started");
-
 
   // Initialize the display
   thea::display::init();
@@ -62,23 +62,15 @@ void setup() {
   thea::psg::reset();
 
 
-  // Load first patch
+  // Setup patch loading. The MIDI interface will load the
+  // initial patch.
   thea::patch_loader::init();
-  thea::ym2612::ChannelPatch patch;
-  thea::patch_loader::load_nth(0, &patch);
-  for(int i = 0; i < 6; i++) {
-    patch.write_to_channel(i);
-  }
 
   // Setup MIDI
   thea::midi_interface::setup();
-
-  // Initialize the VGM player.
-  //thea::vgm::init();
 }
 
 void loop() {
   thea::midi_interface::loop();
   thea::display::loop();
-  //thea::vgm::vgm_loop();
 }

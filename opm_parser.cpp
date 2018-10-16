@@ -104,19 +104,6 @@ bool parse(const char* filename, thea::ym2612::ChannelPatch* patch) {
         patch->operators[oper].MUL = mul;
         patch->operators[oper].DT1 = dt1;
         patch->operators[oper].AM = am;
-
-        Serial.printf("%i %i %i %i %i %i %i %i %i %i %i\n",
-            oper,
-            patch->operators[oper].AR,
-            patch->operators[oper].D1R,
-            patch->operators[oper].D2R,
-            patch->operators[oper].RR,
-            patch->operators[oper].D1L,
-            patch->operators[oper].TL,
-            patch->operators[oper].RS,
-            patch->operators[oper].MUL,
-            patch->operators[oper].DT1,
-            patch->operators[oper].AM);
     }
 
     return true;
