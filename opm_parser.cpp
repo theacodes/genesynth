@@ -45,15 +45,19 @@ bool parse(const char* filename, thea::ym2612::ChannelPatch* patch) {
         }
 
         if(strncmp(reggie, "CH", 2) == 0){
+            int fb = 0;
+            int alg = 0;
             //PAN   FL(feedback) CON(algorithm) AMS(Amp mod) PMS(Phase mod?) SLOT(?) NE(noise)
             file >> colon
                 >> skipint
-                >> patch->feedback
-                >> patch->algorithm
+                >> fb
+                >> alg
                 >> skipint
                 >> skipint
                 >> skipint
                 >> skipint;
+            patch->feedback = fb;
+            patch->algorithm = alg;
             continue;
         }
 
