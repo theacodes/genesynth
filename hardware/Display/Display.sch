@@ -1,0 +1,218 @@
+EESchema Schematic File Version 4
+LIBS:Genesynth-cache
+EELAYER 26 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L Connector_Generic:Conn_01x12 J1
+U 1 1 5BC20729
+P 8950 3500
+F 0 "J1" H 9030 3492 50  0000 L CNN
+F 1 "Motherboard Connector" H 9030 3401 50  0000 L CNN
+F 2 "Connector_PinSocket_2.54mm:PinSocket_1x12_P2.54mm_Vertical" H 8950 3500 50  0001 C CNN
+F 3 "~" H 8950 3500 50  0001 C CNN
+	1    8950 3500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR06
+U 1 1 5BC2086C
+P 8750 4000
+F 0 "#PWR06" H 8750 3850 50  0001 C CNN
+F 1 "+5V" V 8765 4128 50  0000 L CNN
+F 2 "" H 8750 4000 50  0001 C CNN
+F 3 "" H 8750 4000 50  0001 C CNN
+	1    8750 4000
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:GND #PWR07
+U 1 1 5BC208BB
+P 8750 4100
+F 0 "#PWR07" H 8750 3850 50  0001 C CNN
+F 1 "GND" V 8755 3927 50  0000 C CNN
+F 2 "" H 8750 4100 50  0001 C CNN
+F 3 "" H 8750 4100 50  0001 C CNN
+	1    8750 4100
+	0    1    1    0   
+$EndComp
+Text GLabel 8750 3800 0    50   Input ~ 0
+DISPLAY_MOSI
+Text GLabel 8750 3700 0    50   Input ~ 0
+DISPLAY_RES
+Text GLabel 8750 3600 0    50   Input ~ 0
+DISPLAY_DC
+Text GLabel 8750 3500 0    50   Input ~ 0
+DISPLAY_CS
+Text GLabel 8750 3900 0    50   Input ~ 0
+DISPLAY_CLK
+$Comp
+L power:GND #PWR05
+U 1 1 5BC21206
+P 8750 3000
+F 0 "#PWR05" H 8750 2750 50  0001 C CNN
+F 1 "GND" V 8755 2827 50  0000 C CNN
+F 2 "" H 8750 3000 50  0001 C CNN
+F 3 "" H 8750 3000 50  0001 C CNN
+	1    8750 3000
+	0    1    1    0   
+$EndComp
+Text GLabel 8750 3100 0    50   Input ~ 0
+BUTTON_1
+Text GLabel 8750 3200 0    50   Input ~ 0
+BUTTON_2
+Text GLabel 8750 3300 0    50   Input ~ 0
+BUTTON_3
+Text GLabel 8750 3400 0    50   Input ~ 0
+BUTTON_4
+$Comp
+L Switch:SW_Push SW2
+U 1 1 5BC40CEA
+P 7150 3450
+F 0 "SW2" H 7150 3735 50  0000 C CNN
+F 1 "SW_Push" H 7150 3644 50  0000 C CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm_H9.5mm" H 7150 3650 50  0001 C CNN
+F 3 "" H 7150 3650 50  0001 C CNN
+	1    7150 3450
+	1    0    0    -1  
+$EndComp
+Text GLabel 6950 3450 0    50   Input ~ 0
+BUTTON_2
+$Comp
+L power:GND #PWR02
+U 1 1 5BC40D98
+P 7350 3450
+F 0 "#PWR02" H 7350 3200 50  0001 C CNN
+F 1 "GND" V 7355 3322 50  0000 R CNN
+F 2 "" H 7350 3450 50  0001 C CNN
+F 3 "" H 7350 3450 50  0001 C CNN
+	1    7350 3450
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Switch:SW_Push SW3
+U 1 1 5BC40E2B
+P 7150 3900
+F 0 "SW3" H 7150 4185 50  0000 C CNN
+F 1 "SW_Push" H 7150 4094 50  0000 C CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm_H9.5mm" H 7150 4100 50  0001 C CNN
+F 3 "" H 7150 4100 50  0001 C CNN
+	1    7150 3900
+	1    0    0    -1  
+$EndComp
+Text GLabel 6950 3900 0    50   Input ~ 0
+BUTTON_3
+$Comp
+L power:GND #PWR03
+U 1 1 5BC40E32
+P 7350 3900
+F 0 "#PWR03" H 7350 3650 50  0001 C CNN
+F 1 "GND" V 7355 3772 50  0000 R CNN
+F 2 "" H 7350 3900 50  0001 C CNN
+F 3 "" H 7350 3900 50  0001 C CNN
+	1    7350 3900
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Switch:SW_Push SW1
+U 1 1 5BC40E57
+P 7150 3000
+F 0 "SW1" H 7150 3285 50  0000 C CNN
+F 1 "SW_Push" H 7150 3194 50  0000 C CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm_H9.5mm" H 7150 3200 50  0001 C CNN
+F 3 "" H 7150 3200 50  0001 C CNN
+	1    7150 3000
+	1    0    0    -1  
+$EndComp
+Text GLabel 6950 3000 0    50   Input ~ 0
+BUTTON_1
+$Comp
+L power:GND #PWR01
+U 1 1 5BC40E5E
+P 7350 3000
+F 0 "#PWR01" H 7350 2750 50  0001 C CNN
+F 1 "GND" V 7355 2872 50  0000 R CNN
+F 2 "" H 7350 3000 50  0001 C CNN
+F 3 "" H 7350 3000 50  0001 C CNN
+	1    7350 3000
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Switch:SW_Push SW4
+U 1 1 5BC40E8C
+P 7150 4350
+F 0 "SW4" H 7150 4635 50  0000 C CNN
+F 1 "SW_Push" H 7150 4544 50  0000 C CNN
+F 2 "Button_Switch_THT:SW_PUSH_6mm_H9.5mm" H 7150 4550 50  0001 C CNN
+F 3 "" H 7150 4550 50  0001 C CNN
+	1    7150 4350
+	1    0    0    -1  
+$EndComp
+Text GLabel 6950 4350 0    50   Input ~ 0
+BUTTON_4
+$Comp
+L power:GND #PWR04
+U 1 1 5BC40E93
+P 7350 4350
+F 0 "#PWR04" H 7350 4100 50  0001 C CNN
+F 1 "GND" V 7355 4222 50  0000 R CNN
+F 2 "" H 7350 4350 50  0001 C CNN
+F 3 "" H 7350 4350 50  0001 C CNN
+	1    7350 4350
+	0    -1   -1   0   
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x07 J2
+U 1 1 5BC4101E
+P 5100 3500
+F 0 "J2" H 5020 2975 50  0000 C CNN
+F 1 "SPI 128x64 SSH1106 OLED" H 5020 3066 50  0000 C CNN
+F 2 "OLED:OLED" H 5100 3500 50  0001 C CNN
+F 3 "~" H 5100 3500 50  0001 C CNN
+	1    5100 3500
+	-1   0    0    1   
+$EndComp
+$Comp
+L power:GND #PWR0101
+U 1 1 5BC4118B
+P 5300 3800
+F 0 "#PWR0101" H 5300 3550 50  0001 C CNN
+F 1 "GND" V 5305 3627 50  0000 C CNN
+F 2 "" H 5300 3800 50  0001 C CNN
+F 3 "" H 5300 3800 50  0001 C CNN
+	1    5300 3800
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:+5V #PWR0102
+U 1 1 5BC411AF
+P 5300 3700
+F 0 "#PWR0102" H 5300 3550 50  0001 C CNN
+F 1 "+5V" V 5315 3828 50  0000 L CNN
+F 2 "" H 5300 3700 50  0001 C CNN
+F 3 "" H 5300 3700 50  0001 C CNN
+	1    5300 3700
+	0    1    1    0   
+$EndComp
+Text GLabel 5300 3600 2    50   Input ~ 0
+DISPLAY_CLK
+Text GLabel 5300 3500 2    50   Input ~ 0
+DISPLAY_MOSI
+Text GLabel 5300 3400 2    50   Input ~ 0
+DISPLAY_RES
+Text GLabel 5300 3300 2    50   Input ~ 0
+DISPLAY_DC
+Text GLabel 5300 3200 2    50   Input ~ 0
+DISPLAY_CS
+$EndSCHEMATC
