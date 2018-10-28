@@ -9,7 +9,7 @@ namespace ym2612 {
 
 // Pin 14-21 to YM DATA
 // NOTE: The PCB motherboard reverses the order!
-#define YM_DATA 14
+#define YM_DATA 21
 // Pin 33 to YM IC
 #define YM_IC 33
 // Pin 32 to YM A1
@@ -38,8 +38,8 @@ namespace ym2612 {
 void setup() {
   /* Setup the YM's pins. */
   for (int i = 0; i < 8; i++) {
-    pinMode(YM_DATA + i, OUTPUT);
-    digitalWriteFast(YM_DATA + i, LOW);
+    pinMode(YM_DATA - i, OUTPUT);
+    digitalWriteFast(YM_DATA - i, LOW);
   }
   pinMode(YM_IC, OUTPUT);
   pinMode(YM_A1, OUTPUT);
@@ -68,13 +68,13 @@ void reset() {
 
 inline static void input_enable() {
   for (int i = 0; i < 8; i++) {
-    pinMode(YM_DATA + i, INPUT);
+    pinMode(YM_DATA - i, INPUT);
   }
 }
 
 inline static void output_enable() {
   for (int i = 0; i < 8; i++) {
-    pinMode(YM_DATA + i, OUTPUT);
+    pinMode(YM_DATA - i, OUTPUT);
   }
 }
 
@@ -83,7 +83,7 @@ inline static uint8_t read_data_lines()
 {
   uint8_t out = 0;
   for (int i = 0; i < 8; i++){
-    out |= digitalReadFast(YM_DATA + i) << i;
+    out |= digitalReadFast(YM_DATA - i) << i;
   }
   return out;
 }
@@ -93,7 +93,7 @@ inline static void set_data_lines(byte b)
 {
   /* Sets the data lines to the YM to the given byte. */
   for (int i = 0; i < 8; i++){
-    digitalWriteFast(YM_DATA + i, ((b >> i) & 1));
+    digitalWriteFast(YM_DATA - i, ((b >> i) & 1));
   }
 }
 
