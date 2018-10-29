@@ -182,7 +182,7 @@ void button_press_callback(int button) {
       handleProgramChange(1, (patch_no + 1) % 127);
       break;
     case 2:
-      handleProgramChange(1, (patch_no + 1) % 127);
+      handleProgramChange(1, (patch_no - 1) % 127);
       break;
     default:
       break;

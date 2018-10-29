@@ -2,7 +2,7 @@
 #include <cstring>
 #include "SdFat.h"
 
-#include "opm_parser.h"
+#include "tfi_parser.h"
 #include "patch_loader.h"
 
 namespace thea {
@@ -45,7 +45,7 @@ bool load_next_file_with_extension(SdFile* file, const char* extension) {
 bool load_nth(int n, thea::ym2612::ChannelPatch* patch) {
   sd.vwd()->rewind();
   for(;n >= 0; n--) {
-    load_next_file_with_extension(&current_file, "opm");
+    load_next_file_with_extension(&current_file, "tfi");
   }
 
   if(!current_file.isOpen()) {
@@ -57,14 +57,12 @@ bool load_nth(int n, thea::ym2612::ChannelPatch* patch) {
   current_file.getName(filename, MAX_FILE_NAME_SIZE);
   strncpy(patch->name, filename, 20);
 
-  current_file.close(); // It will be re-opened as a stream.
-
-  thea::opm::parse(filename, patch);
+  thea::tfi::parse(current_file, patch);
 
   Serial.printf("Loading patch %s\n", filename);
 
   return true;
 };
 
-} // namespace opm
+} // namespace patch_loader
 } // namespace thea

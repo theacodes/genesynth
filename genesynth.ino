@@ -6,7 +6,6 @@
 #include "vgm.h"
 #include "midi_interface.h"
 #include "patch_loader.h"
-#include "opm_parser.h"
 #include "thea.h"
 #include "buttons.h"
 
