@@ -7,6 +7,7 @@
 namespace thea {
 namespace display {
 
+
 struct DisplayState {
     bool fm_channels[6] = {false, false, false, false, false};
     bool sq_channels[3] = {false, false, false};

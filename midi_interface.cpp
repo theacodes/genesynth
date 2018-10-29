@@ -6,6 +6,7 @@
 #include "ym2612.h"
 #include "display.h"
 #include "patch_loader.h"
+#include "buttons.h"
 
 static const unsigned sUsbTransportBufferSize = 16;
 typedef midi::UsbTransport<sUsbTransportBufferSize> UsbTransport;
@@ -16,6 +17,7 @@ namespace thea {
 namespace midi_interface {
 
 thea::ym2612::ChannelPatch patch;
+int patch_no = 0;
 byte ym_channel_note[6] = {0, 0, 0, 0, 0, 0};
 byte psg_channel_note[3] = {0, 0, 0};
 
@@ -93,6 +95,7 @@ void handleProgramChange(byte channel, byte program) {
   if(channel != 1) return;
 
   thea::patch_loader::load_nth(program, &patch);
+  patch_no = program;
 
   for(int i = 0; i < 6; i++) {
     patch.write_to_channel(i);
@@ -171,6 +174,26 @@ void handleControlChange(byte channel, byte control, byte value) {
 
 // -----------------------------------------------------------------------------
 
+void button_press_callback(int button) {
+  Serial.printf("Press: %i\n", button);
+
+  switch(button) {
+    case 0:
+      handleProgramChange(1, (patch_no + 1) % 127);
+      break;
+    case 2:
+      handleProgramChange(1, (patch_no + 1) % 127);
+      break;
+    default:
+      break;
+  }
+}
+
+void button_release_callback(int button) {
+  Serial.printf("Release: %i\n", button);
+}
+
+
 void setup()
 {
     MIDI.setHandleNoteOn(handleNoteOn);
@@ -185,6 +208,10 @@ void setup()
 
     // Load the first patch.
     handleProgramChange(1, 0);
+
+    // Wire up button callbacks
+    thea::buttons::on_button_press(&button_press_callback);
+    thea::buttons::on_button_release(&button_release_callback);
 }
 
 void loop()

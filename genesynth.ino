@@ -8,6 +8,7 @@
 #include "patch_loader.h"
 #include "opm_parser.h"
 #include "thea.h"
+#include "buttons.h"
 
 #define STATUS_LED 13
 #define YM_CLOCK 4
@@ -41,14 +42,15 @@ static void setup_psg_clock() {
 
 // the setup routine runs once when you press reset:
 void setup() {
-  Serial.begin(9600);
-  // (Optional) Wait for serial monitoring.
-  //wait_for_serial_monitor();
-  Serial.println("Started");
-
-  // Initialize the display
+  // Initialize the display & buttons.
   thea::display::init();
   //thea::show_thea(&thea::display::display);
+  thea::buttons::init();
+
+  // (Optional) Wait for serial monitoring.
+  Serial.begin(9600);
+  //wait_for_serial_monitor();
+  Serial.println("Started");
 
   // Setup clocks
   setup_ym_clock();
@@ -71,6 +73,7 @@ void setup() {
 }
 
 void loop() {
+  thea::buttons::loop();
   thea::midi_interface::loop();
   thea::display::loop();
 }
