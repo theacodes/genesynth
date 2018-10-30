@@ -432,6 +432,11 @@ void sreen_envedit() {
   }
 }
 
+void screen_debug() {
+  u8g2.setCursor(0, 0);
+  u8g2.print("Waiting for serial monitor.");
+}
+
 void loop(void) {
   // Don't display more often than needed.
   if(micros() < next_display_time) {
@@ -444,6 +449,9 @@ void loop(void) {
     switch(screen) {
       case Screen::THEA:
         thea::show_thea(&u8g2, micros() - screen_start_time);
+        break;
+      case Screen::DEBUG:
+        screen_debug();
         break;
       case Screen::NOTES:
         screen_notes();

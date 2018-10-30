@@ -8,6 +8,7 @@ typedef void (*callback)(int);
 
 void on_button_press(callback);
 void on_button_release(callback);
+bool is_pressed(int button);
 void init();
 void loop();
 

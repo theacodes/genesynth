@@ -22,6 +22,10 @@ void on_button_release(callback cb){
     release_callback = cb;
 }
 
+bool is_pressed(int button) {
+    return !buttons[button].read();
+}
+
 void init() {
     for(int i = 0; i < 4; i++) {
         pinMode(BUTTON_ONE - i, INPUT_PULLUP);

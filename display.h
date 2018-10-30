@@ -17,6 +17,7 @@ struct DisplayState {
 
 enum Screen {
     THEA,
+    DEBUG,
     NOTES,
     OPEDIT,
     ENVEDIT,
