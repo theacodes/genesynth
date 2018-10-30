@@ -1,33 +1,25 @@
 #include <Arduino.h>
 #include <U8g2lib.h>
-#include <U8x8lib.h>
 
-#ifdef U8X8_HAVE_HW_SPI
+#ifdef U8G2_HAVE_HW_SPI
 #include <SPI.h>
 #endif
 
 #include "display.h"
+#include "thea.h"
 
 namespace thea {
 namespace display {
 
 DisplayState display_state;
-Screen screen = Screen::NOTES;
+Screen screen = Screen::THEA;
 #define DISPLAY_RATE 66666  // 1/15th of a second.
 unsigned long last_display_time = micros();
 unsigned long next_display_time = last_display_time;
-unsigned long screen_time = last_display_time;
-
-#define ONOFF(x) x ? 'O' : '-'
+unsigned long screen_start_time = last_display_time;
+unsigned long screen_time = last_display_time + 1600000;
 
 U8G2_SH1106_128X64_NONAME_2_4W_HW_SPI u8g2(/* rotation=*/ U8G2_R2, /* cs=*/ 10, /* dc=*/ 9, /* reset=*/ 8);
-
-void init(void) {
-  u8g2.begin();
-  u8g2.setPowerSave(0);
-  u8g2.setFont(u8g2_font_amstrad_cpc_extended_8f);
-  u8g2.setFontPosTop();
-}
 
 inline void draw_op_symbol(uint8_t num, uint8_t x, uint8_t y, bool shaded) {
   if(shaded) {
@@ -450,6 +442,9 @@ void loop(void) {
   do {
     /* all graphics commands have to appear within the loop body. */
     switch(screen) {
+      case Screen::THEA:
+        thea::show_thea(&u8g2, micros() - screen_start_time);
+        break;
       case Screen::NOTES:
         screen_notes();
         break;
@@ -470,9 +465,17 @@ void loop(void) {
   }
 }
 
+void init(void) {
+  u8g2.begin();
+  u8g2.setPowerSave(0);
+  u8g2.setFont(u8g2_font_amstrad_cpc_extended_8f);
+  u8g2.setFontPosTop();
+}
+
 void show(Screen screen, unsigned long duration) {
   thea::display::screen = screen;
-  screen_time = micros() + duration;
+  screen_start_time = micros();
+  screen_time = screen_start_time + duration;
 }
 
 } // namespace thea

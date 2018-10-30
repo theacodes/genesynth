@@ -1,7 +1,6 @@
 #ifndef THEA_DISPLAY_H
 #define THEA_DISPLAY_H
 
-#include <U8x8lib.h>
 #include "ym2612.h"
 
 namespace thea {

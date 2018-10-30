@@ -6,7 +6,6 @@
 #include "vgm.h"
 #include "midi_interface.h"
 #include "patch_loader.h"
-#include "thea.h"
 #include "buttons.h"
 
 #define STATUS_LED 13
@@ -43,7 +42,6 @@ static void setup_psg_clock() {
 void setup() {
   // Initialize the display & buttons.
   thea::display::init();
-  //thea::show_thea(&thea::display::display);
   thea::buttons::init();
 
   // (Optional) Wait for serial monitoring.

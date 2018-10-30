@@ -626,13 +626,35 @@ const uint8_t tilemap[128] = {
       4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,   4,
 };
 
-void show_thea(U8X8 *u8x8) {
-    u8x8->clear();
+void show_thea(U8G2 *display, unsigned long dt) {
+    unsigned int num_pixels = (dt / 1000000.0f) * 40;
+    uint8_t offset = num_pixels > 50 ? (num_pixels - 50) * 4 : 0;
+    if(num_pixels > 40) num_pixels = 40;
 
-    for(size_t i = 0; i < sizeof(tilemap); i++) {
+    for(size_t i = 0; i < sizeof(tilemap)/sizeof(tilemap[0]); i++) {
         uint8_t x = i % 16;
         uint8_t y = i / 16;
-        u8x8->drawTile(x, y, 1, tileset[tilemap[i]]);
+        uint8_t letter_tile = x % 4;
+        auto& tile = tileset[tilemap[i]];
+
+        // The A is tricky, so adjust its letter tiles
+        if(x > 10) {
+            letter_tile = x - 10;
+        }
+
+        for(uint8_t column = 0; column < 8; column++){
+            for(uint8_t row = 0; row < 8; row++){
+                uint8_t letter_column = letter_tile * 8 + column;
+                if(letter_column > num_pixels) continue;
+
+                auto pixel = tile[column] >> row & 0x1;
+                if(pixel){
+                    display->drawPixel(
+                        (x * 8) + column,
+                        (y * 8) + row + offset);
+                }
+            }
+        }
     }
 };
 
