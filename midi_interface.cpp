@@ -2,6 +2,7 @@
 #include "buttons.h"
 #include "display.h"
 #include "patch_loader.h"
+#include "synth.h"
 #include "ym2612.h"
 #include <Arduino.h>
 #include <MIDI.h>
@@ -15,46 +16,19 @@ MIDI_CREATE_INSTANCE(UsbTransport, sUsbTransport, MIDI);
 namespace thea {
 namespace midi_interface {
 
-thea::ym2612::ChannelPatch patch;
 int patch_no = 0;
-byte ym_channel_note[6] = {0, 0, 0, 0, 0, 0};
-
-void ymNoteOn(float pitch, byte note, byte velocity) {
-  size_t i = 0;
-  for (; i < sizeof(ym_channel_note); i++) {
-    if (ym_channel_note[i] == 0) {
-      thea::ym2612::set_channel_freq(i, pitch);
-      ym_channel_note[i] = note;
-      thea::display::display_state.fm_channels[i] = true;
-      break;
-    }
-  }
-}
-
-void ymNoteOff(byte note, byte velocity) {
-  for (size_t i = 0; i < sizeof(ym_channel_note); i++) {
-    if (ym_channel_note[i] == note) {
-      int port = i < 3 ? 0 : 1;
-      uint8_t channel_offset = (i % 3);
-      uint8_t key_offset = channel_offset | (port << 2);
-      thea::ym2612::set_reg(0x28, key_offset); // Key off
-      ym_channel_note[i] = 0;
-      thea::display::display_state.fm_channels[i] = false;
-    }
-  }
-}
 
 void handleNoteOn(byte channel, byte note, byte velocity) {
   float pitch = pow(2, float(note - 69) / 12) * 440;
 
   if (channel == 1) {
-    ymNoteOn(pitch, note, velocity);
+    thea::synth::play_note(note, pitch);
   }
 }
 
 void handleNoteOff(byte channel, byte note, byte velocity) {
   if (channel == 1) {
-    ymNoteOff(note, velocity);
+    thea::synth::stop_note(note);
   }
 }
 
@@ -62,12 +36,10 @@ void handleProgramChange(byte channel, byte program) {
   if (channel != 1)
     return;
 
-  thea::patch_loader::load_nth(program, &patch);
+  thea::patch_loader::load_nth(program, &thea::synth::patch);
   patch_no = program;
 
-  for (int i = 0; i < 6; i++) {
-    patch.write_to_channel(i);
-  }
+  thea::synth::update_patch();
 }
 
 void handleControlChange(byte channel, byte control, byte value) {
@@ -78,6 +50,7 @@ void handleControlChange(byte channel, byte control, byte value) {
 
   auto option = thea::ym2612::ChannelPatch::WriteOption::ALL;
   auto screen = thea::display::Screen::OPEDIT;
+  auto &patch = thea::synth::patch;
 
   switch (control) {
   case 20:
@@ -133,9 +106,7 @@ void handleControlChange(byte channel, byte control, byte value) {
     break;
   }
 
-  for (int i = 0; i < 6; i++) {
-    patch.write_to_channel(i, option);
-  }
+  thea::synth::update_patch(option);
 
   thea::display::display_state.write_option = option;
   thea::display::show(screen, 10 * 100000);
@@ -169,7 +140,7 @@ void setup() {
   MIDI.begin(MIDI_CHANNEL_OMNI);
 
   // Write our patch up to the display, so it can show edits.
-  thea::display::display_state.patch = &patch;
+  thea::display::display_state.patch = &thea::synth::patch;
 
   // Load the first patch.
   handleProgramChange(1, 0);
