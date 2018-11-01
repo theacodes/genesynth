@@ -2,7 +2,6 @@
 #include "buttons.h"
 #include "display.h"
 #include "patch_loader.h"
-#include "psg.h"
 #include "ym2612.h"
 #include <Arduino.h>
 #include <MIDI.h>
@@ -19,7 +18,6 @@ namespace midi_interface {
 thea::ym2612::ChannelPatch patch;
 int patch_no = 0;
 byte ym_channel_note[6] = {0, 0, 0, 0, 0, 0};
-byte psg_channel_note[3] = {0, 0, 0};
 
 void ymNoteOn(float pitch, byte note, byte velocity) {
   size_t i = 0;
@@ -46,44 +44,17 @@ void ymNoteOff(byte note, byte velocity) {
   }
 }
 
-void psgNoteOn(float pitch, byte note, byte velocity) {
-  int i = 0;
-  for (; i < 3; i++) {
-    if (psg_channel_note[i] == 0) {
-      thea::psg::set_channel_freq(i, pitch);
-      thea::psg::set_channel_vol(i, 255);
-      psg_channel_note[i] = note;
-      thea::display::display_state.sq_channels[i] = true;
-      break;
-    }
-  }
-}
-
 void handleNoteOn(byte channel, byte note, byte velocity) {
   float pitch = pow(2, float(note - 69) / 12) * 440;
 
   if (channel == 1) {
     ymNoteOn(pitch, note, velocity);
-  } else if (channel == 2) {
-    psgNoteOn(pitch, note, velocity);
-  }
-}
-
-void psgNoteOff(byte note, byte velocity) {
-  for (int i = 0; i < 3; i++) {
-    if (psg_channel_note[i] == note) {
-      thea::psg::set_channel_vol(i, 0);
-      psg_channel_note[i] = 0;
-      thea::display::display_state.sq_channels[i] = false;
-    }
   }
 }
 
 void handleNoteOff(byte channel, byte note, byte velocity) {
   if (channel == 1) {
     ymNoteOff(note, velocity);
-  } else if (channel == 2) {
-    psgNoteOff(note, velocity);
   }
 }
 

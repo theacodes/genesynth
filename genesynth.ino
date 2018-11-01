@@ -4,13 +4,11 @@
 #include "display.h"
 #include "midi_interface.h"
 #include "patch_loader.h"
-#include "psg.h"
 #include "vgm.h"
 #include "ym2612.h"
 
 #define STATUS_LED 13
 #define YM_CLOCK 4
-#define PSG_CLOCK 5
 
 static void wait_for_serial_monitor() {
   // Show on the screen that we're waiting for the monitor.
@@ -52,8 +50,6 @@ void setup() {
   // Setup sound chips.
   thea::ym2612::setup();
   thea::ym2612::reset();
-  thea::psg::setup();
-  thea::psg::reset();
 
   // Setup patch loading. The MIDI interface will load the
   // initial patch.
