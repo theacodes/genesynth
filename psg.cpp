@@ -1,32 +1,31 @@
+#include "psg.h"
+#include "nanodelay.h"
 #include <arduino.h>
 #include <util/delay.h> // For timing
-#include "nanodelay.h"
-#include "psg.h"
 
 namespace thea {
 namespace psg {
 
 // Pin 14-21 to PSG DATA (shared with YM)
 const uint8_t PSG_DATA[] = {14, 15, 16, 17, 18, 19, 20, 21};
-//const byte PSG_DATA[] = {39, 38, 37, 36, 35, 27, 26, 25};
+// const byte PSG_DATA[] = {39, 38, 37, 36, 35, 27, 26, 25};
 #define PSG_WE 34
 #define PSG_WAIT 500
 
 #define PSG_LATCH 0b10000000
 
 const char PSG_CHANNEL_SELECT[] = {
-  0b00000000,  // Tone 1
-  0b00100000,  // Tone 2
-  0b01000000,  // Tone 3
-  0b01100000  // White Noise
+    0b00000000, // Tone 1
+    0b00100000, // Tone 2
+    0b01000000, // Tone 3
+    0b01100000  // White Noise
 };
 
 #define PSG_VOL_REG 0b00010000
 #define PSG_TONE_REG 0b00000000
 
-#define PSG_LSB_MASK 0b00001111  // 4-bits LSB of data
-#define PSG_MSB_MASK 0b00111111  // 6-bits MSB of data
-
+#define PSG_LSB_MASK 0b00001111 // 4-bits LSB of data
+#define PSG_MSB_MASK 0b00111111 // 6-bits MSB of data
 
 void setup() {
   /* Setup the PSG's pins. */
@@ -48,8 +47,7 @@ void reset() {
 
 void send_byte(uint8_t data) {
   digitalWriteFast(PSG_WE, HIGH);
-  for(int i = 0; i < 8; i++)
-  {
+  for (int i = 0; i < 8; i++) {
     digitalWriteFast(PSG_DATA[i], ((data >> i) & 1));
   }
   digitalWriteFast(PSG_WE, LOW);
@@ -83,5 +81,5 @@ void set_channel_vol(int channel, uint8_t vol) {
   delay(1); // TODO
 }
 
-} //namespace psg
-} //namespace thea
+} // namespace psg
+} // namespace thea

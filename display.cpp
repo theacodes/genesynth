@@ -13,16 +13,16 @@ namespace display {
 
 DisplayState display_state;
 Screen screen = Screen::THEA;
-#define DISPLAY_RATE 66666  // 1/15th of a second.
+#define DISPLAY_RATE 66666 // 1/15th of a second.
 unsigned long last_display_time = micros();
 unsigned long next_display_time = last_display_time;
 unsigned long screen_start_time = last_display_time;
 unsigned long screen_time = last_display_time + 1600000;
 
-U8G2_SH1106_128X64_NONAME_2_4W_HW_SPI u8g2(/* rotation=*/ U8G2_R2, /* cs=*/ 10, /* dc=*/ 9, /* reset=*/ 8);
+U8G2_SH1106_128X64_NONAME_2_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/10, /* dc=*/9, /* reset=*/8);
 
 inline void draw_op_symbol(uint8_t num, uint8_t x, uint8_t y, bool shaded) {
-  if(shaded) {
+  if (shaded) {
     u8g2.setDrawColor(0);
     u8g2.drawBox(x, y, 12, 12);
     u8g2.setDrawColor(1);
@@ -33,7 +33,7 @@ inline void draw_op_symbol(uint8_t num, uint8_t x, uint8_t y, bool shaded) {
     u8g2.drawBox(x, y, 12, 12);
     u8g2.setDrawColor(0);
   }
-  u8g2.setCursor(x+2, y+2);
+  u8g2.setCursor(x + 2, y + 2);
   u8g2.printf("%i", num);
 }
 
@@ -44,7 +44,7 @@ inline void draw_out_symbol(uint8_t x, uint8_t y) {
   u8g2.setFontMode(0);
 }
 
-inline void draw_alg_0(){
+inline void draw_alg_0() {
   const uint8_t height = 12;
   const uint8_t half_height = height / 2;
   const uint8_t width = 16;
@@ -52,9 +52,7 @@ inline void draw_alg_0(){
   const uint8_t start_x = (128 - total_width) / 2;
   const uint8_t start_y = 30;
 
-  u8g2.drawLine(
-    start_x, start_y + half_height,
-    start_x + width * 4, start_y + half_height);
+  u8g2.drawLine(start_x, start_y + half_height, start_x + width * 4, start_y + half_height);
   draw_op_symbol(1, start_x, start_y, true);
   draw_op_symbol(2, start_x + width, start_y, true);
   draw_op_symbol(3, start_x + width * 2, start_y, true);
@@ -62,7 +60,7 @@ inline void draw_alg_0(){
   draw_out_symbol(start_x + width * 4, start_y);
 }
 
-inline void draw_alg_1(){
+inline void draw_alg_1() {
   const uint8_t height = 12;
   const uint8_t half_height = height / 2;
   const uint8_t width = 16;
@@ -72,20 +70,12 @@ inline void draw_alg_1(){
   const uint8_t start_y = 30;
 
   // vertical line connecting 1 & 2
-  u8g2.drawLine(
-    start_x + width, start_y - 3,
-    start_x + width, start_y + height + 3);
+  u8g2.drawLine(start_x + width, start_y - 3, start_x + width, start_y + height + 3);
   // Short horizontal lines connecting 1 & 2 to the vertical line.
-  u8g2.drawLine(
-    start_x, start_y - 3,
-    start_x + width, start_y -3);
-  u8g2.drawLine(
-    start_x, start_y + height + 3,
-    start_x + width, start_y + height + 3);
+  u8g2.drawLine(start_x, start_y - 3, start_x + width, start_y - 3);
+  u8g2.drawLine(start_x, start_y + height + 3, start_x + width, start_y + height + 3);
   // horizontal line connecting 3 & 4
-  u8g2.drawLine(
-    start_x + width, start_y + half_height,
-    start_x + width * 3 + gap, start_y + half_height);
+  u8g2.drawLine(start_x + width, start_y + half_height, start_x + width * 3 + gap, start_y + half_height);
 
   draw_op_symbol(1, start_x, start_y - half_height - 1, true);
   draw_op_symbol(2, start_x, start_y + half_height + 2, true);
@@ -95,7 +85,7 @@ inline void draw_alg_1(){
   draw_out_symbol(start_x + width * 3 + gap, start_y);
 }
 
-inline void draw_alg_2(){
+inline void draw_alg_2() {
   const uint8_t height = 12;
   const uint8_t half_height = height / 2;
   const uint8_t width = 16;
@@ -107,20 +97,12 @@ inline void draw_alg_2(){
   const uint8_t lower_row_y = start_y + half_height + 2;
 
   // vertical line connecting 1 & 3
-  u8g2.drawLine(
-    start_x + width * 2, start_y - 3,
-    start_x + width * 2, start_y + height + 3);
+  u8g2.drawLine(start_x + width * 2, start_y - 3, start_x + width * 2, start_y + height + 3);
   // Short horizontal lines connecting 1 & 3 to the vertical line.
-  u8g2.drawLine(
-    start_x, start_y - 3,
-    start_x + width * 2, start_y -3);
-  u8g2.drawLine(
-    start_x, start_y + height + 3,
-    start_x + width * 2, start_y + height + 3);
+  u8g2.drawLine(start_x, start_y - 3, start_x + width * 2, start_y - 3);
+  u8g2.drawLine(start_x, start_y + height + 3, start_x + width * 2, start_y + height + 3);
   // horizontal line connecting the vertical line to 4.
-  u8g2.drawLine(
-    start_x + width * 2, start_y + half_height,
-    start_x + width * 3 + gap, start_y + half_height);
+  u8g2.drawLine(start_x + width * 2, start_y + half_height, start_x + width * 3 + gap, start_y + half_height);
 
   draw_op_symbol(1, start_x, upper_row_y, true);
   draw_op_symbol(2, start_x, lower_row_y, true);
@@ -130,8 +112,7 @@ inline void draw_alg_2(){
   draw_out_symbol(start_x + width * 3 + gap, start_y);
 }
 
-
-inline void draw_alg_3(){
+inline void draw_alg_3() {
   const uint8_t height = 12;
   const uint8_t half_height = height / 2;
   const uint8_t width = 16;
@@ -143,20 +124,12 @@ inline void draw_alg_3(){
   const uint8_t lower_row_y = start_y + half_height + 2;
 
   // vertical line connecting 1 & 3
-  u8g2.drawLine(
-    start_x + width * 2, start_y - 3,
-    start_x + width * 2, start_y + height + 3);
+  u8g2.drawLine(start_x + width * 2, start_y - 3, start_x + width * 2, start_y + height + 3);
   // Short horizontal lines connecting 1 & 3 to the vertical line.
-  u8g2.drawLine(
-    start_x, start_y - 3,
-    start_x + width * 2, start_y -3);
-  u8g2.drawLine(
-    start_x + width, start_y + height + 3,
-    start_x + width * 2, start_y + height + 3);
+  u8g2.drawLine(start_x, start_y - 3, start_x + width * 2, start_y - 3);
+  u8g2.drawLine(start_x + width, start_y + height + 3, start_x + width * 2, start_y + height + 3);
   // horizontal line connecting the vertical line to 4.
-  u8g2.drawLine(
-    start_x + width * 2, start_y + half_height,
-    start_x + width * 3 + gap, start_y + half_height);
+  u8g2.drawLine(start_x + width * 2, start_y + half_height, start_x + width * 3 + gap, start_y + half_height);
 
   draw_op_symbol(1, start_x, upper_row_y, true);
   draw_op_symbol(2, start_x + width, upper_row_y, true);
@@ -166,8 +139,7 @@ inline void draw_alg_3(){
   draw_out_symbol(start_x + width * 3 + gap, start_y);
 }
 
-
-inline void draw_alg_4(){
+inline void draw_alg_4() {
   const uint8_t height = 12;
   const uint8_t half_height = height / 2;
   const uint8_t width = 16;
@@ -179,20 +151,12 @@ inline void draw_alg_4(){
   const uint8_t lower_row_y = start_y + half_height + 2;
 
   // vertical line connecting 1 & 3
-  u8g2.drawLine(
-    start_x + width * 2, start_y - 3,
-    start_x + width * 2, start_y + height + 3);
+  u8g2.drawLine(start_x + width * 2, start_y - 3, start_x + width * 2, start_y + height + 3);
   // Short horizontal lines connecting 1 & 3 to the vertical line.
-  u8g2.drawLine(
-    start_x, start_y - 3,
-    start_x + width * 2, start_y -3);
-  u8g2.drawLine(
-    start_x, start_y + height + 3,
-    start_x + width * 2, start_y + height + 3);
+  u8g2.drawLine(start_x, start_y - 3, start_x + width * 2, start_y - 3);
+  u8g2.drawLine(start_x, start_y + height + 3, start_x + width * 2, start_y + height + 3);
   // horizontal line connecting the vertical line to output.
-  u8g2.drawLine(
-    start_x + width * 2, start_y + half_height,
-    start_x + width * 2 + gap, start_y + half_height);
+  u8g2.drawLine(start_x + width * 2, start_y + half_height, start_x + width * 2 + gap, start_y + half_height);
 
   draw_op_symbol(1, start_x, upper_row_y, true);
   draw_op_symbol(2, start_x + width, upper_row_y, false);
@@ -202,8 +166,7 @@ inline void draw_alg_4(){
   draw_out_symbol(start_x + width * 2 + gap, start_y);
 }
 
-
-inline void draw_alg_5(){
+inline void draw_alg_5() {
   const uint8_t height = 16;
   const uint8_t half_height = height / 2;
   const uint8_t width = 16;
@@ -213,23 +176,15 @@ inline void draw_alg_5(){
   const uint8_t start_y = 30;
 
   // horizontal line connecting 1, 3, and the output.
-  u8g2.drawLine(
-    start_x, start_y + half_height - 2,
-    start_x + (width * 2) + (gap * 2), start_y + half_height - 2);
+  u8g2.drawLine(start_x, start_y + half_height - 2, start_x + (width * 2) + (gap * 2), start_y + half_height - 2);
   // horizontal line connecting 2 and 4 to the net.
-  u8g2.drawLine(
-    start_x + width, start_y - half_height - 2,
-    start_x + width * 2 + gap, start_y - half_height - 2);
-  u8g2.drawLine(
-    start_x + width, start_y + height + half_height - 2,
-    start_x + width * 2 + gap, start_y + height + half_height - 2);
+  u8g2.drawLine(start_x + width, start_y - half_height - 2, start_x + width * 2 + gap, start_y - half_height - 2);
+  u8g2.drawLine(start_x + width, start_y + height + half_height - 2, start_x + width * 2 + gap,
+                start_y + height + half_height - 2);
   // Vertical lines on either side of 2, 3, and 4.
-  u8g2.drawLine(
-    start_x + width, start_y - half_height - 2,
-    start_x + width, start_y + height + half_height - 2);
-  u8g2.drawLine(
-    start_x + width * 2 + gap, start_y - half_height - 2,
-    start_x + width * 2 + gap ,start_y + height + half_height - 2);
+  u8g2.drawLine(start_x + width, start_y - half_height - 2, start_x + width, start_y + height + half_height - 2);
+  u8g2.drawLine(start_x + width * 2 + gap, start_y - half_height - 2, start_x + width * 2 + gap,
+                start_y + height + half_height - 2);
 
   draw_op_symbol(1, start_x, start_y, true);
   draw_op_symbol(2, start_x + gap + width, start_y - height, false);
@@ -239,8 +194,7 @@ inline void draw_alg_5(){
   draw_out_symbol(start_x + (width * 2) + (gap * 2), start_y);
 }
 
-
-inline void draw_alg_6(){
+inline void draw_alg_6() {
   const uint8_t height = 16;
   const uint8_t half_height = height / 2;
   const uint8_t width = 16;
@@ -250,20 +204,15 @@ inline void draw_alg_6(){
   const uint8_t start_y = 30;
 
   // horizontal line connecting 3 and the output.
-  u8g2.drawLine(
-    start_x + width + gap, start_y + half_height - 2,
-    start_x + (width * 2) + gap, start_y + half_height - 2);
+  u8g2.drawLine(start_x + width + gap, start_y + half_height - 2, start_x + (width * 2) + gap,
+                start_y + half_height - 2);
   // horizontal line connecting 2 and 4 to the net.
-  u8g2.drawLine(
-    start_x, start_y - half_height - 2,
-    start_x + width * 2, start_y - half_height - 2);
-  u8g2.drawLine(
-    start_x + width, start_y + height + half_height - 2,
-    start_x + width * 2, start_y + height + half_height - 2);
+  u8g2.drawLine(start_x, start_y - half_height - 2, start_x + width * 2, start_y - half_height - 2);
+  u8g2.drawLine(start_x + width, start_y + height + half_height - 2, start_x + width * 2,
+                start_y + height + half_height - 2);
   // Vertical lines on right side of 2, 3, and 4.
-  u8g2.drawLine(
-    start_x + width * 2, start_y - half_height - 2,
-    start_x + width * 2, start_y + height + half_height - 2);
+  u8g2.drawLine(start_x + width * 2, start_y - half_height - 2, start_x + width * 2,
+                start_y + height + half_height - 2);
 
   draw_op_symbol(1, start_x, start_y - height, true);
   draw_op_symbol(2, start_x + width, start_y - height, false);
@@ -273,8 +222,7 @@ inline void draw_alg_6(){
   draw_out_symbol(start_x + (width * 2) + gap, start_y);
 }
 
-
-inline void draw_alg_7(){
+inline void draw_alg_7() {
   const uint8_t height = 12;
   const uint8_t half_height = height / 2;
   const uint8_t width = 16;
@@ -284,15 +232,11 @@ inline void draw_alg_7(){
   const uint8_t start_y = 30;
 
   // Horizontal line connecting output.
-  u8g2.drawLine(
-    start_x + half_width - 2, start_y - half_height,
-    start_x + width * 4, start_y - half_height);
+  u8g2.drawLine(start_x + half_width - 2, start_y - half_height, start_x + width * 4, start_y - half_height);
   // Vertical lines connecting each operator.
-  for(int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) {
     uint8_t x = start_x + (width * i) + half_width - 2;
-    u8g2.drawLine(
-      x, start_y,
-      x, start_y - half_height);
+    u8g2.drawLine(x, start_y, x, start_y - half_height);
   }
 
   draw_op_symbol(1, start_x, start_y, false);
@@ -302,44 +246,43 @@ inline void draw_alg_7(){
   draw_out_symbol(start_x + width * 4, start_y - height);
 }
 
-
-void screen_notes(){
+void screen_notes() {
   u8g2.setDrawColor(1);
   u8g2.setCursor(0, 0);
   u8g2.printf("> %s", display_state.patch->name);
 
-  switch(display_state.patch->algorithm) {
-    case 0:
-      draw_alg_0();
-      break;
-    case 1:
-      draw_alg_1();
-      break;
-    case 2:
-      draw_alg_2();
-      break;
-    case 3:
-      draw_alg_3();
-      break;
-    case 4:
-      draw_alg_4();
-      break;
-    case 5:
-      draw_alg_5();
-      break;
-    case 6:
-      draw_alg_6();
-      break;
-    case 7:
-      draw_alg_7();
-      break;
-    default:
-      u8g2.setCursor(0, 9);
-      u8g2.printf("Unkwn alg 0x%x\n", display_state.patch->algorithm);
+  switch (display_state.patch->algorithm) {
+  case 0:
+    draw_alg_0();
+    break;
+  case 1:
+    draw_alg_1();
+    break;
+  case 2:
+    draw_alg_2();
+    break;
+  case 3:
+    draw_alg_3();
+    break;
+  case 4:
+    draw_alg_4();
+    break;
+  case 5:
+    draw_alg_5();
+    break;
+  case 6:
+    draw_alg_6();
+    break;
+  case 7:
+    draw_alg_7();
+    break;
+  default:
+    u8g2.setCursor(0, 9);
+    u8g2.printf("Unkwn alg 0x%x\n", display_state.patch->algorithm);
   }
 };
 
-void screen_opedit(){
+void screen_opedit() {
   auto op = display_state.patch->operators[0];
   u8g2.setCursor(0, 9 * 0);
   u8g2.printf("> Operator 1\n");
@@ -393,14 +336,14 @@ void sreen_envedit() {
   h *= level;
   // Calculate graph line points.
   int attack_x_end = attack_percentage * w;
-  int delay_x_end = attack_x_end + delay_percentage* w;
+  int delay_x_end = attack_x_end + delay_percentage * w;
   int sustain_y = h - sustain_percentage * h;
   int release_x_start = w - release_percentage * w;
 
   // Draw envelope graph
   u8g2.setDrawColor(1);
-  u8g2.drawLine(0, y_offset+h, attack_x_end, y_offset);
-  u8g2.drawLine(attack_x_end, y_offset, delay_x_end, y_offset+sustain_y);
+  u8g2.drawLine(0, y_offset + h, attack_x_end, y_offset);
+  u8g2.drawLine(attack_x_end, y_offset, delay_x_end, y_offset + sustain_y);
   u8g2.drawLine(delay_x_end, y_offset + sustain_y, release_x_start, y_offset + sustain_y);
   u8g2.drawLine(release_x_start, y_offset + sustain_y, w, y_offset + h);
 
@@ -408,27 +351,27 @@ void sreen_envedit() {
   u8g2.setCursor(0, 0);
   u8g2.printf("> Op 1 Envelope");
   u8g2.setCursor(0, 9);
-  switch(display_state.write_option) {
-    case thea::ym2612::ChannelPatch::WriteOption::OP0_TL:
-      u8g2.printf("Level: %i", int(level * 100));
-      break;
-    case thea::ym2612::ChannelPatch::WriteOption::OP0_AR:
-      u8g2.printf("Attack: %i", int(attack * 100));
-      break;
-    case thea::ym2612::ChannelPatch::WriteOption::OP0_D1R:
-      u8g2.printf("Decay: %i", int(decay * 100));
-      break;
-    case thea::ym2612::ChannelPatch::WriteOption::OP0_D2R:
-      u8g2.printf("TODO");
-      break;
-    case thea::ym2612::ChannelPatch::WriteOption::OP0_D1L:
-      u8g2.printf("Sustain: %i", int(sustain * 100));
-      break;
-    case thea::ym2612::ChannelPatch::WriteOption::OP0_RR:
-      u8g2.printf("Release: %i", int(release * 100));
-      break;
-    default:
-      break;
+  switch (display_state.write_option) {
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_TL:
+    u8g2.printf("Level: %i", int(level * 100));
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_AR:
+    u8g2.printf("Attack: %i", int(attack * 100));
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_D1R:
+    u8g2.printf("Decay: %i", int(decay * 100));
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_D2R:
+    u8g2.printf("TODO");
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_D1L:
+    u8g2.printf("Sustain: %i", int(sustain * 100));
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_RR:
+    u8g2.printf("Release: %i", int(release * 100));
+    break;
+  default:
+    break;
   }
 }
 
@@ -439,36 +382,36 @@ void screen_debug() {
 
 void loop(void) {
   // Don't display more often than needed.
-  if(micros() < next_display_time) {
+  if (micros() < next_display_time) {
     return;
   }
 
   u8g2.firstPage();
   do {
     /* all graphics commands have to appear within the loop body. */
-    switch(screen) {
-      case Screen::THEA:
-        thea::show_thea(&u8g2, micros() - screen_start_time);
-        break;
-      case Screen::DEBUG:
-        screen_debug();
-        break;
-      case Screen::NOTES:
-        screen_notes();
-        break;
-      case Screen::OPEDIT:
-        screen_opedit();
-        break;
-      case Screen::ENVEDIT:
-        sreen_envedit();
-        break;
+    switch (screen) {
+    case Screen::THEA:
+      thea::show_thea(&u8g2, micros() - screen_start_time);
+      break;
+    case Screen::DEBUG:
+      screen_debug();
+      break;
+    case Screen::NOTES:
+      screen_notes();
+      break;
+    case Screen::OPEDIT:
+      screen_opedit();
+      break;
+    case Screen::ENVEDIT:
+      sreen_envedit();
+      break;
     }
-  } while ( u8g2.nextPage() );
+  } while (u8g2.nextPage());
 
   last_display_time = micros();
   next_display_time = micros() + DISPLAY_RATE;
 
-  if(screen != Screen::NOTES && last_display_time > screen_time) {
+  if (screen != Screen::NOTES && last_display_time > screen_time) {
     screen = Screen::NOTES;
   }
 }

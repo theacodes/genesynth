@@ -14,7 +14,7 @@ void set_channel_freq(int channel, float freq);
 
 void set_channel_vol(int channel, uint8_t vol);
 
-} //namespace psg
-} //namespace thea
+} // namespace psg
+} // namespace thea
 
 #endif

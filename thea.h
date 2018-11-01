@@ -6,7 +6,6 @@
 namespace thea {
 
 void show_thea(U8G2 *u8x8, unsigned long dt);
-
 };
 
 #endif

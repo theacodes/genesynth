@@ -7,7 +7,7 @@ namespace vgm {
 void init();
 void loop();
 
-}; //namespace thea
-}; //namespace vgm
+}; // namespace thea
+}; // namespace vgm
 
 #endif

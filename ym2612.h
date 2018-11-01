@@ -39,7 +39,7 @@ public:
   // 0-31 (5 bits)
   uint8_t D1R;
   // The angle of secondary amplitude decrease. This will continue indefinitely
-  //unless ‘key off’ occurs.
+  // unless ‘key off’ occurs.
   // 0-31 (5 bits)
   uint8_t D2R;
   // D1L is the secondary amplitude reached after the first period of rapid
@@ -127,15 +127,13 @@ public:
   OperatorPatch operators[4];
 
   void write_to_channel(uint8_t channel, WriteOption option);
-  void write_to_channel(uint8_t channel) {
-    write_to_channel(channel, WriteOption::ALL);
-  }
+  void write_to_channel(uint8_t channel) { write_to_channel(channel, WriteOption::ALL); }
 };
 
 void load_test_patch();
 void load_test_patch2();
 
-}; //namespace ym2612
-}; //namespace thea
+}; // namespace ym2612
+}; // namespace thea
 
 #endif

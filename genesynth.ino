@@ -1,12 +1,12 @@
 #include <util/delay.h>
 
-#include "ym2612.h"
-#include "psg.h"
+#include "buttons.h"
 #include "display.h"
-#include "vgm.h"
 #include "midi_interface.h"
 #include "patch_loader.h"
-#include "buttons.h"
+#include "psg.h"
+#include "vgm.h"
+#include "ym2612.h"
 
 #define STATUS_LED 13
 #define YM_CLOCK 4
@@ -39,7 +39,7 @@ void setup() {
   // Wait for serial monitoring if the down button is pressed on boot.
   Serial.begin(9600);
 
-  if(thea::buttons::is_pressed(2)) {
+  if (thea::buttons::is_pressed(2)) {
     wait_for_serial_monitor();
   }
 
@@ -54,7 +54,6 @@ void setup() {
   thea::ym2612::reset();
   thea::psg::setup();
   thea::psg::reset();
-
 
   // Setup patch loading. The MIDI interface will load the
   // initial patch.

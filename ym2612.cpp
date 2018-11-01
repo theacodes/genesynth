@@ -1,6 +1,6 @@
+#include "nanodelay.h"
 #include <arduino.h>
 #include <util/delay.h> // For timing
-#include "nanodelay.h"
 
 #include "ym2612.h"
 
@@ -34,7 +34,6 @@ namespace ym2612 {
 // 192 cycles. At 8hmz, that's 24 microseconds.
 #define YM_RESET_WAIT 24 // uS
 
-
 void setup() {
   /* Setup the YM's pins. */
   for (int i = 0; i < 8; i++) {
@@ -65,7 +64,6 @@ void reset() {
   delayMicroseconds(YM_RESET_WAIT);
 }
 
-
 inline static void input_enable() {
   for (int i = 0; i < 8; i++) {
     pinMode(YM_DATA - i, INPUT);
@@ -78,27 +76,22 @@ inline static void output_enable() {
   }
 }
 
-
-inline static uint8_t read_data_lines()
-{
+inline static uint8_t read_data_lines() {
   uint8_t out = 0;
-  for (int i = 0; i < 8; i++){
+  for (int i = 0; i < 8; i++) {
     out |= digitalReadFast(YM_DATA - i) << i;
   }
   return out;
 }
 
-
-inline static void set_data_lines(byte b)
-{
+inline static void set_data_lines(byte b) {
   /* Sets the data lines to the YM to the given byte. */
-  for (int i = 0; i < 8; i++){
+  for (int i = 0; i < 8; i++) {
     digitalWriteFast(YM_DATA - i, ((b >> i) & 1));
   }
 }
 
-
-inline static void wait_ready(){
+inline static void wait_ready() {
   // Switch data bus to input YM -> uC.
   input_enable();
 
@@ -114,12 +107,14 @@ inline static void wait_ready(){
   // Wait until the bus' 7th bit is 0.
   int count = 0;
   uint8_t state = 0;
-  while(count < YM_MAX_WAIT_CYCLES) {
-    __asm__ volatile ("nop");
+  while (count < YM_MAX_WAIT_CYCLES) {
+    __asm__ volatile("nop");
     count++;
-    if(count < 20) continue;
+    if (count < 20)
+      continue;
     state = read_data_lines();
-    if((state & (1 << 7)) == 0) break;
+    if ((state & (1 << 7)) == 0)
+      break;
   }
 
   // Disable the chip and read pins.
@@ -131,8 +126,9 @@ inline static void wait_ready(){
   output_enable();
 
   // Debug
-  if(count == YM_MAX_WAIT_CYCLES){
-    Serial.printf("Warning, waited too many cycles for ready, last state: %x, %x, %i.\n", state, (1 << 7), state & (1 << 7));
+  if (count == YM_MAX_WAIT_CYCLES) {
+    Serial.printf("Warning, waited too many cycles for ready, last state: %x, %x, %i.\n", state, (1 << 7),
+                  state & (1 << 7));
   }
 }
 
@@ -171,12 +167,9 @@ void set_reg(uint8_t address, uint8_t data, int port) {
   delay10ns(YM_WRITE_WAIT);
 }
 
-void set_reg(uint8_t address, uint8_t data){
-  return set_reg(address, data, 0);
-}
+void set_reg(uint8_t address, uint8_t data) { return set_reg(address, data, 0); }
 
-
-void set_channel_freq(int channel, float freq){
+void set_channel_freq(int channel, float freq) {
   // From YM2612 Datasheet:
   // Freq Number = (144 * note * 2^20 / Clock) / 2^(block-1)
   // Figure out the base frequency number first, then start iterating through
@@ -186,7 +179,7 @@ void set_channel_freq(int channel, float freq){
 
   int block = 1;
   while (freq_int > 2000) {
-    freq_int = base_freq / pow(2.f, block-1);
+    freq_int = base_freq / pow(2.f, block - 1);
     block++;
   }
 
@@ -195,15 +188,9 @@ void set_channel_freq(int channel, float freq){
   uint8_t key_offset = channel_offset | (port << 2);
   // Note this presently turns the key off then back on, when it comes time
   // to implement modulation/pitch bend I'll need to fix this.
-  set_reg(0x28, key_offset); // Key off
-  set_reg(
-    0xA4 + channel_offset,
-    (block << 3) | (freq_int >> 8),
-    port); // freq
-  set_reg(
-    0xA0 + channel_offset,
-    freq_int & 0xFF,
-    port);
+  set_reg(0x28, key_offset);                                            // Key off
+  set_reg(0xA4 + channel_offset, (block << 3) | (freq_int >> 8), port); // freq
+  set_reg(0xA0 + channel_offset, freq_int & 0xFF, port);
   set_reg(0x28, 0xF0 | key_offset); // Key on
 }
 
@@ -214,11 +201,11 @@ void ChannelPatch::write_to_channel(uint8_t channel, ChannelPatch::WriteOption o
   // Setup operators.
 
   // wrap the write option around if its an operator specific option.
-  if(option >= WriteOption::OP1_DT1 and option <= WriteOption::OP3_AM){
+  if (option >= WriteOption::OP1_DT1 and option <= WriteOption::OP3_AM) {
     option = WriteOption(option % WriteOption::OP0_AM);
   }
 
-  for(int i = 0; i < 4; i++) {
+  for (int i = 0; i < 4; i++) {
     uint8_t dt1_mul_byte = (operators[i].DT1 << 4) & (operators[i].MUL & 0xF);
     uint8_t tl_byte = operators[i].TL & 0x7F;
     uint8_t rs_ar_byte = (operators[i].RS << 6) | (operators[i].AR & 0x1F);
@@ -228,27 +215,27 @@ void ChannelPatch::write_to_channel(uint8_t channel, ChannelPatch::WriteOption o
 
     uint8_t operator_offset = 4 * i;
 
-    if(option == WriteOption::ALL or option == WriteOption::OP0_DT1 or option == WriteOption::OP0_MUL) {
+    if (option == WriteOption::ALL or option == WriteOption::OP0_DT1 or option == WriteOption::OP0_MUL) {
       set_reg(0x30 + operator_offset + channel, dt1_mul_byte, port);
     }
 
-    if(option == WriteOption::ALL or option == WriteOption::OP0_TL) {
+    if (option == WriteOption::ALL or option == WriteOption::OP0_TL) {
       set_reg(0x40 + operator_offset + channel, tl_byte, port);
     }
 
-    if(option == WriteOption::ALL or option == WriteOption::OP0_RS or option == WriteOption::OP0_AR) {
+    if (option == WriteOption::ALL or option == WriteOption::OP0_RS or option == WriteOption::OP0_AR) {
       set_reg(0x50 + operator_offset + channel, rs_ar_byte, port);
     }
 
-    if(option == WriteOption::ALL or option == WriteOption::OP0_AM or option == WriteOption::OP0_D1R) {
+    if (option == WriteOption::ALL or option == WriteOption::OP0_AM or option == WriteOption::OP0_D1R) {
       set_reg(0x60 + operator_offset + channel, am_d1r_byte, port);
     }
 
-    if(option == WriteOption::ALL or option == WriteOption::OP0_D2R) {
+    if (option == WriteOption::ALL or option == WriteOption::OP0_D2R) {
       set_reg(0x70 + operator_offset + channel, d2r_byte, port);
     }
 
-    if(option == WriteOption::ALL or option == WriteOption::OP0_D1L or option == WriteOption::OP0_RR) {
+    if (option == WriteOption::ALL or option == WriteOption::OP0_D1L or option == WriteOption::OP0_RR) {
       set_reg(0x80 + operator_offset + channel, d1l_rr_byte, port);
     }
   }
@@ -256,21 +243,21 @@ void ChannelPatch::write_to_channel(uint8_t channel, ChannelPatch::WriteOption o
   // Setup channel
   uint8_t feedback_algorithm_byte = (feedback << 3) | (algorithm & 0x7);
 
-  if(option == WriteOption::ALL or option == WriteOption::FEEDBACK or option == WriteOption::ALGORITHM) {
+  if (option == WriteOption::ALL or option == WriteOption::FEEDBACK or option == WriteOption::ALGORITHM) {
     set_reg(0xB0 + channel, feedback_algorithm_byte, port);
   }
 
-  if(option == WriteOption::ALL) {
+  if (option == WriteOption::ALL) {
     set_reg(0xB4 + channel, 0xC0, port); // Enable output on both speakers (for now)
   }
 };
 
 void load_test_patch() {
   ChannelPatch test_patch;
-  //MiOPMdrv sound bank Paramer Ver2002.04.22
-  //LFO: LFRQ AMD PMD WF NFRQ
+  // MiOPMdrv sound bank Paramer Ver2002.04.22
+  // LFO: LFRQ AMD PMD WF NFRQ
   //@:[Num] [Name]
-  //CH: PAN   FL(feedback) CON(algorithm) AMS(?) PMS(Phase mod?) SLOT(?) NE(noise)
+  // CH: PAN   FL(feedback) CON(algorithm) AMS(?) PMS(Phase mod?) SLOT(?) NE(noise)
   //[OPname]: AR D1R D2R  RR D1L  TL  KS(RS) MUL DT1 DT2(ignored) AMS-EN(AM)
 
   // @:0 Instrument 0
@@ -329,10 +316,10 @@ void load_test_patch() {
 
 void load_test_patch2() {
   ChannelPatch test_patch;
-  //MiOPMdrv sound bank Paramer Ver2002.04.22
-  //LFO: LFRQ AMD PMD WF NFRQ
+  // MiOPMdrv sound bank Paramer Ver2002.04.22
+  // LFO: LFRQ AMD PMD WF NFRQ
   //@:[Num] [Name]
-  //CH: PAN   FL(feedback) CON(algorithm) AMS(?) PMS(Phase mod?) SLOT(?) NE(noise)
+  // CH: PAN   FL(feedback) CON(algorithm) AMS(?) PMS(Phase mod?) SLOT(?) NE(noise)
   //[OPname]: AR D1R D2R  RR D1L  TL  KS(RS) MUL DT1 DT2(ignored) AMS-EN(AM)
 
   // @:1 Instrument 1
@@ -389,5 +376,5 @@ void load_test_patch2() {
   test_patch.write_to_channel(2);
 }
 
-}; //namespace ym2612
-}; //namespace thea
+}; // namespace ym2612
+}; // namespace thea

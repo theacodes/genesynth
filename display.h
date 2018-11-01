@@ -6,21 +6,20 @@
 namespace thea {
 namespace display {
 
-
 struct DisplayState {
-    bool fm_channels[6] = {false, false, false, false, false};
-    bool sq_channels[3] = {false, false, false};
-    char patch_name[20];
-    thea::ym2612::ChannelPatch* patch;
-    thea::ym2612::ChannelPatch::WriteOption write_option;
+  bool fm_channels[6] = {false, false, false, false, false};
+  bool sq_channels[3] = {false, false, false};
+  char patch_name[20];
+  thea::ym2612::ChannelPatch *patch;
+  thea::ym2612::ChannelPatch::WriteOption write_option;
 };
 
 enum Screen {
-    THEA,
-    DEBUG,
-    NOTES,
-    OPEDIT,
-    ENVEDIT,
+  THEA,
+  DEBUG,
+  NOTES,
+  OPEDIT,
+  ENVEDIT,
 };
 
 extern DisplayState display_state;
