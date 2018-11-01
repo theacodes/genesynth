@@ -50,62 +50,16 @@ void handleControlChange(byte channel, byte control, byte value) {
 
   auto option = thea::ym2612::ChannelPatch::WriteOption::ALL;
   auto screen = thea::display::Screen::OPEDIT;
-  auto &patch = thea::synth::patch;
 
-  switch (control) {
-  case 20:
-    patch.operators[0].DT1 = map(value, 0, 127, 0, 7);
-    option = thea::ym2612::ChannelPatch::WriteOption::OP0_DT1;
-    break;
-  case 21:
-    patch.operators[0].MUL = map(value, 0, 127, 0, 15);
-    option = thea::ym2612::ChannelPatch::WriteOption::OP0_MUL;
-    break;
-  case 22:
-    patch.operators[0].TL = value;
-    option = thea::ym2612::ChannelPatch::WriteOption::OP0_TL;
-    screen = thea::display::Screen::ENVEDIT;
-    break;
-  case 23:
-    patch.operators[0].AR = map(value, 0, 127, 0, 31);
-    option = thea::ym2612::ChannelPatch::WriteOption::OP0_AR;
-    screen = thea::display::Screen::ENVEDIT;
-    break;
-  case 24:
-    patch.operators[0].D1R = map(value, 0, 127, 0, 31);
-    option = thea::ym2612::ChannelPatch::WriteOption::OP0_D1R;
-    screen = thea::display::Screen::ENVEDIT;
-    break;
-  case 25:
-    patch.operators[0].D2R = map(value, 0, 127, 0, 31);
-    option = thea::ym2612::ChannelPatch::WriteOption::OP0_D2R;
-    screen = thea::display::Screen::ENVEDIT;
-    break;
-  case 26:
-    patch.operators[0].D1L = map(value, 0, 127, 0, 31);
-    option = thea::ym2612::ChannelPatch::WriteOption::OP0_D1L;
-    screen = thea::display::Screen::ENVEDIT;
-    break;
-  case 27:
-    patch.operators[0].RR = map(value, 0, 127, 0, 15);
-    option = thea::ym2612::ChannelPatch::WriteOption::OP0_RR;
-    screen = thea::display::Screen::ENVEDIT;
-    break;
-  case 28:
-    patch.operators[0].RS = map(value, 0, 127, 0, 3);
-    option = thea::ym2612::ChannelPatch::WriteOption::OP0_RS;
-    break;
-  case 29:
-    patch.operators[0].AM = value;
-    option = thea::ym2612::ChannelPatch::WriteOption::OP0_AM;
-    break;
-
-  default:
+  /* Controllers 20-29 map to OP1 parameters */
+  if (control >= 20 && control <= 29) {
+    option = thea::ym2612::ChannelPatch::WriteOption(control - 20);
+  } else {
     Serial.printf("Unmapped controller %i.\n", control);
     return; // Revisit
-    break;
   }
 
+  thea::synth::modify_patch_parameter(option, value);
   thea::synth::update_patch(option);
 
   thea::display::display_state.write_option = option;

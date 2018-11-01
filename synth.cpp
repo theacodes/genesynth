@@ -8,6 +8,10 @@ namespace synth {
 thea::ym2612::ChannelPatch patch;
 uint8_t active_notes[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
 
+inline long map(long x, long in_min, long in_max, long out_min, long out_max) {
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 void play_note(uint8_t note, float pitch) {
   for (uint8_t i = 0; i < YM_CHANNELS; i++) {
     if (active_notes[i] == 0) {
@@ -28,6 +32,47 @@ void stop_note(uint8_t note) {
       thea::ym2612::set_reg(0x28, key_offset); // Key off
       active_notes[i] = 0;
     }
+  }
+}
+
+void modify_patch_parameter(thea::ym2612::ChannelPatch::WriteOption option, uint8_t normalized_value) {
+  auto normalized_option =
+      thea::ym2612::ChannelPatch::WriteOption(option % thea::ym2612::ChannelPatch::WriteOption::OP0_AM);
+  uint8_t operator_no = option / thea::ym2612::ChannelPatch::WriteOption::OP0_AM;
+
+  switch (normalized_option) {
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_DT1:
+    patch.operators[operator_no].DT1 = map(normalized_value, 0, 127, 0, 7);
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_MUL:
+    patch.operators[operator_no].MUL = map(normalized_value, 0, 127, 0, 15);
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_TL:
+    patch.operators[operator_no].TL = normalized_value;
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_AR:
+    patch.operators[operator_no].AR = map(normalized_value, 0, 127, 0, 31);
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_D1R:
+    patch.operators[operator_no].D1R = map(normalized_value, 0, 127, 0, 31);
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_D2R:
+    patch.operators[operator_no].D2R = map(normalized_value, 0, 127, 0, 31);
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_D1L:
+    patch.operators[operator_no].D1L = map(normalized_value, 0, 127, 0, 31);
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_RR:
+    patch.operators[operator_no].RR = map(normalized_value, 0, 127, 0, 15);
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_RS:
+    patch.operators[operator_no].RS = map(normalized_value, 0, 127, 0, 3);
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_AM:
+    patch.operators[operator_no].AM = normalized_value;
+    break;
+  default:
+    break;
   }
 }
 

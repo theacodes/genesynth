@@ -21,6 +21,9 @@ void loop();
 
 void play_note(uint8_t note, float pitch);
 void stop_note(uint8_t note);
+
+/* Normalized value is between 0-127 */
+void modify_patch_parameter(thea::ym2612::ChannelPatch::WriteOption option, uint8_t normalized_value);
 void update_patch(thea::ym2612::ChannelPatch::WriteOption option);
 inline void update_patch() { update_patch(thea::ym2612::ChannelPatch::WriteOption::ALL); }
 
