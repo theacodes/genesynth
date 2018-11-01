@@ -7,13 +7,15 @@
 
 #include "display.h"
 #include "thea.h"
+#include "synth.h"
 
 namespace thea {
 namespace display {
 
-DisplayState display_state;
-Screen screen = Screen::THEA;
 #define DISPLAY_RATE 66666 // 1/15th of a second.
+#define ENV_SCREEN_DISPLAY_TIME 1000000
+
+Screen screen = Screen::THEA;
 unsigned long last_display_time = micros();
 unsigned long next_display_time = last_display_time;
 unsigned long screen_start_time = last_display_time;
@@ -249,9 +251,9 @@ inline void draw_alg_7() {
 void screen_notes() {
   u8g2.setDrawColor(1);
   u8g2.setCursor(0, 0);
-  u8g2.printf("> %s", display_state.patch->name);
+  u8g2.printf("> %s", thea::synth::patch.name);
 
-  switch (display_state.patch->algorithm) {
+  switch (thea::synth::patch.algorithm) {
   case 0:
     draw_alg_0();
     break;
@@ -278,12 +280,12 @@ void screen_notes() {
     break;
   default:
     u8g2.setCursor(0, 9);
-    u8g2.printf("Unkwn alg 0x%x\n", display_state.patch->algorithm);
+    u8g2.printf("Unkwn alg 0x%x\n", thea::synth::patch.algorithm);
   }
 };
 
 void screen_opedit() {
-  auto op = display_state.patch->operators[0];
+  auto op = thea::synth::patch.operators[0];
   u8g2.setCursor(0, 9 * 0);
   u8g2.printf("> Operator 1\n");
   u8g2.setCursor(0, 9 * 1);
@@ -309,7 +311,7 @@ void screen_opedit() {
 }
 
 void sreen_envedit() {
-  auto op = display_state.patch->operators[0];
+  auto op = thea::synth::patch.operators[0];
 
   float w = 128;
   float y_offset = 18;
@@ -351,7 +353,7 @@ void sreen_envedit() {
   u8g2.setCursor(0, 0);
   u8g2.printf("> Op 1 Envelope");
   u8g2.setCursor(0, 9);
-  switch (display_state.write_option) {
+  switch (thea::synth::last_write_option) {
   case thea::ym2612::ChannelPatch::WriteOption::OP0_TL:
     u8g2.printf("Level: %i", int(level * 100));
     break;
@@ -381,17 +383,30 @@ void screen_debug() {
 }
 
 void loop(void) {
+  auto now = micros();
   // Don't display more often than needed.
-  if (micros() < next_display_time) {
+  if (now < next_display_time) {
     return;
   }
 
+  // Switch the screen based on the synth state, if necessary.
+  // This should happen when the last patch modify time is recent enough.
+  // TODO: This shows the env screen even for non-env params, figure out how to show detune and such.
+  if(screen == Screen::NOTES) {
+    auto was_modified_recently = thea::synth::last_patch_modify_time > (now - ENV_SCREEN_DISPLAY_TIME);
+    auto is_env = thea::synth::last_write_option >= thea::ym2612::ChannelPatch::WriteOption::OP0_TL && thea::synth::last_write_option <= thea::ym2612::ChannelPatch::WriteOption::OP0_RR;
+    if(was_modified_recently && is_env) {
+      show(Screen::ENVEDIT, ENV_SCREEN_DISPLAY_TIME);
+    }
+  }
+
+  // Draw the screen.
   u8g2.firstPage();
   do {
     /* all graphics commands have to appear within the loop body. */
     switch (screen) {
     case Screen::THEA:
-      thea::show_thea(&u8g2, micros() - screen_start_time);
+      thea::show_thea(&u8g2, now - screen_start_time);
       break;
     case Screen::DEBUG:
       screen_debug();
@@ -409,7 +424,7 @@ void loop(void) {
   } while (u8g2.nextPage());
 
   last_display_time = micros();
-  next_display_time = micros() + DISPLAY_RATE;
+  next_display_time = now + DISPLAY_RATE;
 
   if (screen != Screen::NOTES && last_display_time > screen_time) {
     screen = Screen::NOTES;

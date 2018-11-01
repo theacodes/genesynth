@@ -49,7 +49,6 @@ void handleControlChange(byte channel, byte control, byte value) {
   // Serial.printf("Got control change %i: %i\n", control, value);
 
   auto option = thea::ym2612::ChannelPatch::WriteOption::ALL;
-  auto screen = thea::display::Screen::OPEDIT;
 
   /* Controllers 20-29 map to OP1 parameters */
   if (control >= 20 && control <= 29) {
@@ -61,9 +60,6 @@ void handleControlChange(byte channel, byte control, byte value) {
 
   thea::synth::modify_patch_parameter(option, value);
   thea::synth::update_patch(option);
-
-  thea::display::display_state.write_option = option;
-  thea::display::show(screen, 10 * 100000);
 }
 
 // -----------------------------------------------------------------------------
@@ -92,9 +88,6 @@ void setup() {
   MIDI.setHandleControlChange(handleControlChange);
   // Initiate MIDI communications, listen to all channels
   MIDI.begin(MIDI_CHANNEL_OMNI);
-
-  // Write our patch up to the display, so it can show edits.
-  thea::display::display_state.patch = &thea::synth::patch;
 
   // Load the first patch.
   handleProgramChange(1, 0);

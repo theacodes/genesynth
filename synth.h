@@ -15,6 +15,8 @@ namespace thea {
 namespace synth {
 
 extern thea::ym2612::ChannelPatch patch;
+extern thea::ym2612::ChannelPatch::WriteOption last_write_option;
+extern unsigned long last_patch_modify_time;
 
 void init();
 void loop();

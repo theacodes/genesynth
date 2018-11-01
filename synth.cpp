@@ -1,3 +1,4 @@
+#include <Arduino.h>
 #include "synth.h"
 
 namespace thea {
@@ -6,11 +7,9 @@ namespace synth {
 #define YM_CHANNELS 6
 
 thea::ym2612::ChannelPatch patch;
+thea::ym2612::ChannelPatch::WriteOption last_write_option;
+unsigned long last_patch_modify_time;
 uint8_t active_notes[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
-
-inline long map(long x, long in_min, long in_max, long out_min, long out_max) {
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
 
 void play_note(uint8_t note, float pitch) {
   for (uint8_t i = 0; i < YM_CHANNELS; i++) {
@@ -80,6 +79,8 @@ void update_patch(thea::ym2612::ChannelPatch::WriteOption option) {
   for (uint8_t i = 0; i < YM_CHANNELS; i++) {
     thea::synth::patch.write_to_channel(i, option);
   }
+  last_write_option = option;
+  last_patch_modify_time = micros();
 }
 
 } // namespace synth
