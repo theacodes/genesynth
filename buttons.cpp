@@ -11,8 +11,10 @@ namespace buttons {
 
 Bounce buttons[4];
 
-callback press_callback;
-callback release_callback;
+inline void noop_callback(int button) {}
+
+callback press_callback = &noop_callback;
+callback release_callback = &noop_callback;
 
 void on_button_press(callback cb) { press_callback = cb; }
 

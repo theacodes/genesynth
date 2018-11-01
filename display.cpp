@@ -6,8 +6,8 @@
 #endif
 
 #include "display.h"
-#include "thea.h"
 #include "synth.h"
+#include "thea.h"
 
 namespace thea {
 namespace display {
@@ -392,10 +392,11 @@ void loop(void) {
   // Switch the screen based on the synth state, if necessary.
   // This should happen when the last patch modify time is recent enough.
   // TODO: This shows the env screen even for non-env params, figure out how to show detune and such.
-  if(screen == Screen::NOTES) {
+  if (screen == Screen::NOTES) {
     auto was_modified_recently = thea::synth::last_patch_modify_time > (now - ENV_SCREEN_DISPLAY_TIME);
-    auto is_env = thea::synth::last_write_option >= thea::ym2612::ChannelPatch::WriteOption::OP0_TL && thea::synth::last_write_option <= thea::ym2612::ChannelPatch::WriteOption::OP0_RR;
-    if(was_modified_recently && is_env) {
+    auto is_env = thea::synth::last_write_option >= thea::ym2612::ChannelPatch::WriteOption::OP0_TL &&
+                  thea::synth::last_write_option <= thea::ym2612::ChannelPatch::WriteOption::OP0_RR;
+    if (was_modified_recently && is_env) {
       show(Screen::ENVEDIT, ENV_SCREEN_DISPLAY_TIME);
     }
   }

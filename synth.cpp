@@ -1,5 +1,5 @@
-#include <Arduino.h>
 #include "synth.h"
+#include <Arduino.h>
 
 namespace thea {
 namespace synth {

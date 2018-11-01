@@ -37,6 +37,11 @@ void setup() {
   // Wait for serial monitoring if the down button is pressed on boot.
   Serial.begin(9600);
 
+  // Loop a few times to let the buttons settle, and if the down button is
+  // pressed, wait for the serial debug monitor.
+  for (auto i = 0; i < 100; i++) {
+    thea::buttons::loop();
+  }
   if (thea::buttons::is_pressed(2)) {
     wait_for_serial_monitor();
   }
