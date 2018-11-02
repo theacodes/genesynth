@@ -34,6 +34,8 @@ namespace ym2612 {
 // 192 cycles. At 8hmz, that's 24 microseconds.
 #define YM_RESET_WAIT 24 // uS
 
+unsigned int latency = 0;
+
 void setup() {
   /* Setup the YM's pins. */
   for (int i = 0; i < 8; i++) {
@@ -91,6 +93,10 @@ inline static void set_data_lines(byte b) {
   }
 }
 
+unsigned int get_latency() {
+  return latency;
+}
+
 inline static void wait_ready() {
   // Switch data bus to input YM -> uC.
   input_enable();
@@ -110,6 +116,7 @@ inline static void wait_ready() {
   while (count < YM_MAX_WAIT_CYCLES) {
     __asm__ volatile("nop");
     count++;
+    // Wait at *least* 20 cycles for the pins to read accurately.
     if (count < 20)
       continue;
     state = read_data_lines();
@@ -130,6 +137,8 @@ inline static void wait_ready() {
     Serial.printf("Warning, waited too many cycles for ready, last state: %x, %x, %i.\n", state, (1 << 7),
                   state & (1 << 7));
   }
+
+  latency = count;
 }
 
 void set_reg(uint8_t address, uint8_t data, int port) {

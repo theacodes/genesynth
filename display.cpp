@@ -375,6 +375,10 @@ void sreen_envedit() {
   default:
     break;
   }
+
+  // Debug: show write latency
+  u8g2.setCursor(0, 18);
+  u8g2.printf("Latency: %i", thea::ym2612::get_latency());
 }
 
 void screen_debug() {
