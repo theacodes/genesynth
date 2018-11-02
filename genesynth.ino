@@ -24,7 +24,12 @@ static void wait_for_serial_monitor() {
 static void setup_ym_clock() {
   /* Uses PWM to generate an 7.67Mhz clock for the YM2612 */
   pinMode(YM_CLOCK, OUTPUT);
-  analogWriteFrequency(YM_CLOCK, 7670000);
+  /*
+    Ideal clock is 7.67, but it seems the teensy can't do that accurately.
+    Use 7.5, which is accurate & stable (verified by external tuner) & more
+    than close enough.
+  */
+  analogWriteFrequency(YM_CLOCK, 7500000);
   analogWrite(YM_CLOCK, 128);
 }
 

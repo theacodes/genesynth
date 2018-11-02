@@ -174,7 +174,7 @@ void set_channel_freq(int channel, float freq) {
   // Freq Number = (144 * note * 2^20 / Clock) / 2^(block-1)
   // Figure out the base frequency number first, then start iterating through
   // blocks until it's within range 0 < freq_int < 2000
-  float base_freq = freq * 144 * pow(2.f, 20) / 7670000;
+  float base_freq = 144 * freq * pow(2.f, 20) / 7500000;
   uint32_t freq_int = 2001;
 
   int block = 1;
