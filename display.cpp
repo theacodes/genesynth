@@ -23,6 +23,15 @@ unsigned long screen_time = last_display_time + 1600000;
 
 U8G2_SH1106_128X64_NONAME_2_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/10, /* dc=*/9, /* reset=*/8);
 
+
+inline void use_small_font() {
+  u8g2.setFont(u8g2_font_amstrad_cpc_extended_8f);
+}
+
+inline void use_big_font() {
+  u8g2.setFont(u8g2_font_fub14_tf);
+}
+
 inline void draw_op_symbol(uint8_t num, uint8_t x, uint8_t y, bool shaded) {
   if (shaded) {
     u8g2.setDrawColor(0);
@@ -285,29 +294,54 @@ void screen_notes() {
 };
 
 void screen_opedit() {
-  auto op = thea::synth::patch.operators[0];
+  uint8_t op_no = thea::synth::last_write_option / 10;
+  auto op = thea::synth::patch.operators[op_no];
+
+  bool detune_negative = op.DT1 & 0x4;
+  signed int detune = op.DT1 & 0x3;
+
   u8g2.setCursor(0, 9 * 0);
-  u8g2.printf("> Operator 1\n");
-  u8g2.setCursor(0, 9 * 1);
-  u8g2.printf("Detune %#04x\n", op.DT1);
-  u8g2.setCursor(0, 9 * 2);
-  u8g2.printf("Multiplier %#04x\n", op.MUL);
-  u8g2.setCursor(0, 9 * 3);
-  u8g2.printf("Total Level %#04x\n", op.TL);
-  u8g2.setCursor(0, 9 * 4);
-  u8g2.printf("Attack Rate %#04x\n", op.AR);
-  u8g2.setCursor(0, 9 * 5);
-  u8g2.printf("Decay Rate 1 %#04x\n", op.D1R);
-  u8g2.setCursor(0, 9 * 6);
-  u8g2.printf("Decay Rate 2 %#04x\n", op.D2R);
-  u8g2.setCursor(0, 9 * 7);
-  u8g2.printf("Decay Level %#04x\n", op.D1L);
-  u8g2.setCursor(0, 9 * 8);
-  u8g2.printf("RR %#04x\n", op.RR);
-  u8g2.setCursor(0, 9 * 9);
-  u8g2.printf("Rate Scaling %#04x\n", op.RS);
-  u8g2.setCursor(0, 9 * 10);
-  u8g2.printf("Amplitude Mod %#04x\n", op.AM);
+  u8g2.printf("> Operator %i\n", op_no + 1);
+
+  auto x = 32;
+  auto y = 22;
+  auto spacing = 45;
+  u8g2.setCursor(x, y+6);
+  u8g2.printf("x");
+  u8g2.setCursor(x+spacing, y+6);
+  u8g2.printf(detune_negative ? "+" : "-");
+
+  use_big_font();
+  u8g2.setCursor(x+8, y);
+  if(op.MUL == 0) {
+    u8g2.printf("%c", 0xbd); // "1/2" glyph
+  } else {
+    u8g2.printf("%i", op.MUL);
+  }
+  u8g2.setCursor(x+spacing+8, y);
+  u8g2.printf("%i", detune);
+
+  use_small_font();
+
+  y += 20;
+
+  if (op.RS > 0) {
+    u8g2.setDrawColor(1);
+    u8g2.drawBox(x, y, 30, 12);
+    u8g2.setDrawColor(0);
+    u8g2.setCursor(x+3, y+2);
+    u8g2.printf("RS%i", op.RS);
+    u8g2.setDrawColor(1);
+  };
+
+  if (op.AM) {
+    u8g2.setDrawColor(1);
+    u8g2.drawBox(x+35, y, 30, 12);
+    u8g2.setDrawColor(0);
+    u8g2.setCursor(x+35+7, y+2);
+    u8g2.printf("AM");
+    u8g2.setDrawColor(1);
+  }
 }
 
 void sreen_envedit() {
@@ -352,7 +386,7 @@ void sreen_envedit() {
 
   // Draw text
   u8g2.setCursor(0, 0);
-  u8g2.printf("> Op %i Envelope", op_no);
+  u8g2.printf("> Op %i Envelope", op_no + 1);
   u8g2.setCursor(0, 9);
   switch (thea::synth::last_write_option) {
   case thea::ym2612::ChannelPatch::WriteOption::OP0_TL:
@@ -396,13 +430,17 @@ void loop(void) {
 
   // Switch the screen based on the synth state, if necessary.
   // This should happen when the last patch modify time is recent enough.
-  // TODO: This shows the env screen even for non-env params, figure out how to show detune and such.
   if (screen == Screen::NOTES) {
     auto was_modified_recently = thea::synth::last_patch_modify_time > (now - ENV_SCREEN_DISPLAY_TIME);
-    auto is_env = thea::synth::last_write_option >= thea::ym2612::ChannelPatch::WriteOption::OP0_TL &&
-                  thea::synth::last_write_option <= thea::ym2612::ChannelPatch::WriteOption::OP3_AM;
-    if (was_modified_recently && is_env) {
-      show(Screen::ENVEDIT, ENV_SCREEN_DISPLAY_TIME);
+    if (was_modified_recently && thea::synth::last_write_option != thea::ym2612::ChannelPatch::WriteOption::ALL) {
+      auto normalized_option = thea::synth::last_write_option / 10;
+      auto is_env = (normalized_option >= thea::ym2612::ChannelPatch::WriteOption::OP0_TL &&
+                     normalized_option <= thea::ym2612::ChannelPatch::WriteOption::OP0_RR);
+      if (is_env) {
+        show(Screen::ENVEDIT, ENV_SCREEN_DISPLAY_TIME);
+      } else {
+        show(Screen::OPEDIT, ENV_SCREEN_DISPLAY_TIME);
+      }
     }
   }
 
@@ -440,8 +478,8 @@ void loop(void) {
 void init(void) {
   u8g2.begin();
   u8g2.setPowerSave(0);
-  u8g2.setFont(u8g2_font_amstrad_cpc_extended_8f);
   u8g2.setFontPosTop();
+  use_small_font();
 }
 
 void show(Screen screen, unsigned long duration) {
