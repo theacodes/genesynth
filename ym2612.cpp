@@ -174,6 +174,9 @@ void set_reg(uint8_t address, uint8_t data, int port) {
   digitalWriteFast(YM_WR, HIGH);
   digitalWriteFast(YM_CS, HIGH);
   delay10ns(YM_WRITE_WAIT);
+
+  // Debug
+  // Serial.printf("Wrote %#04x:%#04x\n", address, data);
 }
 
 void set_reg(uint8_t address, uint8_t data) { return set_reg(address, data, 0); }
@@ -208,6 +211,8 @@ void ChannelPatch::write_to_channel(uint8_t channel, ChannelPatch::WriteOption o
   channel = channel % 3;
 
   // Setup operators.
+  // Note: this presently updates all of the operators even if only one operator option is
+  // specified in the write option.
 
   // wrap the write option around if its an operator specific option.
   if (option >= WriteOption::OP1_DT1 and option <= WriteOption::OP3_AM) {
@@ -215,7 +220,7 @@ void ChannelPatch::write_to_channel(uint8_t channel, ChannelPatch::WriteOption o
   }
 
   for (int i = 0; i < 4; i++) {
-    uint8_t dt1_mul_byte = (operators[i].DT1 << 4) & (operators[i].MUL & 0xF);
+    uint8_t dt1_mul_byte = (operators[i].DT1 << 4) | (operators[i].MUL & 0xF);
     uint8_t tl_byte = operators[i].TL & 0x7F;
     uint8_t rs_ar_byte = (operators[i].RS << 6) | (operators[i].AR & 0x1F);
     uint8_t am_d1r_byte = (operators[i].AM << 7) | (operators[i].D1R & 0x1F);
