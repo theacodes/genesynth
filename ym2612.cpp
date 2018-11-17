@@ -93,9 +93,7 @@ inline static void set_data_lines(byte b) {
   }
 }
 
-unsigned int get_latency() {
-  return latency;
-}
+unsigned int get_latency() { return latency; }
 
 inline static void wait_ready() {
   // Switch data bus to input YM -> uC.

@@ -35,8 +35,7 @@ void stop_note(uint8_t note) {
 }
 
 void modify_patch_parameter(thea::ym2612::ChannelPatch::WriteOption option, uint8_t normalized_value) {
-  auto normalized_option =
-      thea::ym2612::ChannelPatch::WriteOption(option % 10);
+  auto normalized_option = thea::ym2612::ChannelPatch::WriteOption(option % 10);
   uint8_t operator_no = option / 10;
 
   // Serial.printf("Option: %i, Normalized: %i, Operator: %i\n", option, normalized_option, operator_no);

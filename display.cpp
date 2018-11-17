@@ -23,14 +23,9 @@ unsigned long screen_time = last_display_time + 1600000;
 
 U8G2_SH1106_128X64_NONAME_2_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/10, /* dc=*/9, /* reset=*/8);
 
+inline void use_small_font() { u8g2.setFont(u8g2_font_amstrad_cpc_extended_8f); }
 
-inline void use_small_font() {
-  u8g2.setFont(u8g2_font_amstrad_cpc_extended_8f);
-}
-
-inline void use_big_font() {
-  u8g2.setFont(u8g2_font_fub14_tf);
-}
+inline void use_big_font() { u8g2.setFont(u8g2_font_fub14_tf); }
 
 inline void draw_op_symbol(uint8_t num, uint8_t x, uint8_t y, bool shaded) {
   if (shaded) {
@@ -306,19 +301,19 @@ void screen_opedit() {
   auto x = 32;
   auto y = 22;
   auto spacing = 45;
-  u8g2.setCursor(x, y+6);
+  u8g2.setCursor(x, y + 6);
   u8g2.printf("x");
-  u8g2.setCursor(x+spacing, y+6);
+  u8g2.setCursor(x + spacing, y + 6);
   u8g2.printf(detune_negative ? "+" : "-");
 
   use_big_font();
-  u8g2.setCursor(x+8, y);
-  if(op.MUL == 0) {
+  u8g2.setCursor(x + 8, y);
+  if (op.MUL == 0) {
     u8g2.printf("%c", 0xbd); // "1/2" glyph
   } else {
     u8g2.printf("%i", op.MUL);
   }
-  u8g2.setCursor(x+spacing+8, y);
+  u8g2.setCursor(x + spacing + 8, y);
   u8g2.printf("%i", detune);
 
   use_small_font();
@@ -329,16 +324,16 @@ void screen_opedit() {
     u8g2.setDrawColor(1);
     u8g2.drawBox(x, y, 30, 12);
     u8g2.setDrawColor(0);
-    u8g2.setCursor(x+3, y+2);
+    u8g2.setCursor(x + 3, y + 2);
     u8g2.printf("RS%i", op.RS);
     u8g2.setDrawColor(1);
   };
 
   if (op.AM) {
     u8g2.setDrawColor(1);
-    u8g2.drawBox(x+35, y, 30, 12);
+    u8g2.drawBox(x + 35, y, 30, 12);
     u8g2.setDrawColor(0);
-    u8g2.setCursor(x+35+7, y+2);
+    u8g2.setCursor(x + 35 + 7, y + 2);
     u8g2.printf("AM");
     u8g2.setDrawColor(1);
   }
