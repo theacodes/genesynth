@@ -311,7 +311,8 @@ void screen_opedit() {
 }
 
 void sreen_envedit() {
-  auto op = thea::synth::patch.operators[0];
+  uint8_t op_no = thea::synth::last_write_option / 10;
+  auto op = thea::synth::patch.operators[op_no];
 
   float w = 128;
   float y_offset = 18;
@@ -351,7 +352,7 @@ void sreen_envedit() {
 
   // Draw text
   u8g2.setCursor(0, 0);
-  u8g2.printf("> Op 1 Envelope");
+  u8g2.printf("> Op %i Envelope", op_no);
   u8g2.setCursor(0, 9);
   switch (thea::synth::last_write_option) {
   case thea::ym2612::ChannelPatch::WriteOption::OP0_TL:
@@ -377,7 +378,7 @@ void sreen_envedit() {
   }
 
   // Debug: show write latency
-  u8g2.setCursor(0, 18);
+  u8g2.setCursor(0, 45);
   u8g2.printf("Latency: %i", thea::ym2612::get_latency());
 }
 
@@ -399,7 +400,7 @@ void loop(void) {
   if (screen == Screen::NOTES) {
     auto was_modified_recently = thea::synth::last_patch_modify_time > (now - ENV_SCREEN_DISPLAY_TIME);
     auto is_env = thea::synth::last_write_option >= thea::ym2612::ChannelPatch::WriteOption::OP0_TL &&
-                  thea::synth::last_write_option <= thea::ym2612::ChannelPatch::WriteOption::OP0_RR;
+                  thea::synth::last_write_option <= thea::ym2612::ChannelPatch::WriteOption::OP3_AM;
     if (was_modified_recently && is_env) {
       show(Screen::ENVEDIT, ENV_SCREEN_DISPLAY_TIME);
     }

@@ -211,7 +211,7 @@ void ChannelPatch::write_to_channel(uint8_t channel, ChannelPatch::WriteOption o
 
   // wrap the write option around if its an operator specific option.
   if (option >= WriteOption::OP1_DT1 and option <= WriteOption::OP3_AM) {
-    option = WriteOption(option % WriteOption::OP0_AM);
+    option = WriteOption(option % 10);
   }
 
   for (int i = 0; i < 4; i++) {

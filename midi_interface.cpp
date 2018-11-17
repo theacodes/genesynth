@@ -50,8 +50,8 @@ void handleControlChange(byte channel, byte control, byte value) {
 
   auto option = thea::ym2612::ChannelPatch::WriteOption::ALL;
 
-  /* Controllers 20-29 map to OP1 parameters */
-  if (control >= 20 && control <= 29) {
+  /* Controllers 20-29 map to OP1, 30-39 to OP2, etc. parameters */
+  if (control >= 20 && control <= 59) {
     option = thea::ym2612::ChannelPatch::WriteOption(control - 20);
   } else {
     Serial.printf("Unmapped controller %i.\n", control);
