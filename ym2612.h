@@ -11,6 +11,8 @@ void reset();
 unsigned int get_latency();
 void set_reg(uint8_t address, uint8_t data, int port);
 void set_reg(uint8_t address, uint8_t data);
+void play_note(int channel);
+void stop_note(int channel);
 void set_channel_freq(int channel, float freq);
 
 class OperatorPatch {

@@ -32,6 +32,15 @@ void handleNoteOff(byte channel, byte note, byte velocity) {
   }
 }
 
+void handlePitchBend(byte channel, int amount) {
+  if (channel != 1)
+    return;
+
+  float offset = float(amount) / 8192.0f;
+
+  thea::synth::pitch_bend(offset);
+}
+
 void handleProgramChange(byte channel, byte program) {
   if (channel != 1)
     return;
@@ -84,6 +93,7 @@ void button_release_callback(int button) { Serial.printf("Release: %i\n", button
 void setup() {
   MIDI.setHandleNoteOn(handleNoteOn);
   MIDI.setHandleNoteOff(handleNoteOff);
+  MIDI.setHandlePitchBend(handlePitchBend);
   MIDI.setHandleProgramChange(handleProgramChange);
   MIDI.setHandleControlChange(handleControlChange);
   // Initiate MIDI communications, listen to all channels

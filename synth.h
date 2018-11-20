@@ -23,6 +23,8 @@ void loop();
 
 void play_note(uint8_t note, float pitch);
 void stop_note(uint8_t note);
+/* Offset is between -1.0 and 1.0. */
+void pitch_bend(float offset);
 
 /* Normalized value is between 0-127 */
 void modify_patch_parameter(thea::ym2612::ChannelPatch::WriteOption option, uint8_t normalized_value);

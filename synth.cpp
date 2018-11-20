@@ -9,13 +9,20 @@ namespace synth {
 thea::ym2612::ChannelPatch patch;
 thea::ym2612::ChannelPatch::WriteOption last_write_option;
 unsigned long last_patch_modify_time;
+// The active midi note numbers, used for polyphony tracking.
 uint8_t active_notes[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
+float active_pitches[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
+float pitch_bend_multiplier = 1.f;
+
 
 void play_note(uint8_t note, float pitch) {
   for (uint8_t i = 0; i < YM_CHANNELS; i++) {
     if (active_notes[i] == 0) {
-      thea::ym2612::set_channel_freq(i, pitch);
+      thea::ym2612::stop_note(i);
+      thea::ym2612::set_channel_freq(i, pitch * pitch_bend_multiplier);
+      thea::ym2612::play_note(i);
       active_notes[i] = note;
+      active_pitches[i] = pitch;
       break;
     }
   }
@@ -24,12 +31,22 @@ void play_note(uint8_t note, float pitch) {
 void stop_note(uint8_t note) {
   for (uint8_t i = 0; i < YM_CHANNELS; i++) {
     if (active_notes[i] == note) {
-      // TODO: Move to ym2612.cpp
-      int port = i < 3 ? 0 : 1;
-      uint8_t channel_offset = (i % 3);
-      uint8_t key_offset = channel_offset | (port << 2);
-      thea::ym2612::set_reg(0x28, key_offset); // Key off
+      thea::ym2612::stop_note(i);
       active_notes[i] = 0;
+    }
+  }
+}
+
+
+void pitch_bend(float offset) {
+  // Adjustable: a 1.0 multiplier means that the pitch wheel all the way up *doubles* the frequency.
+  // A 0.5 multipler lowers the range a bit, making it a bit more musically usabe.
+  offset *= 0.5f;
+
+  pitch_bend_multiplier = 1.f + offset;
+  for (uint8_t i = 0; i < YM_CHANNELS; i++) {
+    if (active_notes[i] != 0) {
+      thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
     }
   }
 }

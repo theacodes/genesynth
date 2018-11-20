@@ -195,13 +195,22 @@ void set_channel_freq(int channel, float freq) {
 
   int port = channel < 3 ? 0 : 1;
   uint8_t channel_offset = (channel % 3);
-  uint8_t key_offset = channel_offset | (port << 2);
-  // Note this presently turns the key off then back on, when it comes time
-  // to implement modulation/pitch bend I'll need to fix this.
-  set_reg(0x28, key_offset);                                            // Key off
-  set_reg(0xA4 + channel_offset, (block << 3) | (freq_int >> 8), port); // freq
+  set_reg(0xA4 + channel_offset, (block << 3) | (freq_int >> 8), port);
   set_reg(0xA0 + channel_offset, freq_int & 0xFF, port);
-  set_reg(0x28, 0xF0 | key_offset); // Key on
+}
+
+void play_note(int channel) {
+  int port = channel < 3 ? 0 : 1;
+  uint8_t channel_offset = (channel % 3);
+  uint8_t key_offset = channel_offset | (port << 2);
+  set_reg(0x28, 0xF0 | key_offset);
+}
+
+void stop_note(int channel) {
+  int port = channel < 3 ? 0 : 1;
+  uint8_t channel_offset = (channel % 3);
+  uint8_t key_offset = channel_offset | (port << 2);
+  set_reg(0x28, key_offset);
 }
 
 void ChannelPatch::write_to_channel(uint8_t channel, ChannelPatch::WriteOption option) {
