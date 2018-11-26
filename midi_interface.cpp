@@ -7,14 +7,18 @@
 #include <Arduino.h>
 #include <MIDI.h>
 #include <midi_UsbTransport.h>
+#include <EEPROM.h>
+
+namespace thea {
+namespace midi_interface {
+
+#define EEPROM_BANK_ADDR 0
+#define EEPROM_PROGRAM_ADDR 1
 
 static const unsigned sUsbTransportBufferSize = 16;
 typedef midi::UsbTransport<sUsbTransportBufferSize> UsbTransport;
 UsbTransport sUsbTransport;
 MIDI_CREATE_INSTANCE(UsbTransport, sUsbTransport, MIDI);
-
-namespace thea {
-namespace midi_interface {
 
 int patch_no = 0;
 int bank_no = 0;
@@ -49,6 +53,7 @@ void handleProgramChange(byte channel, byte program) {
 
   thea::patch_loader::load_nth_program(program, &thea::synth::patch);
   patch_no = program;
+  EEPROM.write(EEPROM_PROGRAM_ADDR, program);
 
   thea::synth::update_patch();
 }
@@ -59,6 +64,7 @@ void handleBankChange(byte channel, byte bank) {
 
   thea::patch_loader::load_nth_bank(bank);
   bank_no = bank;
+  EEPROM.write(EEPROM_BANK_ADDR, bank);
 
   handleProgramChange(channel, 0);
 }
@@ -121,8 +127,11 @@ void setup() {
   // Initiate MIDI communications, listen to all channels
   MIDI.begin(MIDI_CHANNEL_OMNI);
 
-  // Load the first patch.
-  handleProgramChange(1, 0);
+  // Load up the last loaded patch and bank.
+  uint8_t last_bank = EEPROM.read(EEPROM_BANK_ADDR);
+  uint8_t last_program = EEPROM.read(EEPROM_PROGRAM_ADDR);
+  handleBankChange(1, last_bank);
+  handleProgramChange(1, last_program);
 
   // Wire up button callbacks
   thea::buttons::on_button_press(&button_press_callback);
