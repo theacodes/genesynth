@@ -67,7 +67,11 @@ void handleControlChange(byte channel, byte control, byte value) {
   if (channel != 1)
     return;
 
-  // Serial.printf("Got control change %i: %i\n", control, value);
+  if (control == 0) {
+    // Bank change
+    handleBankChange(channel, value);
+    return;
+  }
 
   auto option = thea::ym2612::ChannelPatch::WriteOption::ALL;
 
@@ -75,7 +79,7 @@ void handleControlChange(byte channel, byte control, byte value) {
   if (control >= 20 && control <= 59) {
     option = thea::ym2612::ChannelPatch::WriteOption(control - 20);
   } else {
-    Serial.printf("Unmapped controller %i.\n", control);
+    Serial.printf("Unmapped CC %i: %i.\n", control, value);
     return; // Revisit
   }
 
