@@ -118,7 +118,8 @@ public:
     ALL,
   };
 
-  char name[20];
+  char bank[32];
+  char name[32];
 
   // 0-7 (3 bits).
   uint8_t algorithm;

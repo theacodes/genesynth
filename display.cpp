@@ -255,7 +255,12 @@ inline void draw_alg_7() {
 void screen_notes() {
   u8g2.setDrawColor(1);
   u8g2.setCursor(0, 0);
-  u8g2.printf("> %s", thea::synth::patch.name);
+
+  if((micros() / 2500000 % 2) == 0) {
+    u8g2.printf("> %s", &thea::synth::patch.name[patch_name_offset]);
+  } else {
+    u8g2.printf("# %s", thea::synth::patch.bank);
+  }
 
   switch (thea::synth::patch.algorithm) {
   case 0:

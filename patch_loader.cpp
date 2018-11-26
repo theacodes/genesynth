@@ -98,13 +98,18 @@ bool load_nth_program(int n, thea::ym2612::ChannelPatch *patch) {
     return false;
   }
 
+  /* Update the patch's bank and name */
   char filename[MAX_FILE_NAME_SIZE];
-  current_file.getName(filename, MAX_FILE_NAME_SIZE);
-  strncpy(patch->name, filename, 20);
+  current_bank.getName(filename, MAX_FILE_NAME_SIZE);
+  strncpy(patch->bank, filename, 32);
 
+  current_file.getName(filename, MAX_FILE_NAME_SIZE);
+  strncpy(patch->name, filename, 32);
+
+  // Parse.
   thea::tfi::parse(current_file, patch);
 
-  Serial.printf("Loading patch %s\n", filename);
+  Serial.printf("Loaded patch %s\n", filename);
 
   return true;
 };
