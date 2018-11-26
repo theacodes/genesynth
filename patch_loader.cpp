@@ -11,15 +11,8 @@ namespace patch_loader {
 #define MAX_FILE_NAME_SIZE 256
 
 SdFatSdio sd;
+SdFile current_bank;
 SdFile current_file;
-
-void init() {
-  if (!sd.begin()) {
-    Serial.println("Patch loader failed to start SD.");
-    return;
-  }
-  sd.vwd()->rewind();
-}
 
 const char *get_extension(const char *filename) {
   const char *dot = strrchr(filename, '.');
@@ -28,15 +21,15 @@ const char *get_extension(const char *filename) {
   return dot + 1;
 }
 
-bool load_next_file_with_extension(SdFile *file, const char *extension) {
+bool load_next_file_with_extension(SdFile *dir, SdFile *file, const char *extension) {
   char filename[MAX_FILE_NAME_SIZE];
 
   do {
     if (file->isOpen())
       file->close();
-    bool success = file->openNext(sd.vwd(), O_READ);
+    bool success = file->openNext(dir, O_READ);
     if (!success)
-      sd.vwd()->rewind(); // wrap around.
+      dir->rewind(); // wrap around.
     // TODO: Fix degenerative case where there isn't any files
     file->getName(filename, MAX_FILE_NAME_SIZE);
   } while (strncmp(extension, get_extension(filename), 3) != 0);
@@ -44,10 +37,60 @@ bool load_next_file_with_extension(SdFile *file, const char *extension) {
   return true;
 }
 
-bool load_nth(int n, thea::ym2612::ChannelPatch *patch) {
+bool load_next_directory(SdFile *file) {
+  char filename[MAX_FILE_NAME_SIZE];
+
+  while(true) {
+    if (file->isOpen())
+      file->close();
+    bool success = file->openNext(sd.vwd(), O_READ);
+
+    if (!success) {
+      sd.vwd()->rewind(); // wrap around.
+      continue;
+    }
+
+    if(!file->isDir()) {
+      continue;
+    }
+
+    file->getName(filename, MAX_FILE_NAME_SIZE);
+
+    if(strcmp(filename, "System Volume Information") == 0) {
+      continue;
+    }
+
+    break;
+
+    // TODO: Fix degenerative case where there aren't any folders
+  }
+
+  return true;
+}
+
+bool load_nth_bank(int n) {
   sd.vwd()->rewind();
   for (; n >= 0; n--) {
-    load_next_file_with_extension(&current_file, "tfi");
+    load_next_directory(&current_bank);
+  }
+
+  if (!current_bank.isOpen()) {
+    Serial.println("Directory is not open.");
+    return false;
+  }
+
+
+  char dirname[MAX_FILE_NAME_SIZE];
+  current_bank.getName(dirname, MAX_FILE_NAME_SIZE);
+  //strncpy(patch->name, filename, 20);
+
+  Serial.printf("Working with bank %s\n", dirname);
+};
+
+bool load_nth_program(int n, thea::ym2612::ChannelPatch *patch) {
+  current_bank.rewind();
+  for (; n >= 0; n--) {
+    load_next_file_with_extension(&current_bank, &current_file, "tfi");
   }
 
   if (!current_file.isOpen()) {
@@ -65,6 +108,16 @@ bool load_nth(int n, thea::ym2612::ChannelPatch *patch) {
 
   return true;
 };
+
+void init() {
+  if (!sd.begin()) {
+    Serial.println("Patch loader failed to start SD.");
+    return;
+  }
+  sd.vwd()->rewind();
+
+  load_nth_bank(0);
+}
 
 } // namespace patch_loader
 } // namespace thea

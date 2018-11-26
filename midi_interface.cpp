@@ -17,6 +17,8 @@ namespace thea {
 namespace midi_interface {
 
 int patch_no = 0;
+int bank_no = 0;
+
 
 void handleNoteOn(byte channel, byte note, byte velocity) {
   float pitch = pow(2, float(note - 69) / 12) * 440;
@@ -45,10 +47,20 @@ void handleProgramChange(byte channel, byte program) {
   if (channel != 1)
     return;
 
-  thea::patch_loader::load_nth(program, &thea::synth::patch);
+  thea::patch_loader::load_nth_program(program, &thea::synth::patch);
   patch_no = program;
 
   thea::synth::update_patch();
+}
+
+void handleBankChange(byte channel, byte bank) {
+  if (channel != 1)
+    return;
+
+  thea::patch_loader::load_nth_bank(bank);
+  bank_no = bank;
+
+  handleProgramChange(channel, 0);
 }
 
 void handleControlChange(byte channel, byte control, byte value) {
@@ -80,8 +92,14 @@ void button_press_callback(int button) {
   case 0:
     handleProgramChange(1, (patch_no + 1) % 127);
     break;
+  case 1:
+    handleBankChange(1, (bank_no + 1) % 127);
+    break;
   case 2:
     handleProgramChange(1, (patch_no - 1) % 127);
+    break;
+  case 3:
+    handleBankChange(1, (bank_no + 1) % 127);
     break;
   default:
     break;
