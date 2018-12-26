@@ -5,8 +5,6 @@
 #include "synth.h"
 #include "ym2612.h"
 #include <Arduino.h>
-#include <MIDI.h>
-#include <midi_UsbTransport.h>
 #include <EEPROM.h>
 
 namespace thea {
@@ -14,11 +12,6 @@ namespace midi_interface {
 
 #define EEPROM_BANK_ADDR 0
 #define EEPROM_PROGRAM_ADDR 1
-
-static const unsigned sUsbTransportBufferSize = 16;
-typedef midi::UsbTransport<sUsbTransportBufferSize> UsbTransport;
-UsbTransport sUsbTransport;
-MIDI_CREATE_INSTANCE(UsbTransport, sUsbTransport, MIDI);
 
 int patch_no = 0;
 int bank_no = 0;
@@ -93,6 +86,16 @@ void handleControlChange(byte channel, byte control, byte value) {
   thea::synth::update_patch(option);
 }
 
+void handleSystemExclusive(byte *data, unsigned int length) {
+  // We expect sysex messages to be two bytes long (excluding the start and end bytes).
+  if(length - 2 != 2) {
+    Serial.printf("Got SysEx of unexpected length: %i", length);
+    return;
+  }
+
+  Serial.printf("Got SysEx: param %i value %i", data[1], data[2]);
+}
+
 // -----------------------------------------------------------------------------
 
 void button_press_callback(int button) {
@@ -119,13 +122,15 @@ void button_press_callback(int button) {
 void button_release_callback(int button) { Serial.printf("Release: %i\n", button); }
 
 void setup() {
-  MIDI.setHandleNoteOn(handleNoteOn);
-  MIDI.setHandleNoteOff(handleNoteOff);
-  MIDI.setHandlePitchBend(handlePitchBend);
-  MIDI.setHandleProgramChange(handleProgramChange);
-  MIDI.setHandleControlChange(handleControlChange);
+  usbMIDI.setHandleNoteOn(handleNoteOn);
+  usbMIDI.setHandleNoteOff(handleNoteOff);
+  usbMIDI.setHandlePitchChange(handlePitchBend);
+  usbMIDI.setHandleProgramChange(handleProgramChange);
+  usbMIDI.setHandleControlChange(handleControlChange);
+  usbMIDI.setHandleSystemExclusive(handleSystemExclusive);
+
   // Initiate MIDI communications, listen to all channels
-  MIDI.begin(MIDI_CHANNEL_OMNI);
+  usbMIDI.begin();
 
   // Load up the last loaded patch and bank.
   uint8_t last_bank = EEPROM.read(EEPROM_BANK_ADDR);
@@ -139,7 +144,7 @@ void setup() {
 }
 
 void loop() {
-  while (MIDI.read()) {
+  while (usbMIDI.read()) {
   };
 }
 
