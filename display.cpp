@@ -256,7 +256,7 @@ void screen_notes() {
   u8g2.setDrawColor(1);
   u8g2.setCursor(0, 0);
 
-  if((micros() / 2500000 % 2) == 0) {
+  if ((micros() / 2500000 % 2) == 0) {
     u8g2.printf("> %s", thea::synth::patch.name);
   } else {
     u8g2.printf("# %s", thea::synth::patch.bank);

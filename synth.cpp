@@ -14,7 +14,6 @@ uint8_t active_notes[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
 float active_pitches[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
 float pitch_bend_multiplier = 1.f;
 
-
 void play_note(uint8_t note, float pitch) {
   for (uint8_t i = 0; i < YM_CHANNELS; i++) {
     if (active_notes[i] == 0) {
@@ -36,7 +35,6 @@ void stop_note(uint8_t note) {
     }
   }
 }
-
 
 void pitch_bend(float offset) {
   // Adjustable: a 1.0 multiplier means that the pitch wheel all the way up *doubles* the frequency.

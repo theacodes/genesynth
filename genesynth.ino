@@ -2,6 +2,7 @@
 
 #include "buttons.h"
 #include "display.h"
+#include "menu_interface.h"
 #include "midi_interface.h"
 #include "patch_loader.h"
 #include "vgm.h"
@@ -52,6 +53,9 @@ void setup() {
   }
 
   Serial.println("Started");
+
+  // Initialize the menu-based interface
+  thea::menu_interface::init();
 
   // Setup clocks
   setup_ym_clock();

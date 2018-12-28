@@ -40,7 +40,7 @@ bool load_next_file_with_extension(SdFile *dir, SdFile *file, const char *extens
 bool load_next_directory(SdFile *file) {
   char filename[MAX_FILE_NAME_SIZE];
 
-  while(true) {
+  while (true) {
     if (file->isOpen())
       file->close();
     bool success = file->openNext(sd.vwd(), O_READ);
@@ -50,13 +50,13 @@ bool load_next_directory(SdFile *file) {
       continue;
     }
 
-    if(!file->isDir()) {
+    if (!file->isDir()) {
       continue;
     }
 
     file->getName(filename, MAX_FILE_NAME_SIZE);
 
-    if(strcmp(filename, "System Volume Information") == 0) {
+    if (strcmp(filename, "System Volume Information") == 0) {
       continue;
     }
 
@@ -79,10 +79,9 @@ bool load_nth_bank(int n) {
     return false;
   }
 
-
   char dirname[MAX_FILE_NAME_SIZE];
   current_bank.getName(dirname, MAX_FILE_NAME_SIZE);
-  //strncpy(patch->name, filename, 20);
+  // strncpy(patch->name, filename, 20);
 
   Serial.printf("Working with bank %s\n", dirname);
 };

@@ -16,7 +16,6 @@ namespace midi_interface {
 int patch_no = 0;
 int bank_no = 0;
 
-
 void handleNoteOn(byte channel, byte note, byte velocity) {
   float pitch = pow(2, float(note - 69) / 12) * 440;
 
@@ -88,35 +87,35 @@ void handleControlChange(byte channel, byte control, byte value) {
 
 void handleSystemExclusive(byte *data, unsigned int length) {
   // We expect sysex messages to be two bytes long (excluding the start and end bytes).
-  if(length - 2 != 2) {
-    Serial.printf("Got SysEx of unexpected length: %i", length);
+  if (length - 2 != 2) {
+    Serial.printf("Got SysEx of unexpected length: %i\n", length);
     return;
   }
 
-  Serial.printf("Got SysEx: param %i value %i", data[1], data[2]);
+  Serial.printf("Got SysEx: param %i value %i\n", data[1], data[2]);
 }
 
 // -----------------------------------------------------------------------------
 
 void button_press_callback(int button) {
-  Serial.printf("Press: %i\n", button);
+  // Serial.printf("Press: %i\n", button);
 
-  switch (button) {
-  case 0:
-    handleProgramChange(1, (patch_no + 1) % 127);
-    break;
-  case 1:
-    handleBankChange(1, (bank_no + 1) % 127);
-    break;
-  case 2:
-    handleProgramChange(1, (patch_no - 1) % 127);
-    break;
-  case 3:
-    handleBankChange(1, (bank_no + 1) % 127);
-    break;
-  default:
-    break;
-  }
+  // switch (button) {
+  // case 0:
+  //   handleProgramChange(1, (patch_no + 1) % 127);
+  //   break;
+  // case 1:
+  //   handleBankChange(1, (bank_no + 1) % 127);
+  //   break;
+  // case 2:
+  //   handleProgramChange(1, (patch_no - 1) % 127);
+  //   break;
+  // case 3:
+  //   handleBankChange(1, (bank_no + 1) % 127);
+  //   break;
+  // default:
+  //   break;
+  // }
 }
 
 void button_release_callback(int button) { Serial.printf("Release: %i\n", button); }
