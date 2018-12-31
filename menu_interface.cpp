@@ -27,7 +27,7 @@ public:
 
 class StringOptionsMenu : public AbstractMenu {
 public:
-  StringOptionsMenu(U8G2 *u8g2, const char * const *options, int options_len)
+  StringOptionsMenu(U8G2 *u8g2, const char *const *options, int options_len)
       : u8g2(u8g2), options(options), options_len(options_len) {}
 
   virtual void display() {
@@ -81,7 +81,7 @@ public:
 protected:
   U8G2 *u8g2;
   int selected = 0;
-  const char * const *options;
+  const char *const *options;
   int options_len;
 
   static const int page_size = 6;
@@ -122,9 +122,7 @@ public:
 
   void back() { pop(); }
 
-  void advance(AbstractMenu *next) {
-    stack[++stack_ptr] = next;
-  }
+  void advance(AbstractMenu *next) { stack[++stack_ptr] = next; }
 
   void pop() {
     if (stack_ptr != 0) {
@@ -139,15 +137,14 @@ private:
   int stack_ptr = 0;
 };
 
-
-
 class FolderMenu : public AbstractMenu {
 public:
-  FolderMenu(U8G2* u8g2, SdFile* root) :
-    u8g2(u8g2), root(root), iterator(root) {
-      clear_options();
-      strncpy(current_options[0], "I haven't been", 14);
-      strncpy(current_options[1], "reset()", 7);
+  typedef void (*selection_callback)(SdFile);
+
+  FolderMenu(U8G2 *u8g2, SdFile *root) : u8g2(u8g2), iterator(root) {
+    clear_options();
+    strncpy(current_options[0], "I haven't been", 14);
+    strncpy(current_options[1], "reset()", 7);
   }
 
   virtual void display() {
@@ -177,38 +174,58 @@ public:
   };
 
   virtual void up() {
-    if(selected > 0)
+    if (selected > 0)
       selected--;
 
     populate_options();
   };
 
-  virtual void down(){
+  virtual void down() {
     selected++;
-    if(selected >= max) {
+    if (selected >= max) {
       selected = max - 1;
     }
     populate_options();
   };
 
-  virtual void forward(){};
-  virtual void reset(){
+  virtual void forward() {
+    if (callback != nullptr) {
+      callback(selected_file());
+    }
+  };
+
+  virtual void reset() {
+    selected = 0;
+    max = 255;
     populate_options();
   };
 
+  void set_root(SdFile *root) {
+    iterator.close();
+    iterator = thea::fs::SdFatIterator(root);
+  }
+
+  void set_callback(selection_callback callback) { this->callback = callback; }
+
+  SdFile selected_file() {
+    iterator.rewind();
+    iterator.fast_forward(selected);
+    return iterator.item();
+  }
+
 private:
-  U8G2* u8g2;
-  SdFile* root;
+  U8G2 *u8g2;
   int selected = 0;
   int max = 255;
   char current_options[6][127] = {};
   thea::fs::SdFatIterator iterator;
+  selection_callback callback = nullptr;
 
   static const int page_size = 6;
   static const int font_height = 9;
 
   void clear_options() {
-    for(int i = 0; i < 6; i++) {
+    for (int i = 0; i < 6; i++) {
       memset(current_options[i], 0, 127);
     }
   }
@@ -217,8 +234,8 @@ private:
     iterator.rewind();
     int page = selected / page_size;
     iterator.fast_forward(page * page_size);
-    for(int i = 0; i < 6; i++) {
-      if(iterator.end()) {
+    for (int i = 0; i < 6; i++) {
+      if (iterator.end()) {
         memset(current_options[i], 0, 127);
         max = MIN(max, page * page_size + i);
       }
@@ -273,13 +290,29 @@ void test_fs_iterators() {
       Serial.printf("> Item: %s, index: %i\n", item_name, it.index());
     }
   }
-
 }
 
 U8G2_SH1106_128X64_NONAME_2_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/10, /* dc=*/9, /* reset=*/8);
 
-auto menu_ctrl = MenuController();
-auto menu = RootMenu(&u8g2, menu_ctrl);
+void button_release_callback(int button) {}
+
+SdFatSdio sd;
+SdFile root;
+MenuController menu_ctrl;
+RootMenu menu(&u8g2, menu_ctrl);
+FolderMenu folder_menu(&u8g2, &root);
+SdFile selected_folder;
+FolderMenu file_menu(&u8g2, &selected_folder);
+
+void folder_select_callback(SdFile selected) {
+  char name[127];
+  selected.getName(name, 127);
+  Serial.printf("Selected: %s\n", name);
+  selected_folder = selected;
+  file_menu.set_root(&selected_folder);
+  file_menu.reset();
+  menu_ctrl.advance(&file_menu);
+}
 
 void button_press_callback(int button) {
   switch (button) {
@@ -300,25 +333,20 @@ void button_press_callback(int button) {
   }
 }
 
-void button_release_callback(int button) {}
-
-SdFatSdio sd;
-SdFile root;
-FolderMenu file_menu(&u8g2, &root);
-
 void init() {
   /* Waits for the serial monitor to be opened. */
   while (!Serial.dtr()) {
     delay(10);
   }
 
-  //test_fs_iterators();
+  // test_fs_iterators();
   menu_ctrl.advance(&menu);
 
   sd.begin();
   root.openRoot(sd.vol());
-  file_menu.reset();
-  menu_ctrl.advance(&file_menu);
+  folder_menu.reset();
+  folder_menu.set_callback(&folder_select_callback);
+  menu_ctrl.advance(&folder_menu);
 
   u8g2.begin();
   u8g2.setPowerSave(0);
