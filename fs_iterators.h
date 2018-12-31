@@ -4,27 +4,49 @@
 #include "SdFat.h"
 #include "simple_iterator.h"
 
+#include "Arduino.h"
+
 namespace thea {
 namespace fs {
 
-class SdFatIterator : thea::SimpleIterator<SdFile> {
+class SdFatIterator : thea::SimpleIterator<SdFile&> {
 public:
-  SdFatIterator(SdFile *dir) : dir(dir), file(), _index() { hit_end = !file.openNext(dir, O_READ); }
+  SdFatIterator(SdFile *dir) : dir(dir), file(), _index() { rewind(); }
 
   virtual bool next() {
+    if(hit_end) return false;
+
     if (file.isOpen())
       file.close();
-    bool success = file.openNext(dir, O_READ);
-    hit_end = !success;
+    hit_end = !file.openNext(dir, O_READ);
     _index++;
-    return success;
+    return !hit_end;
   }
 
   unsigned int index() { return _index; }
 
-  virtual SdFile item() { return file; }
+  virtual SdFile& item() { return file; }
 
   virtual bool end() { return hit_end; }
+
+  void rewind() {
+    if (file.isOpen())
+      file.close();
+
+    dir->rewind();
+    hit_end = !file.openNext(dir, O_READ);
+    _index = 0;
+  }
+
+  void fast_forward(int num) {
+    for(int i = 0; i < num; i++) {
+      if(!next()) break;
+    }
+  }
+
+  void close() {
+    if (file.isOpen()) file.close();
+  }
 
 private:
   SdFile *dir;

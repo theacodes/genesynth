@@ -10,6 +10,8 @@
 #include <SPI.h>
 #endif
 
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
+
 namespace thea {
 namespace menu_interface {
 
@@ -25,7 +27,7 @@ public:
 
 class StringOptionsMenu : public AbstractMenu {
 public:
-  StringOptionsMenu(U8G2 *u8g2, char **options, int options_len)
+  StringOptionsMenu(U8G2 *u8g2, const char * const *options, int options_len)
       : u8g2(u8g2), options(options), options_len(options_len) {}
 
   virtual void display() {
@@ -79,7 +81,7 @@ public:
 protected:
   U8G2 *u8g2;
   int selected = 0;
-  char **options;
+  const char * const *options;
   int options_len;
 
   static const int page_size = 6;
@@ -122,15 +124,12 @@ public:
 
   void advance(AbstractMenu *next) {
     stack[++stack_ptr] = next;
-    // Serial.printf("Advanced, stack %i", stack_ptr);
   }
 
   void pop() {
     if (stack_ptr != 0) {
       stack_ptr--;
     }
-
-    Serial.printf("Popped, stack %i", stack_ptr);
   }
 
   AbstractMenu *current_menu() { return stack[stack_ptr]; }
@@ -140,10 +139,99 @@ private:
   int stack_ptr = 0;
 };
 
-char *root_options[10] = {"Nothing", "SubMenu", "More Nothing"};
-int root_options_len = 10;
-char *sub_options[10] = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"};
-int sub_options_len = 10;
+
+
+class FolderMenu : public AbstractMenu {
+public:
+  FolderMenu(U8G2* u8g2, SdFile* root) :
+    u8g2(u8g2), root(root), iterator(root) {
+      clear_options();
+      strncpy(current_options[0], "I haven't been", 14);
+      strncpy(current_options[1], "reset()", 7);
+  }
+
+  virtual void display() {
+    /* Draw the options */
+    int page = selected / page_size;
+    int page_start = page * page_size;
+
+    for (int i = 0; i < page_size; i++) {
+      auto index = page_start + i;
+      auto value = current_options[i];
+
+      int y = i * font_height;
+      u8g2->setCursor(0, y);
+
+      if (index == selected) {
+        u8g2->setDrawColor(1);
+        u8g2->drawBox(0, y, 128, font_height);
+        u8g2->setDrawColor(0);
+      } else {
+        u8g2->setDrawColor(1);
+      }
+      u8g2->printf("%s", value);
+
+      // reset draw color
+      u8g2->setDrawColor(1);
+    }
+  };
+
+  virtual void up() {
+    if(selected > 0)
+      selected--;
+
+    populate_options();
+  };
+
+  virtual void down(){
+    selected++;
+    if(selected >= max) {
+      selected = max - 1;
+    }
+    populate_options();
+  };
+
+  virtual void forward(){};
+  virtual void reset(){
+    populate_options();
+  };
+
+private:
+  U8G2* u8g2;
+  SdFile* root;
+  int selected = 0;
+  int max = 255;
+  char current_options[6][127] = {};
+  thea::fs::SdFatIterator iterator;
+
+  static const int page_size = 6;
+  static const int font_height = 9;
+
+  void clear_options() {
+    for(int i = 0; i < 6; i++) {
+      memset(current_options[i], 0, 127);
+    }
+  }
+
+  void populate_options() {
+    iterator.rewind();
+    int page = selected / page_size;
+    iterator.fast_forward(page * page_size);
+    for(int i = 0; i < 6; i++) {
+      if(iterator.end()) {
+        memset(current_options[i], 0, 127);
+        max = MIN(max, page * page_size + i);
+      }
+      iterator.item().getName(current_options[i], 127);
+      iterator.next();
+    }
+  }
+};
+
+const char *root_options[4] = {"Load patch", "Save patch", "Polyphony", "<3"};
+const int root_options_len = 4;
+const char *sub_options[10] = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"};
+const int sub_options_len = 10;
 
 class RootMenu : public StringOptionsMenu {
 public:
@@ -185,6 +273,7 @@ void test_fs_iterators() {
       Serial.printf("> Item: %s, index: %i\n", item_name, it.index());
     }
   }
+
 }
 
 U8G2_SH1106_128X64_NONAME_2_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/10, /* dc=*/9, /* reset=*/8);
@@ -213,9 +302,23 @@ void button_press_callback(int button) {
 
 void button_release_callback(int button) {}
 
+SdFatSdio sd;
+SdFile root;
+FolderMenu file_menu(&u8g2, &root);
+
 void init() {
-  // test_fs_iterators();
+  /* Waits for the serial monitor to be opened. */
+  while (!Serial.dtr()) {
+    delay(10);
+  }
+
+  //test_fs_iterators();
   menu_ctrl.advance(&menu);
+
+  sd.begin();
+  root.openRoot(sd.vol());
+  file_menu.reset();
+  menu_ctrl.advance(&file_menu);
 
   u8g2.begin();
   u8g2.setPowerSave(0);
