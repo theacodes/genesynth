@@ -13,40 +13,22 @@
 namespace thea {
 namespace menu_interface {
 
-// class TestMenuItemIterator : MenuItemIterator {
-// public:
-//     TestMenuItemIterator() : value(0) { }
-
-//     virtual bool next() {
-//         value++;
-//         return true;
-//     }
-
-//     virtual const char* item_name() {
-//         return options[value];
-//     }
-
-//     virtual unsigned int item_value() {
-//         return value;
-//     }
-
-//     virtual bool end() {
-//         return value == 5;
-//     }
-
-// private:
-//     unsigned int value = 0;
-//     static char* options[];
-// };
-
-char *options[12] = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten", "eleven", "twelve"};
-int options_len = 12;
-
-class MenuController {
+class AbstractMenu {
 public:
-  MenuController(U8G2 *u8g2) : u8g2(u8g2) {}
+  virtual ~AbstractMenu(){};
+  virtual void display();
+  virtual void up(){};
+  virtual void down(){};
+  virtual void forward(){};
+  virtual void reset(){};
+};
 
-  void display() {
+class StringOptionsMenu : public AbstractMenu {
+public:
+  StringOptionsMenu(U8G2 *u8g2, char **options, int options_len)
+      : u8g2(u8g2), options(options), options_len(options_len) {}
+
+  virtual void display() {
     /* Draw the options */
     int page = selected / page_size;
     int page_start = page * page_size;
@@ -76,32 +58,109 @@ public:
     }
   }
 
-  void up() {
+  virtual void up() {
     selected--;
     if (selected < 0)
       selected = 0;
   }
 
-  void down() {
+  virtual void down() {
     selected++;
     if (selected >= options_len)
       selected = options_len - 1;
   }
 
-  void back() {
+  virtual void forward() {
     // TODO
   }
 
-  void forward() {
-    // TODO
-  }
+  virtual void reset() { selected = 0; }
 
-private:
-  int selected = 0;
+protected:
   U8G2 *u8g2;
+  int selected = 0;
+  char **options;
+  int options_len;
 
   static const int page_size = 6;
   static const int font_height = 9;
+};
+
+class MenuController {
+public:
+  MenuController() {}
+
+  void display() {
+    if (current_menu() == nullptr)
+      return;
+
+    current_menu()->display();
+  }
+
+  void up() {
+    if (current_menu() == nullptr)
+      return;
+
+    current_menu()->up();
+  }
+
+  void down() {
+    if (current_menu() == nullptr)
+      return;
+
+    current_menu()->down();
+  }
+
+  void forward() {
+    if (current_menu() == nullptr)
+      return;
+
+    current_menu()->forward();
+  }
+
+  void back() { pop(); }
+
+  void advance(AbstractMenu *next) {
+    stack[++stack_ptr] = next;
+    // Serial.printf("Advanced, stack %i", stack_ptr);
+  }
+
+  void pop() {
+    if (stack_ptr != 0) {
+      stack_ptr--;
+    }
+
+    Serial.printf("Popped, stack %i", stack_ptr);
+  }
+
+  AbstractMenu *current_menu() { return stack[stack_ptr]; }
+
+private:
+  AbstractMenu *stack[5] = {};
+  int stack_ptr = 0;
+};
+
+char *root_options[10] = {"Nothing", "SubMenu", "More Nothing"};
+int root_options_len = 10;
+char *sub_options[10] = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"};
+int sub_options_len = 10;
+
+class RootMenu : public StringOptionsMenu {
+public:
+  RootMenu(U8G2 *u8g2, MenuController &menu_ctrl)
+      : StringOptionsMenu(u8g2, root_options, root_options_len), menu_ctrl(menu_ctrl),
+        sub_menu(u8g2, sub_options, sub_options_len) {}
+
+  virtual void forward() {
+    if (selected == 1) {
+      sub_menu.reset();
+      menu_ctrl.advance(&sub_menu);
+    }
+  }
+
+private:
+  MenuController &menu_ctrl;
+  StringOptionsMenu sub_menu;
 };
 
 void test_fs_iterators() {
@@ -129,7 +188,9 @@ void test_fs_iterators() {
 }
 
 U8G2_SH1106_128X64_NONAME_2_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/10, /* dc=*/9, /* reset=*/8);
-auto menu_ctrl = MenuController(&u8g2);
+
+auto menu_ctrl = MenuController();
+auto menu = RootMenu(&u8g2, menu_ctrl);
 
 void button_press_callback(int button) {
   switch (button) {
@@ -154,6 +215,7 @@ void button_release_callback(int button) {}
 
 void init() {
   // test_fs_iterators();
+  menu_ctrl.advance(&menu);
 
   u8g2.begin();
   u8g2.setPowerSave(0);
