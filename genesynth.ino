@@ -37,7 +37,7 @@ static void setup_ym_clock() {
 // the setup routine runs once when you press reset:
 void setup() {
   // Initialize the display & buttons.
-  thea::display::init();
+  // thea::display::init();
   thea::buttons::init();
 
   // Wait for serial monitoring if the down button is pressed on boot.
@@ -76,5 +76,6 @@ void setup() {
 void loop() {
   thea::buttons::loop();
   thea::midi_interface::loop();
-  thea::display::loop();
+  // thea::display::loop();
+  thea::menu_interface::loop();
 }

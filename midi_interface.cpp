@@ -98,24 +98,24 @@ void handleSystemExclusive(byte *data, unsigned int length) {
 // -----------------------------------------------------------------------------
 
 void button_press_callback(int button) {
-  // Serial.printf("Press: %i\n", button);
+  Serial.printf("Press: %i\n", button);
 
-  // switch (button) {
-  // case 0:
-  //   handleProgramChange(1, (patch_no + 1) % 127);
-  //   break;
-  // case 1:
-  //   handleBankChange(1, (bank_no + 1) % 127);
-  //   break;
-  // case 2:
-  //   handleProgramChange(1, (patch_no - 1) % 127);
-  //   break;
-  // case 3:
-  //   handleBankChange(1, (bank_no + 1) % 127);
-  //   break;
-  // default:
-  //   break;
-  // }
+  switch (button) {
+  case 0:
+    handleProgramChange(1, (patch_no + 1) % 127);
+    break;
+  case 1:
+    handleBankChange(1, (bank_no + 1) % 127);
+    break;
+  case 2:
+    handleProgramChange(1, (patch_no - 1) % 127);
+    break;
+  case 3:
+    handleBankChange(1, (bank_no + 1) % 127);
+    break;
+  default:
+    break;
+  }
 }
 
 void button_release_callback(int button) { Serial.printf("Release: %i\n", button); }
@@ -138,8 +138,8 @@ void setup() {
   handleProgramChange(1, last_program);
 
   // Wire up button callbacks
-  thea::buttons::on_button_press(&button_press_callback);
-  thea::buttons::on_button_release(&button_release_callback);
+  // thea::buttons::on_button_press(&button_press_callback);
+  // thea::buttons::on_button_release(&button_release_callback);
 }
 
 void loop() {

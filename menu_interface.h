@@ -5,6 +5,7 @@ namespace thea {
 namespace menu_interface {
 
 void init();
+void loop();
 
 } // namespace midi_interface
 } // namespace thea
