@@ -10,6 +10,8 @@
 #include <SPI.h>
 #endif
 
+#define MENU_PAGE_SIZE 6
+#define MENU_FONT_HEIGHT 9
 #define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
 namespace thea {
@@ -25,39 +27,36 @@ public:
   virtual void reset(){};
 };
 
+void draw_menu_options(U8G2 *u8g2, const char *const options[], int len, int selected) {
+  for (int i = 0; i < len; i++) {
+    auto value = options[i];
+    int y = i * MENU_FONT_HEIGHT;
+    u8g2->setCursor(0, y);
+
+    if (i == selected) {
+      u8g2->setDrawColor(1);
+      u8g2->drawBox(0, y, 128, MENU_FONT_HEIGHT);
+      u8g2->setDrawColor(0);
+    } else {
+      u8g2->setDrawColor(1);
+    }
+    u8g2->printf(value);
+
+    // reset draw color
+    u8g2->setDrawColor(1);
+  }
+}
+
 class StringOptionsMenu : public AbstractMenu {
 public:
   StringOptionsMenu(U8G2 *u8g2, const char *const *options, int options_len)
       : u8g2(u8g2), options(options), options_len(options_len) {}
 
   virtual void display() {
-    /* Draw the options */
-    int page = selected / page_size;
-    int page_start = page * page_size;
+    int page = selected / MENU_PAGE_SIZE;
+    int page_start = page * MENU_PAGE_SIZE;
 
-    for (int i = 0; i < page_size; i++) {
-      auto index = page_start + i;
-
-      if (index >= options_len)
-        break;
-
-      auto value = options[index];
-
-      int y = i * font_height;
-      u8g2->setCursor(0, y);
-
-      if (index == selected) {
-        u8g2->setDrawColor(1);
-        u8g2->drawBox(0, y, 128, font_height);
-        u8g2->setDrawColor(0);
-      } else {
-        u8g2->setDrawColor(1);
-      }
-      u8g2->printf(value);
-
-      // reset draw color
-      u8g2->setDrawColor(1);
-    }
+    draw_menu_options(u8g2, options + page_start, options_len - page_start, selected - page_start);
   }
 
   virtual void up() {
@@ -83,9 +82,6 @@ protected:
   int selected = 0;
   const char *const *options;
   int options_len;
-
-  static const int page_size = 6;
-  static const int font_height = 9;
 };
 
 class MenuController {
@@ -137,40 +133,26 @@ private:
   int stack_ptr = 0;
 };
 
-class FolderMenu : public AbstractMenu {
+class FileSystemMenu : public AbstractMenu {
 public:
   typedef void (*selection_callback)(SdFile);
 
-  FolderMenu(U8G2 *u8g2, SdFile *root) : u8g2(u8g2), iterator(root) {
+  FileSystemMenu(U8G2 *u8g2, SdFile *root) : u8g2(u8g2), iterator(root) {
     clear_options();
     strncpy(current_options[0], "I haven't been", 14);
     strncpy(current_options[1], "reset()", 7);
   }
 
   virtual void display() {
-    /* Draw the options */
-    int page = selected / page_size;
-    int page_start = page * page_size;
+    int page = selected / MENU_PAGE_SIZE;
+    int page_start = page * MENU_PAGE_SIZE;
 
-    for (int i = 0; i < page_size; i++) {
-      auto index = page_start + i;
-      auto value = current_options[i];
-
-      int y = i * font_height;
-      u8g2->setCursor(0, y);
-
-      if (index == selected) {
-        u8g2->setDrawColor(1);
-        u8g2->drawBox(0, y, 128, font_height);
-        u8g2->setDrawColor(0);
-      } else {
-        u8g2->setDrawColor(1);
-      }
-      u8g2->printf("%s", value);
-
-      // reset draw color
-      u8g2->setDrawColor(1);
+    const char *options[MENU_PAGE_SIZE];
+    for (int i = 0; i < MENU_PAGE_SIZE; i++) {
+      options[i] = current_options[i];
     }
+
+    draw_menu_options(u8g2, options, MENU_PAGE_SIZE, selected - page_start);
   };
 
   virtual void up() {
@@ -217,27 +199,24 @@ private:
   U8G2 *u8g2;
   int selected = 0;
   int max = 255;
-  char current_options[6][127] = {};
+  char current_options[MENU_PAGE_SIZE][127] = {};
   thea::fs::SdFatIterator iterator;
   selection_callback callback = nullptr;
 
-  static const int page_size = 6;
-  static const int font_height = 9;
-
   void clear_options() {
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < MENU_PAGE_SIZE; i++) {
       memset(current_options[i], 0, 127);
     }
   }
 
   void populate_options() {
     iterator.rewind();
-    int page = selected / page_size;
-    iterator.fast_forward(page * page_size);
-    for (int i = 0; i < 6; i++) {
+    int page = selected / MENU_PAGE_SIZE;
+    iterator.fast_forward(page * MENU_PAGE_SIZE);
+    for (int i = 0; i < MENU_PAGE_SIZE; i++) {
       if (iterator.end()) {
         memset(current_options[i], 0, 127);
-        max = MIN(max, page * page_size + i);
+        max = MIN(max, page * MENU_PAGE_SIZE + i);
       }
       iterator.item().getName(current_options[i], 127);
       iterator.next();
@@ -300,9 +279,9 @@ SdFatSdio sd;
 SdFile root;
 MenuController menu_ctrl;
 RootMenu menu(&u8g2, menu_ctrl);
-FolderMenu folder_menu(&u8g2, &root);
+FileSystemMenu folder_menu(&u8g2, &root);
 SdFile selected_folder;
-FolderMenu file_menu(&u8g2, &selected_folder);
+FileSystemMenu file_menu(&u8g2, &selected_folder);
 
 void folder_select_callback(SdFile selected) {
   char name[127];
