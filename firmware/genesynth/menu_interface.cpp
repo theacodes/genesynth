@@ -3,7 +3,6 @@
 #include "SdFat.h"
 #include "buttons.h"
 #include "fs_iterators.h"
-#include "simple_iterator.h"
 #include <U8g2lib.h>
 
 #ifdef U8G2_HAVE_HW_SPI

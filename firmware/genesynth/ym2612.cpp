@@ -1,7 +1,7 @@
-#include "nanodelay.h"
 #include <arduino.h>
 #include <util/delay.h> // For timing
 
+#include "nanodelay.h"
 #include "ym2612.h"
 
 namespace thea {

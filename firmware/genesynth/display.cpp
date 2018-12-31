@@ -7,7 +7,7 @@
 
 #include "display.h"
 #include "synth.h"
-#include "thea.h"
+#include "thea_easter_egg.h"
 
 namespace thea {
 namespace display {
