@@ -111,7 +111,21 @@ bool load_nth_program(int n, thea::ym2612::ChannelPatch *patch) {
   Serial.printf("Loaded patch %s\n", filename);
 
   return true;
-};
+}
+
+bool load_from_sd_file(SdFile &file, thea::ym2612::ChannelPatch *patch) {
+  /* TODO: Make it use the folder name, perhaps via second param? */
+  char filename[MAX_FILE_NAME_SIZE];
+  file.getName(filename, MAX_FILE_NAME_SIZE);
+  strncpy(patch->bank, filename, 32);
+
+  file.getName(filename, MAX_FILE_NAME_SIZE);
+  strncpy(patch->name, filename, 32);
+
+  thea::tfi::parse(file, patch);
+
+  Serial.printf("Loaded patch %s\n", filename);
+}
 
 void init() {
   if (!sd.begin()) {

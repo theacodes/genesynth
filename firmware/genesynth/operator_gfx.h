@@ -7,8 +7,10 @@
 namespace thea {
 namespace operator_gfx {
 
-void draw_parameter_edit_screen(U8G2 &, const thea::ym2612::ChannelPatch &, thea::ym2612::ChannelPatch::WriteOption);
-void draw_envelope_edit_screen(U8G2 &, const thea::ym2612::ChannelPatch &, thea::ym2612::ChannelPatch::WriteOption);
+void draw_parameter_edit_screen(U8G2 &u8g2, const thea::ym2612::ChannelPatch &patch,
+                                thea::ym2612::ChannelPatch::WriteOption write_option);
+void draw_envelope_edit_screen(U8G2 &u8g2, const thea::ym2612::ChannelPatch &patch,
+                               thea::ym2612::ChannelPatch::WriteOption write_option);
 
 } // namespace operator_gfx
 } // namespace thea

@@ -51,21 +51,21 @@ public:
     current_menu()->display();
   }
 
-  void up() {
+  inline void up() {
     if (current_menu() == nullptr)
       return;
 
     current_menu()->up();
   }
 
-  void down() {
+  inline void down() {
     if (current_menu() == nullptr)
       return;
 
     current_menu()->down();
   }
 
-  void forward() {
+  inline void forward() {
     if (current_menu() == nullptr)
       return;
 
@@ -74,15 +74,17 @@ public:
 
   virtual void back() { pop(); }
 
-  void advance(AbstractMenu *next) { stack[++stack_ptr] = next; }
+  inline void advance(AbstractMenu *next) { stack[++stack_ptr] = next; }
 
-  void set_root(AbstractMenu *root) { stack[0] = root; }
+  inline void set_root(AbstractMenu *root) { stack[0] = root; }
 
-  void pop() {
+  inline void pop() {
     if (stack_ptr != 0) {
       stack_ptr--;
     }
   }
+
+  inline void unwind() { stack_ptr = 0; }
 
   AbstractMenu *current_menu() { return stack[stack_ptr]; }
 

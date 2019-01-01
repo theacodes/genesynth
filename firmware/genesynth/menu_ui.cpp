@@ -2,8 +2,11 @@
 #include "Arduino.h"
 #include "SdFat.h"
 #include "abstract_menu_system.h"
+#include "ambient_ui.h"
 #include "buttons.h"
 #include "fs_menu.h"
+#include "patch_loader.h"
+#include "synth.h"
 #include <U8g2lib.h>
 
 #ifdef U8G2_HAVE_HW_SPI
@@ -13,6 +16,8 @@
 namespace thea {
 namespace menu_ui {
 
+#define DISPLAY_RATE 66666 // 1/15th of a second.
+unsigned long last_display_time = micros();
 const char *manu_menu_options[4] = {"Load patch", "Save patch", "Polyphony", "<3"};
 const int manu_menu_options_len = 4;
 
@@ -21,20 +26,21 @@ public:
   IdleMenu(U8G2 *u8g2, thea::menu::MenuController &menu_ctrl) : u8g2(u8g2), menu_ctrl(menu_ctrl) {}
 
   virtual void display() {
-    u8g2->setCursor(0, 0);
-    u8g2->printf("Idle menu");
+    thea::ambient_ui::display(*u8g2, thea::synth::patch, thea::synth::last_write_option,
+                              thea::synth::last_patch_modify_time);
   }
 
-  virtual void forward() {
-    // TODO;
-  }
+  virtual void forward() { menu_ctrl.advance(main_menu); }
 
   virtual void up() { forward(); }
   virtual void down() { forward(); }
 
+  void set_main_menu(AbstractMenu *main_menu) { this->main_menu = main_menu; }
+
 private:
   U8G2 *u8g2;
   thea::menu::MenuController &menu_ctrl;
+  thea::menu::AbstractMenu *main_menu = nullptr;
 };
 
 class MainMenu : public thea::menu::StringOptionsMenu {
@@ -43,12 +49,16 @@ public:
       : thea::menu::StringOptionsMenu(u8g2, manu_menu_options, manu_menu_options_len), menu_ctrl(menu_ctrl) {}
 
   virtual void forward() {
-    if (selected == 1) {
+    if (selected == 0) {
+      menu_ctrl.advance(folder_select_menu);
     }
   }
 
+  void set_folder_select_menu(AbstractMenu *folder_select_menu) { this->folder_select_menu = folder_select_menu; }
+
 private:
   thea::menu::MenuController &menu_ctrl;
+  thea::menu::AbstractMenu *folder_select_menu = nullptr;
 };
 
 U8G2_SH1106_128X64_NONAME_2_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/10, /* dc=*/9, /* reset=*/8);
@@ -71,6 +81,17 @@ void folder_select_callback(SdFile selected) {
   file_menu.set_root(&selected_folder);
   file_menu.reset();
   menu_ctrl.advance(&file_menu);
+}
+
+void file_select_callback(SdFile selected) {
+  char name[127];
+  selected.getName(name, 127);
+  Serial.printf("Selected: %s\n", name);
+
+  thea::patch_loader::load_from_sd_file(selected, &thea::synth::patch);
+  thea::synth::update_patch();
+
+  menu_ctrl.unwind();
 }
 
 void button_press_callback(int button) {
@@ -108,24 +129,36 @@ void init() {
     delay(10);
   }
 
-  menu_ctrl.set_root(&idle_menu);
-  menu_ctrl.advance(&main_menu);
-
+  /* Initialize filesystem access */
   sd.begin();
   fs_root.openRoot(sd.vol());
+
+  /* Wire up the menu hierarchy */
+  idle_menu.set_main_menu(&main_menu);
+  menu_ctrl.set_root(&idle_menu);
+  main_menu.set_folder_select_menu(&folder_menu);
   folder_menu.reset();
   folder_menu.set_callback(&folder_select_callback);
-  menu_ctrl.advance(&folder_menu);
+  file_menu.set_callback(&file_select_callback);
 
+  /* Wire up hardware buttons to the menu system */
   thea::buttons::on_button_press(&button_press_callback);
   thea::buttons::on_button_release(&button_release_callback);
 }
 
 void loop(void) {
+  auto now = micros();
+  // Don't display more often than needed.
+  if (now < last_display_time + DISPLAY_RATE) {
+    return;
+  }
+
   u8g2.firstPage();
   do {
     menu_ctrl.display();
   } while (u8g2.nextPage());
+
+  last_display_time = micros();
 }
 
 } // namespace menu_ui
