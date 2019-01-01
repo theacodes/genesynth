@@ -13,60 +13,53 @@
 namespace thea {
 namespace menu_ui {
 
-const char *root_options[4] = {"Load patch", "Save patch", "Polyphony", "<3"};
-const int root_options_len = 4;
-const char *sub_options[10] = {"one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"};
-const int sub_options_len = 10;
+const char *manu_menu_options[4] = {"Load patch", "Save patch", "Polyphony", "<3"};
+const int manu_menu_options_len = 4;
 
-class RootMenu : public thea::menu::StringOptionsMenu {
+class IdleMenu : public thea::menu::AbstractMenu {
 public:
-  RootMenu(U8G2 *u8g2, thea::menu::MenuController &menu_ctrl)
-      : thea::menu::StringOptionsMenu(u8g2, root_options, root_options_len), menu_ctrl(menu_ctrl),
-        sub_menu(u8g2, sub_options, sub_options_len) {}
+  IdleMenu(U8G2 *u8g2, thea::menu::MenuController &menu_ctrl) : u8g2(u8g2), menu_ctrl(menu_ctrl) {}
+
+  virtual void display() {
+    u8g2->setCursor(0, 0);
+    u8g2->printf("Idle menu");
+  }
+
+  virtual void forward() {
+    // TODO;
+  }
+
+  virtual void up() { forward(); }
+  virtual void down() { forward(); }
+
+private:
+  U8G2 *u8g2;
+  thea::menu::MenuController &menu_ctrl;
+};
+
+class MainMenu : public thea::menu::StringOptionsMenu {
+public:
+  MainMenu(U8G2 *u8g2, thea::menu::MenuController &menu_ctrl)
+      : thea::menu::StringOptionsMenu(u8g2, manu_menu_options, manu_menu_options_len), menu_ctrl(menu_ctrl) {}
 
   virtual void forward() {
     if (selected == 1) {
-      sub_menu.reset();
-      menu_ctrl.advance(&sub_menu);
     }
   }
 
 private:
   thea::menu::MenuController &menu_ctrl;
-  thea::menu::StringOptionsMenu sub_menu;
 };
 
-void test_fs_iterators() {
-  SdFatSdio sd;
-  sd.begin();
-
-  SdFile root;
-  root.openRoot(sd.vol());
-
-  char item_name[127];
-
-  for (auto it = thea::fs::SdFatIterator(&root); !it.end(); it.next()) {
-    it.item().getName(item_name, 127);
-    Serial.printf("Item: %s, index: %i\n", item_name, it.index());
-
-    SdFile subdir = it.item();
-
-    Serial.printf("Listing subdir:\n");
-
-    for (auto it = thea::fs::SdFatIterator(&subdir); !it.end(); it.next()) {
-      it.item().getName(item_name, 127);
-      Serial.printf("> Item: %s, index: %i\n", item_name, it.index());
-    }
-  }
-}
-
 U8G2_SH1106_128X64_NONAME_2_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/10, /* dc=*/9, /* reset=*/8);
-
 SdFatSdio sd;
-SdFile root;
+
 thea::menu::MenuController menu_ctrl;
-RootMenu menu(&u8g2, menu_ctrl);
-thea::fs_menu::FileSystemMenu folder_menu(&u8g2, &root);
+IdleMenu idle_menu(&u8g2, menu_ctrl);
+MainMenu main_menu(&u8g2, menu_ctrl);
+
+SdFile fs_root;
+thea::fs_menu::FileSystemMenu folder_menu(&u8g2, &fs_root);
 SdFile selected_folder;
 thea::fs_menu::FileSystemMenu file_menu(&u8g2, &selected_folder);
 
@@ -102,24 +95,27 @@ void button_press_callback(int button) {
 void button_release_callback(int button) {}
 
 void init() {
-  /* Waits for the serial monitor to be opened. */
-  while (!Serial.dtr()) {
-    delay(10);
-  }
-
-  // test_fs_iterators();
-  menu_ctrl.advance(&menu);
-
-  sd.begin();
-  root.openRoot(sd.vol());
-  folder_menu.reset();
-  folder_menu.set_callback(&folder_select_callback);
-  menu_ctrl.advance(&folder_menu);
-
+  /* Initialize display */
   u8g2.begin();
   u8g2.setPowerSave(0);
   u8g2.setFontPosTop();
   u8g2.setFont(u8g2_font_amstrad_cpc_extended_8f);
+
+  /* Waits for the serial monitor to be opened. */
+  u8g2.setCursor(0, 0);
+  u8g2.printf("Waiting for serial");
+  while (!Serial.dtr()) {
+    delay(10);
+  }
+
+  menu_ctrl.set_root(&idle_menu);
+  menu_ctrl.advance(&main_menu);
+
+  sd.begin();
+  fs_root.openRoot(sd.vol());
+  folder_menu.reset();
+  folder_menu.set_callback(&folder_select_callback);
+  menu_ctrl.advance(&folder_menu);
 
   thea::buttons::on_button_press(&button_press_callback);
   thea::buttons::on_button_release(&button_release_callback);

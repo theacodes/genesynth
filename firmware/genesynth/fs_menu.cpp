@@ -81,5 +81,29 @@ void FileSystemMenu::populate_options() {
   }
 }
 
+// void test_fs_iterators() {
+//   SdFatSdio sd;
+//   sd.begin();
+
+//   SdFile root;
+//   root.openRoot(sd.vol());
+
+//   char item_name[127];
+
+//   for (auto it = thea::fs::SdFatIterator(&root); !it.end(); it.next()) {
+//     it.item().getName(item_name, 127);
+//     Serial.printf("Item: %s, index: %i\n", item_name, it.index());
+
+//     SdFile subdir = it.item();
+
+//     Serial.printf("Listing subdir:\n");
+
+//     for (auto it = thea::fs::SdFatIterator(&subdir); !it.end(); it.next()) {
+//       it.item().getName(item_name, 127);
+//       Serial.printf("> Item: %s, index: %i\n", item_name, it.index());
+//     }
+//   }
+// }
+
 } // namespace fs_menu
 } // namespace thea
