@@ -1,6 +1,5 @@
 #include "midi_interface.h"
 #include "buttons.h"
-#include "display.h"
 #include "patch_loader.h"
 #include "synth.h"
 #include "ym2612.h"

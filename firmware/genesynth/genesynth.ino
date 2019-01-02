@@ -1,26 +1,14 @@
 #include <util/delay.h>
 
 #include "buttons.h"
-#include "display.h"
-#include "menu_ui.h"
 #include "midi_interface.h"
 #include "patch_loader.h"
 #include "vgm.h"
 #include "ym2612.h"
+#include "ui.h"
 
 #define STATUS_LED 13
 #define YM_CLOCK 4
-
-static void wait_for_serial_monitor() {
-  // Show on the screen that we're waiting for the monitor.
-  thea::display::show(thea::display::Screen::DEBUG, 1);
-  thea::display::loop();
-
-  /* Waits for the serial monitor to be opened. */
-  while (!Serial.dtr()) {
-    delay(10);
-  }
-}
 
 static void setup_ym_clock() {
   /* Uses PWM to generate an 7.67Mhz clock for the YM2612 */
@@ -48,14 +36,12 @@ void setup() {
   for (auto i = 0; i < 100; i++) {
     thea::buttons::loop();
   }
-  if (thea::buttons::is_pressed(2)) {
-    wait_for_serial_monitor();
-  }
+  bool wait_for_serial = thea::buttons::is_pressed(2);
 
-  Serial.println("Started");
+  // Initialize the user interface
+  thea::ui::init(wait_for_serial);
 
-  // Initialize the menu-based interface
-  thea::menu_ui::init();
+  Serial.println("Early initialization done.");
 
   // Setup clocks
   setup_ym_clock();
@@ -71,11 +57,12 @@ void setup() {
 
   // Setup MIDI
   thea::midi_interface::setup();
+
+  Serial.println("Sound chips and MIDI interface up.");
 }
 
 void loop() {
   thea::buttons::loop();
   thea::midi_interface::loop();
-  // thea::display::loop();
-  thea::menu_ui::loop();
+  thea::ui::loop();
 }

@@ -1,4 +1,4 @@
-#include "menu_ui.h"
+#include "ui.h"
 #include "Arduino.h"
 #include "SdFat.h"
 #include "abstract_menu_system.h"
@@ -14,7 +14,7 @@
 #endif
 
 namespace thea {
-namespace menu_ui {
+namespace ui {
 
 #define DISPLAY_RATE 66666 // 1/15th of a second.
 unsigned long last_display_time = micros();
@@ -115,7 +115,21 @@ void button_press_callback(int button) {
 
 void button_release_callback(int button) {}
 
-void init() {
+void wait_for_serial_loop(U8G2& u8g2) {
+  u8g2.firstPage();
+  do {
+    u8g2.setCursor(0, 0);
+    u8g2.printf("Waiting for");
+    u8g2.setCursor(0, 9);
+    u8g2.printf("serial...");
+  } while(u8g2.nextPage());
+
+  while (!Serial.dtr()) {
+    delay(10);
+  }
+}
+
+void init(bool wait_for_serial) {
   /* Initialize display */
   u8g2.begin();
   u8g2.setPowerSave(0);
@@ -123,10 +137,8 @@ void init() {
   u8g2.setFont(u8g2_font_amstrad_cpc_extended_8f);
 
   /* Waits for the serial monitor to be opened. */
-  u8g2.setCursor(0, 0);
-  u8g2.printf("Waiting for serial");
-  while (!Serial.dtr()) {
-    delay(10);
+  if (wait_for_serial) {
+    wait_for_serial_loop(u8g2);
   }
 
   /* Initialize filesystem access */
@@ -161,5 +173,5 @@ void loop(void) {
   last_display_time = micros();
 }
 
-} // namespace menu_ui
+} // namespace ui
 } // namespace thea
