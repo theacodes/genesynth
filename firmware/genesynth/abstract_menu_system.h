@@ -36,6 +36,8 @@ public:
   virtual void up(){};
   virtual void down(){};
   virtual void forward(){};
+  /* Return false to prevent the menu from being pop()ed */
+  virtual bool back(){ return true; };
   virtual void reset(){};
 };
 
@@ -72,7 +74,11 @@ public:
     current_menu()->forward();
   }
 
-  virtual void back() { pop(); }
+  virtual void back() {
+    if(current_menu() == nullptr || current_menu()->back()) {
+      pop();
+    }
+  }
 
   inline void advance(AbstractMenu *next) { stack[++stack_ptr] = next; }
 
