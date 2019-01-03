@@ -88,7 +88,7 @@ void file_select_callback(SdFile selected) {
   selected.getName(name, 127);
   Serial.printf("Selected: %s\n", name);
 
-  thea::patch_loader::load_from_sd_file(selected, &thea::synth::patch);
+  thea::patch_loader::load_from_sd_file(selected, &selected_folder, &thea::synth::patch);
   thea::synth::update_patch();
 
   menu_ctrl.unwind();
@@ -115,14 +115,14 @@ void button_press_callback(int button) {
 
 void button_release_callback(int button) {}
 
-void wait_for_serial_loop(U8G2& u8g2) {
+void wait_for_serial_loop(U8G2 &u8g2) {
   u8g2.firstPage();
   do {
     u8g2.setCursor(0, 0);
     u8g2.printf("Waiting for");
     u8g2.setCursor(0, 9);
     u8g2.printf("serial...");
-  } while(u8g2.nextPage());
+  } while (u8g2.nextPage());
 
   while (!Serial.dtr()) {
     delay(10);

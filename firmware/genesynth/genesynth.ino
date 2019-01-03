@@ -3,9 +3,9 @@
 #include "buttons.h"
 #include "midi_interface.h"
 #include "patch_loader.h"
+#include "ui.h"
 #include "vgm.h"
 #include "ym2612.h"
-#include "ui.h"
 
 #define STATUS_LED 13
 #define YM_CLOCK 4

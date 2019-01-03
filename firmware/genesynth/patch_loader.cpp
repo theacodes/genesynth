@@ -81,7 +81,6 @@ bool load_nth_bank(int n) {
 
   char dirname[MAX_FILE_NAME_SIZE];
   current_bank.getName(dirname, MAX_FILE_NAME_SIZE);
-  // strncpy(patch->name, filename, 20);
 
   Serial.printf("Working with bank %s\n", dirname);
 };
@@ -92,31 +91,22 @@ bool load_nth_program(int n, thea::ym2612::ChannelPatch *patch) {
     load_next_file_with_extension(&current_bank, &current_file, "tfi");
   }
 
-  if (!current_file.isOpen()) {
+  return load_from_sd_file(current_file, &current_bank, patch);
+}
+
+bool load_from_sd_file(SdFile &file, SdFile *folder, thea::ym2612::ChannelPatch *patch) {
+  if (!file.isOpen()) {
     Serial.println("File is not open.");
     return false;
   }
 
-  /* Update the patch's bank and name */
   char filename[MAX_FILE_NAME_SIZE];
-  current_bank.getName(filename, MAX_FILE_NAME_SIZE);
-  strncpy(patch->bank, filename, 32);
 
-  current_file.getName(filename, MAX_FILE_NAME_SIZE);
-  strncpy(patch->name, filename, 32);
-
-  // Parse.
-  thea::tfi::parse(current_file, patch);
-
-  Serial.printf("Loaded patch %s\n", filename);
-
-  return true;
-}
-
-bool load_from_sd_file(SdFile &file, thea::ym2612::ChannelPatch *patch) {
-  /* TODO: Make it use the folder name, perhaps via second param? */
-  char filename[MAX_FILE_NAME_SIZE];
-  file.getName(filename, MAX_FILE_NAME_SIZE);
+  if (folder != nullptr) {
+    folder->getName(filename, MAX_FILE_NAME_SIZE);
+  } else {
+    file.getName(filename, MAX_FILE_NAME_SIZE);
+  }
   strncpy(patch->bank, filename, 32);
 
   file.getName(filename, MAX_FILE_NAME_SIZE);
@@ -124,7 +114,9 @@ bool load_from_sd_file(SdFile &file, thea::ym2612::ChannelPatch *patch) {
 
   thea::tfi::parse(file, patch);
 
-  Serial.printf("Loaded patch %s\n", filename);
+  Serial.printf("Loaded patch %s from %s.\n", patch->name, patch->bank);
+
+  return true;
 }
 
 void init() {
