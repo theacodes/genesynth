@@ -1,10 +1,15 @@
 #include "synth.h"
+#include "patch_loader.h"
 #include <Arduino.h>
+#include <EEPROM.h>
 
 namespace thea {
 namespace synth {
 
+#define DEBUG_EEPROM_RW 0
 #define YM_CHANNELS 6
+#define EEPROM_PATCH_PRESENT_ADDR 0x09
+#define EEPROM_PATCH_ADDR 0x10
 
 thea::ym2612::ChannelPatch patch;
 thea::ym2612::ChannelPatch::WriteOption last_write_option;
@@ -47,6 +52,47 @@ void pitch_bend(float offset) {
       thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
     }
   }
+}
+
+void write_patch_to_eeprom(thea::ym2612::ChannelPatch &patch) {
+  auto byte_array = (char *)&patch;
+  for (size_t i = 0; i < sizeof(patch); i++) {
+#if DEBUG_EEPROM_RW
+    Serial.printf("%02X ", byte_array[i]);
+    if (i % 16 == 15)
+      Serial.printf("\n");
+#endif
+
+    EEPROM.update(EEPROM_PATCH_ADDR + i, byte_array[i]);
+  }
+
+#if DEBUG_EEPROM_RW
+  Serial.printf("\n\n");
+#endif
+
+  Serial.printf("Wrote patch to EEPROM, wrote %i bytes.\n", sizeof(patch));
+}
+
+void read_patch_from_eeprom(thea::ym2612::ChannelPatch *patch) {
+  auto byte_array = (char *)patch;
+  for (size_t i = 0; i < sizeof(*patch); i++) {
+    char value = EEPROM.read(EEPROM_PATCH_ADDR + i);
+
+#if DEBUG_EEPROM_RW
+    Serial.printf("%02X ", value);
+    if (i % 16 == 15)
+      Serial.printf("\n");
+#endif
+
+    byte_array[i] = value;
+  }
+
+#if DEBUG_EEPROM_RW
+  Serial.printf("\n\n");
+#endif
+
+  Serial.printf("Read patch from EEPROM, read %i bytes.\n", sizeof(*patch));
+  Serial.printf("Patch name: %s\n", patch->name);
 }
 
 void modify_patch_parameter(thea::ym2612::ChannelPatch::WriteOption option, uint8_t normalized_value) {
@@ -97,7 +143,25 @@ void update_patch(thea::ym2612::ChannelPatch::WriteOption option) {
   }
   last_write_option = option;
   last_patch_modify_time = micros();
+  write_patch_to_eeprom(patch);
 }
+
+void load_patch(SdFile &file, SdFile *folder) {
+  bool success = thea::patch_loader::load_from_sd_file(file, folder, &patch);
+
+  if (!success) {
+    Serial.printf("Failed to load patch!");
+  }
+
+  update_patch();
+}
+
+void load_last_patch() {
+  read_patch_from_eeprom(&patch);
+  update_patch();
+}
+
+void init() { load_last_patch(); }
 
 } // namespace synth
 } // namespace thea

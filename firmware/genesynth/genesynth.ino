@@ -3,6 +3,7 @@
 #include "buttons.h"
 #include "midi_interface.h"
 #include "patch_loader.h"
+#include "synth.h"
 #include "ui.h"
 #include "vgm.h"
 #include "ym2612.h"
@@ -50,6 +51,7 @@ void setup() {
   // Setup sound chips.
   thea::ym2612::setup();
   thea::ym2612::reset();
+  thea::synth::init();
 
   // Setup patch loading. The MIDI interface will load the
   // initial patch.

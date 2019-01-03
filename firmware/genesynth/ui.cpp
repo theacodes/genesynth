@@ -92,8 +92,7 @@ void file_select_callback(SdFile selected) {
   selected.getName(name, 127);
   Serial.printf("Selected: %s\n", name);
 
-  thea::patch_loader::load_from_sd_file(selected, &selected_folder, &thea::synth::patch);
-  thea::synth::update_patch();
+  thea::synth::load_patch(selected, &selected_folder);
 
   menu_ctrl.unwind();
 }

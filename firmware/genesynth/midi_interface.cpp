@@ -1,16 +1,11 @@
 #include "midi_interface.h"
-#include "buttons.h"
 #include "patch_loader.h"
 #include "synth.h"
 #include "ym2612.h"
 #include <Arduino.h>
-#include <EEPROM.h>
 
 namespace thea {
 namespace midi_interface {
-
-#define EEPROM_BANK_ADDR 0
-#define EEPROM_PROGRAM_ADDR 1
 
 int patch_no = 0;
 int bank_no = 0;
@@ -44,7 +39,6 @@ void handleProgramChange(byte channel, byte program) {
 
   thea::patch_loader::load_nth_program(program, &thea::synth::patch);
   patch_no = program;
-  EEPROM.write(EEPROM_PROGRAM_ADDR, program);
 
   thea::synth::update_patch();
 }
@@ -55,7 +49,6 @@ void handleBankChange(byte channel, byte bank) {
 
   thea::patch_loader::load_nth_bank(bank);
   bank_no = bank;
-  EEPROM.write(EEPROM_BANK_ADDR, bank);
 
   handleProgramChange(channel, 0);
 }
@@ -94,31 +87,6 @@ void handleSystemExclusive(byte *data, unsigned int length) {
   Serial.printf("Got SysEx: param %i value %i\n", data[1], data[2]);
 }
 
-// -----------------------------------------------------------------------------
-
-void button_press_callback(int button) {
-  Serial.printf("Press: %i\n", button);
-
-  switch (button) {
-  case 0:
-    handleProgramChange(1, (patch_no + 1) % 127);
-    break;
-  case 1:
-    handleBankChange(1, (bank_no + 1) % 127);
-    break;
-  case 2:
-    handleProgramChange(1, (patch_no - 1) % 127);
-    break;
-  case 3:
-    handleBankChange(1, (bank_no + 1) % 127);
-    break;
-  default:
-    break;
-  }
-}
-
-void button_release_callback(int button) { Serial.printf("Release: %i\n", button); }
-
 void setup() {
   usbMIDI.setHandleNoteOn(handleNoteOn);
   usbMIDI.setHandleNoteOff(handleNoteOff);
@@ -130,15 +98,9 @@ void setup() {
   // Initiate MIDI communications, listen to all channels
   usbMIDI.begin();
 
-  // Load up the last loaded patch and bank.
-  uint8_t last_bank = EEPROM.read(EEPROM_BANK_ADDR);
-  uint8_t last_program = EEPROM.read(EEPROM_PROGRAM_ADDR);
-  handleBankChange(1, last_bank);
-  handleProgramChange(1, last_program);
-
-  // Wire up button callbacks
-  // thea::buttons::on_button_press(&button_press_callback);
-  // thea::buttons::on_button_release(&button_release_callback);
+  // // Load up first patch, if needed.
+  // handleBankChange(1, 0);
+  // handleProgramChange(1, 0);
 }
 
 void loop() {
