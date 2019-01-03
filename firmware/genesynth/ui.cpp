@@ -32,7 +32,10 @@ public:
 
   virtual void forward() { menu_ctrl.advance(main_menu); }
 
-  virtual bool back() { forward(); return false; }
+  virtual bool back() {
+    forward();
+    return false;
+  }
   virtual void up() { forward(); }
   virtual void down() { forward(); }
 

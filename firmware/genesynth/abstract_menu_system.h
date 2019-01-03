@@ -37,7 +37,7 @@ public:
   virtual void down(){};
   virtual void forward(){};
   /* Return false to prevent the menu from being pop()ed */
-  virtual bool back(){ return true; };
+  virtual bool back() { return true; };
   virtual void reset(){};
 };
 
@@ -75,7 +75,7 @@ public:
   }
 
   virtual void back() {
-    if(current_menu() == nullptr || current_menu()->back()) {
+    if (current_menu() == nullptr || current_menu()->back()) {
       pop();
     }
   }
