@@ -1,7 +1,8 @@
 #ifndef THEA_SYNTH_H
 #define THEA_SYNTH_H
 
-#include "patch_loader.h"
+#include <SdFat.h>
+
 #include "ym2612.h"
 
 /*

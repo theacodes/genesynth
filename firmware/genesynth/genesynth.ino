@@ -1,6 +1,5 @@
 #include "hardware_constants.h"
 #include "midi_interface.h"
-#include "patch_loader.h"
 #include "src/theacommon/buttons.h"
 #include "synth.h"
 #include "ui.h"
@@ -34,11 +33,6 @@ void setup() {
 
   // Setup synth core.
   thea::synth::init();
-
-  // Setup patch loading. The MIDI interface will load the
-  // initial patch.
-  // TODO: This should just be removed.
-  thea::patch_loader::init();
 
   // Setup MIDI
   thea::midi_interface::setup();

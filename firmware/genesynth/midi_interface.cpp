@@ -1,15 +1,11 @@
 #include <Arduino.h>
 
 #include "midi_interface.h"
-#include "patch_loader.h"
 #include "synth.h"
 #include "ym2612.h"
 
 namespace thea {
 namespace midi_interface {
-
-int patch_no = 0;
-int bank_no = 0;
 
 void handleNoteOn(byte channel, byte note, byte velocity) {
   float pitch = pow(2, float(note - 69) / 12) * 440;
@@ -34,35 +30,9 @@ void handlePitchBend(byte channel, int amount) {
   thea::synth::pitch_bend(offset);
 }
 
-void handleProgramChange(byte channel, byte program) {
-  if (channel != 1)
-    return;
-
-  thea::patch_loader::load_nth_program(program, &thea::synth::patch);
-  patch_no = program;
-
-  thea::synth::update_patch();
-}
-
-void handleBankChange(byte channel, byte bank) {
-  if (channel != 1)
-    return;
-
-  thea::patch_loader::load_nth_bank(bank);
-  bank_no = bank;
-
-  handleProgramChange(channel, 0);
-}
-
 void handleControlChange(byte channel, byte control, byte value) {
   if (channel != 1)
     return;
-
-  if (control == 0) {
-    // Bank change
-    handleBankChange(channel, value);
-    return;
-  }
 
   auto option = thea::ym2612::ChannelPatch::WriteOption::ALL;
 
@@ -92,16 +62,11 @@ void setup() {
   usbMIDI.setHandleNoteOn(handleNoteOn);
   usbMIDI.setHandleNoteOff(handleNoteOff);
   usbMIDI.setHandlePitchChange(handlePitchBend);
-  usbMIDI.setHandleProgramChange(handleProgramChange);
   usbMIDI.setHandleControlChange(handleControlChange);
   usbMIDI.setHandleSystemExclusive(handleSystemExclusive);
 
   // Initiate MIDI communications, listen to all channels
   usbMIDI.begin();
-
-  // // Load up first patch, if needed.
-  // handleBankChange(1, 0);
-  // handleProgramChange(1, 0);
 }
 
 void loop() {

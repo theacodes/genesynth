@@ -6,7 +6,7 @@
 namespace thea {
 namespace tfi {
 
-bool parse(SdFile &file, thea::ym2612::ChannelPatch *patch) {
+bool load(SdFile &file, SdFile *folder, thea::ym2612::ChannelPatch *patch) {
   if (!file.isOpen()) {
     Serial.println("Bad file, not open.");
     return false;
@@ -31,6 +31,20 @@ bool parse(SdFile &file, thea::ym2612::ChannelPatch *patch) {
     patch->operators[i].RR = rawdata[offset + 7];
     patch->operators[i].D1L = rawdata[offset + 8];
   }
+
+  char filename[MAX_PATCH_NAME_SIZE];
+
+  if (folder != nullptr) {
+    folder->getName(filename, MAX_PATCH_NAME_SIZE);
+  } else {
+    file.getName(filename, MAX_PATCH_NAME_SIZE);
+  }
+  strncpy(patch->bank, filename, 32);
+
+  file.getName(filename, MAX_PATCH_NAME_SIZE);
+  strncpy(patch->name, filename, 32);
+
+  Serial.printf("Loaded patch %s from %s.\n", patch->name, patch->bank);
 
   return true;
 }

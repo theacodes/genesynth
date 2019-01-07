@@ -6,6 +6,8 @@
 namespace thea {
 namespace ym2612 {
 
+#define MAX_PATCH_NAME_SIZE 32
+
 void setup();
 void reset();
 unsigned int get_latency();
@@ -118,8 +120,8 @@ public:
     ALL,
   };
 
-  char bank[32];
-  char name[32];
+  char bank[MAX_PATCH_NAME_SIZE];
+  char name[MAX_PATCH_NAME_SIZE];
 
   // 0-7 (3 bits).
   uint8_t algorithm;

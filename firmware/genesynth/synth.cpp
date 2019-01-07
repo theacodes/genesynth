@@ -2,8 +2,8 @@
 #include <EEPROM.h>
 
 #include "hardware_constants.h"
-#include "patch_loader.h"
 #include "synth.h"
+#include "tfi_parser.h"
 
 namespace thea {
 namespace synth {
@@ -146,7 +146,7 @@ void update_patch(thea::ym2612::ChannelPatch::WriteOption option) {
 }
 
 void load_patch(SdFile &file, SdFile *folder) {
-  bool success = thea::patch_loader::load_from_sd_file(file, folder, &patch);
+  bool success = thea::tfi::load(file, folder, &patch);
 
   if (!success) {
     Serial.printf("Failed to load patch!");

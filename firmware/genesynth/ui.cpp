@@ -9,7 +9,6 @@
 #include "ambient_ui.h"
 #include "fs_menu.h"
 #include "hardware_constants.h"
-#include "patch_loader.h"
 #include "src/theacommon/abstract_menu_system.h"
 #include "src/theacommon/buttons.h"
 #include "synth.h"
