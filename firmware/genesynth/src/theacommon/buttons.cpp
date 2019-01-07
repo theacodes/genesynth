@@ -1,13 +1,15 @@
-#include "buttons.h"
 #include <Arduino.h>
 #include <Bounce2.h>
+
+#include "../../hardware_constants.h"
+#include "buttons.h"
 
 namespace thea {
 namespace buttons {
 
-#define BUTTON_BOUNCE_MS 25
-// Buttons use descending pins from the first button's pin.
-#define BUTTON_ONE 27
+#ifndef BUTTON_BOUNCE_MS
+  #define BUTTON_BOUNCE_MS 25
+#endif
 
 Bounce buttons[4];
 

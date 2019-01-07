@@ -1,16 +1,14 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
+#include "hardware_constants.h"
 #include "patch_loader.h"
 #include "synth.h"
 
 namespace thea {
 namespace synth {
 
-#define DEBUG_EEPROM_RW 0
 #define YM_CHANNELS 6
-#define EEPROM_PATCH_PRESENT_ADDR 0x09
-#define EEPROM_PATCH_ADDR 0x10
 
 thea::ym2612::ChannelPatch patch;
 thea::ym2612::ChannelPatch::WriteOption last_write_option;

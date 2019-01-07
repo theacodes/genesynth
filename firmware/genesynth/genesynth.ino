@@ -1,3 +1,4 @@
+#include "hardware_constants.h"
 #include "midi_interface.h"
 #include "patch_loader.h"
 #include "src/theacommon/buttons.h"
@@ -6,18 +7,10 @@
 #include "vgm.h"
 #include "ym2612.h"
 
-#define STATUS_LED 13
-#define YM_CLOCK 4
-
 static void setup_ym_clock() {
   /* Uses PWM to generate an 7.67Mhz clock for the YM2612 */
   pinMode(YM_CLOCK, OUTPUT);
-  /*
-    Ideal clock is 7.67, but it seems the teensy can't do that accurately.
-    Use 7.5, which is accurate & stable (verified by external tuner) & more
-    than close enough.
-  */
-  analogWriteFrequency(YM_CLOCK, 7500000);
+  analogWriteFrequency(YM_CLOCK, YM_CLOCK_FREQ);
   analogWrite(YM_CLOCK, 128);
 }
 

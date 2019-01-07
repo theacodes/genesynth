@@ -8,6 +8,7 @@
 
 #include "ambient_ui.h"
 #include "fs_menu.h"
+#include "hardware_constants.h"
 #include "patch_loader.h"
 #include "src/theacommon/abstract_menu_system.h"
 #include "src/theacommon/buttons.h"
@@ -17,7 +18,6 @@
 namespace thea {
 namespace ui {
 
-#define DISPLAY_RATE 66666 // 1/15th of a second.
 unsigned long last_display_time = micros();
 const char *manu_menu_options[4] = {"Load patch", "Save patch", "Polyphony", "<3"};
 const int manu_menu_options_len = 4;
@@ -66,7 +66,8 @@ private:
   thea::menu::AbstractMenu *folder_select_menu = nullptr;
 };
 
-U8G2_SH1106_128X64_NONAME_2_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/10, /* dc=*/9, /* reset=*/8);
+U8G2_SH1106_128X64_NONAME_2_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/DISPLAY_CS, /* dc=*/DISPLAY_DC,
+                                           /* reset=*/DISPLAY_RESET);
 SdFatSdio sd;
 
 thea::menu::MenuController menu_ctrl;
