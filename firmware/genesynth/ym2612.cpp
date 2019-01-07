@@ -10,6 +10,14 @@ namespace ym2612 {
 
 unsigned int latency = 0;
 
+void initialize_clock() {
+  /* Uses PWM to generate clock for the YM2612 */
+  pinMode(YM_CLOCK, OUTPUT);
+  analogWriteFrequency(YM_CLOCK, YM_CLOCK_FREQ);
+  analogWrite(YM_CLOCK, 128);
+  delay(50); // wait a moment for the clock.
+}
+
 void setup() {
   /* Setup the YM's pins. */
   for (int i = 0; i < 8; i++) {
@@ -28,6 +36,8 @@ void setup() {
   digitalWriteFast(YM_WR, HIGH);
   digitalWriteFast(YM_CS, HIGH);
   digitalWriteFast(YM_RD, HIGH);
+
+  initialize_clock();
 }
 
 void reset() {

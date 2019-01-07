@@ -7,13 +7,6 @@
 #include "vgm.h"
 #include "ym2612.h"
 
-static void setup_ym_clock() {
-  /* Uses PWM to generate an 7.67Mhz clock for the YM2612 */
-  pinMode(YM_CLOCK, OUTPUT);
-  analogWriteFrequency(YM_CLOCK, YM_CLOCK_FREQ);
-  analogWrite(YM_CLOCK, 128);
-}
-
 // the setup routine runs once when you press reset:
 void setup() {
   // Initialize the display & buttons.
@@ -35,17 +28,16 @@ void setup() {
 
   Serial.println("Early initialization done.");
 
-  // Setup clocks
-  setup_ym_clock();
-  delay(50); // wait a moment for the clock.
-
   // Setup sound chips.
   thea::ym2612::setup();
   thea::ym2612::reset();
+
+  // Setup synth core.
   thea::synth::init();
 
   // Setup patch loading. The MIDI interface will load the
   // initial patch.
+  // TODO: This should just be removed.
   thea::patch_loader::init();
 
   // Setup MIDI
