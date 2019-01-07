@@ -45,7 +45,7 @@ than close enough.
 #define DISPLAY_CS 10
 #define DISPLAY_DC 9
 #define DISPLAY_RESET 8
-#define DISPLAY_RATE 66666 // 1/15th of a second.
+#define DISPLAY_RATE 66666 // 1/15th of a second in microseconds.
 // Buttons use descending pins from the first button's pin.
 #define BUTTON_ONE 27
 

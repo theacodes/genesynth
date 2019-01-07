@@ -1,10 +1,16 @@
 #include "hardware_constants.h"
 #include "midi_interface.h"
 #include "src/theacommon/buttons.h"
+#include "src/theacommon/tasks.h"
 #include "synth.h"
 #include "ui.h"
 #include "vgm.h"
 #include "ym2612.h"
+
+thea::TaskManager taskmgr;
+thea::Task button_task("Btns", &thea::buttons::loop, 0);
+thea::Task ui_task("UI", &thea::ui::loop, DISPLAY_RATE);
+thea::Task midi_task("MIDI", &thea::midi_interface::loop, 0);
 
 // the setup routine runs once when you press reset:
 void setup() {
@@ -37,11 +43,13 @@ void setup() {
   // Setup MIDI
   thea::midi_interface::setup();
 
+  // Add tasks to the task manager.
+  taskmgr.add(&button_task);
+  taskmgr.add(&ui_task);
+  taskmgr.add(&midi_task);
+  thea::ui::set_task_manager(&taskmgr);
+
   Serial.println("Sound chips and MIDI interface up.");
 }
 
-void loop() {
-  thea::buttons::loop();
-  thea::midi_interface::loop();
-  thea::ui::loop();
-}
+void loop() { taskmgr.run(); }
