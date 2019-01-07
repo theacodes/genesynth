@@ -1,7 +1,8 @@
-#include "synth.h"
-#include "patch_loader.h"
 #include <Arduino.h>
 #include <EEPROM.h>
+
+#include "patch_loader.h"
+#include "synth.h"
 
 namespace thea {
 namespace synth {

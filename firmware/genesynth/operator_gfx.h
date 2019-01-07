@@ -1,8 +1,9 @@
 #ifndef THEA_OPERATOR_GFX_H
 #define THEA_OPERATOR_GFX_H
 
-#include "ym2612.h"
 #include <U8g2lib.h>
+
+#include "ym2612.h"
 
 namespace thea {
 namespace operator_gfx {

@@ -1,8 +1,9 @@
+#include <Arduino.h>
+
 #include "midi_interface.h"
 #include "patch_loader.h"
 #include "synth.h"
 #include "ym2612.h"
-#include <Arduino.h>
 
 namespace thea {
 namespace midi_interface {

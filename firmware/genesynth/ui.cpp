@@ -1,17 +1,18 @@
-#include "ui.h"
-#include "Arduino.h"
-#include "SdFat.h"
-#include "abstract_menu_system.h"
-#include "ambient_ui.h"
-#include "buttons.h"
-#include "fs_menu.h"
-#include "patch_loader.h"
-#include "synth.h"
+#include <Arduino.h>
+#include <SdFat.h>
 #include <U8g2lib.h>
 
 #ifdef U8G2_HAVE_HW_SPI
 #include <SPI.h>
 #endif
+
+#include "ambient_ui.h"
+#include "fs_menu.h"
+#include "patch_loader.h"
+#include "src/theacommon/abstract_menu_system.h"
+#include "src/theacommon/buttons.h"
+#include "synth.h"
+#include "ui.h"
 
 namespace thea {
 namespace ui {

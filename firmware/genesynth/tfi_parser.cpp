@@ -1,6 +1,7 @@
+#include <Arduino.h>
+
 #include "tfi_parser.h"
 #include "ym2612.h"
-#include <Arduino.h>
 
 namespace thea {
 namespace tfi {

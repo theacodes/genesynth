@@ -1,9 +1,10 @@
 #ifndef THEA_FS_MENU_H
 #define THEA_FS_MENU_H
 
-#include "SdFat.h"
-#include "abstract_menu_system.h"
-#include "fs_iterators.h"
+#include <SdFat.h>
+
+#include "src/theacommon/abstract_menu_system.h"
+#include "src/theacommon/fs_iterators.h"
 
 namespace thea {
 namespace fs_menu {

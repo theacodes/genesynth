@@ -1,8 +1,9 @@
 #ifndef THEA_AMBIENT_UI_H
 #define THEA_AMBIENT_UI_H
 
-#include "ym2612.h"
 #include <U8g2lib.h>
+
+#include "ym2612.h"
 
 namespace thea {
 namespace ambient_ui {

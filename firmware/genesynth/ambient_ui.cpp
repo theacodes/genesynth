@@ -1,9 +1,9 @@
-#include "ambient_ui.h"
 #include <Arduino.h>
 
 #include "algorithm_gfx.h"
+#include "ambient_ui.h"
 #include "operator_gfx.h"
-#include "thea_easter_egg.h"
+#include "src/theacommon/thea_easter_egg.h"
 
 namespace thea {
 namespace ambient_ui {

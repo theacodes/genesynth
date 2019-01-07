@@ -1,8 +1,9 @@
 #ifndef THEA_PATCH_LOADER_H
 #define THEA_PATCH_LOADER_H
 
-#include "ym2612.h"
 #include <SdFat.h>
+
+#include "ym2612.h"
 
 namespace thea {
 namespace patch_loader {

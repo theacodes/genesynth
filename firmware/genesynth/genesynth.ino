@@ -1,8 +1,6 @@
-#include <util/delay.h>
-
-#include "buttons.h"
 #include "midi_interface.h"
 #include "patch_loader.h"
+#include "src/theacommon/buttons.h"
 #include "synth.h"
 #include "ui.h"
 #include "vgm.h"
