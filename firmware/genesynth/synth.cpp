@@ -142,7 +142,6 @@ void update_patch(thea::ym2612::ChannelPatch::WriteOption option) {
   }
   last_write_option = option;
   last_patch_modify_time = micros();
-  write_patch_to_eeprom(patch);
 }
 
 void load_patch(SdFile &file, SdFile *folder) {
@@ -153,6 +152,7 @@ void load_patch(SdFile &file, SdFile *folder) {
   }
 
   update_patch();
+  write_patch_to_eeprom(patch);
 }
 
 void load_last_patch() {

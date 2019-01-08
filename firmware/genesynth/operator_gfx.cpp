@@ -126,10 +126,6 @@ void draw_envelope_edit_screen(U8G2 &u8g2, const thea::ym2612::ChannelPatch &pat
   default:
     break;
   }
-
-  // Debug: show write latency
-  u8g2.setCursor(0, 45);
-  u8g2.printf("Latency: %i", thea::ym2612::get_latency());
 };
 
 } // namespace operator_gfx

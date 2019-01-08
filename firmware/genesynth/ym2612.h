@@ -8,9 +8,18 @@ namespace ym2612 {
 
 #define MAX_PATCH_NAME_SIZE 32
 
+struct LatencyInfo {
+  float average = 0.f;
+  float average_alpha = 2.f / (1000.f + 1.f);
+  int last = 0;
+  int max = 0;
+  bool hit_max_wait_cycles = false;
+  unsigned long bytes_written = 0;
+};
+
 void setup();
 void reset();
-unsigned int get_latency();
+const LatencyInfo &get_latency();
 void set_reg(uint8_t address, uint8_t data, int port);
 void set_reg(uint8_t address, uint8_t data);
 void play_note(int channel);

@@ -52,20 +52,40 @@ public:
   StatsMenu(U8G2 *u8g2) : u8g2(u8g2) {}
 
   virtual void display() {
-    for (auto i = 0; i < 6; i++) {
-      auto task = taskmgr->tasks[i];
-      if (task == nullptr)
-        continue;
+    if (screen % 2 == 0) {
+      for (auto i = 0; i < 6; i++) {
+        auto task = taskmgr->tasks[i];
+        if (task == nullptr)
+          continue;
 
-      u8g2->setCursor(0, 18 * i);
-      u8g2->printf("%s: %.0fms\n", task->name, task->average_execution_time);
-      u8g2->setCursor(0, (18 * i) + 9);
-      u8g2->printf("%ims %ims\n", task->last_execution_time, task->max_execution_time);
+        u8g2->setCursor(0, 18 * i);
+        u8g2->printf("%s: %.0fms\n", task->name, task->average_execution_time);
+        u8g2->setCursor(0, (18 * i) + 9);
+        u8g2->printf("%ims %ims\n", task->last_execution_time, task->max_execution_time);
+      }
+    } else {
+      auto latency = thea::ym2612::get_latency();
+      u8g2->setCursor(0, 0);
+      u8g2->printf("YM2612 Latency:\n");
+      u8g2->setCursor(0, 9);
+      u8g2->printf("Avg: %.0fms\n", latency.average);
+      u8g2->setCursor(0, 9 * 2);
+      u8g2->printf("Max: %ims\n", latency.max);
+      u8g2->setCursor(0, 9 * 3);
+      u8g2->printf("Last: %ims\n", latency.last);
+      u8g2->setCursor(0, 9 * 4);
+      u8g2->printf("Bytes: %i\n", latency.bytes_written);
+      u8g2->setCursor(0, 9 * 5);
+      u8g2->printf("Timed out?: %i\n", latency.hit_max_wait_cycles);
     }
   }
 
+  virtual void up() { screen--; }
+  virtual void down() { screen++; }
+
 private:
   U8G2 *u8g2;
+  int screen = 0;
 };
 
 class MainMenu : public thea::menu::StringOptionsMenu {

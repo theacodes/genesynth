@@ -8,7 +8,7 @@
 namespace thea {
 namespace ym2612 {
 
-unsigned int latency = 0;
+LatencyInfo latency;
 
 void initialize_clock() {
   /* Uses PWM to generate clock for the YM2612 */
@@ -77,9 +77,12 @@ inline static void set_data_lines(byte b) {
   }
 }
 
-unsigned int get_latency() { return latency; }
+const LatencyInfo &get_latency() { return latency; }
 
 inline static void wait_ready() {
+  // Always wait a few nano seconds before toggling pin directions.
+  delay10ns(YM_WRITE_WAIT);
+
   // Switch data bus to input YM -> uC.
   input_enable();
 
@@ -118,12 +121,13 @@ inline static void wait_ready() {
   if (count == YM_MAX_WAIT_CYCLES) {
     Serial.printf("Warning, waited too many cycles for ready, last state: %x, %x, %i.\n", state, (1 << 7),
                   state & (1 << 7));
+    latency.hit_max_wait_cycles = true;
   }
-
-  latency = count;
 }
 
 void set_reg(uint8_t address, uint8_t data, int port) {
+  auto start = micros();
+
   // Wait for any previous writes to finish before writing.
   wait_ready();
 
@@ -157,8 +161,12 @@ void set_reg(uint8_t address, uint8_t data, int port) {
   digitalWriteFast(YM_CS, HIGH);
   delay10ns(YM_WRITE_WAIT);
 
-  // Debug
-  // Serial.printf("Wrote %#04x:%#04x\n", address, data);
+  // Update latency calculations
+  latency.last = micros() - start;
+  if (latency.max < latency.last)
+    latency.max = latency.last;
+  latency.average = (latency.average_alpha * latency.last) + (1.f - latency.average_alpha) * latency.average;
+  latency.bytes_written++;
 }
 
 void set_reg(uint8_t address, uint8_t data) { return set_reg(address, data, 0); }
