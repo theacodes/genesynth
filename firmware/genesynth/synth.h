@@ -16,16 +16,28 @@ with the synth core.
 namespace thea {
 namespace synth {
 
+enum NoteMode {
+    POLY,
+    MONO,
+    UNISON
+};
+
 extern thea::ym2612::ChannelPatch patch;
 extern thea::ym2612::ChannelPatch::WriteOption last_write_option;
 extern unsigned long last_patch_modify_time;
 
 void init();
+void loop();
 
 void play_note(uint8_t note, float pitch);
 void stop_note(uint8_t note);
+void stop_all_notes();
 /* Offset is between -1.0 and 1.0. */
 void pitch_bend(float offset);
+
+// Change the note mode. If notes are playing, they will be stopped.
+void change_mode(NoteMode mode);
+NoteMode get_mode();
 
 /* Change a patch parameter.
 

@@ -10,15 +10,22 @@ namespace synth {
 
 #define YM_CHANNELS 6
 
+NoteMode mode = NoteMode::MONO;
 thea::ym2612::ChannelPatch patch;
 thea::ym2612::ChannelPatch::WriteOption last_write_option;
 unsigned long last_patch_modify_time;
 // The active midi note numbers, used for polyphony tracking.
 uint8_t active_notes[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
 float active_pitches[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
+float target_pitches[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
 float pitch_bend_multiplier = 1.f;
 
-void play_note(uint8_t note, float pitch) {
+
+bool approximately_equal(float a, float b, float epsilon) {
+  return fabs(a - b) <= ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+}
+
+void play_note_poly(uint8_t note, float pitch) {
   for (uint8_t i = 0; i < YM_CHANNELS; i++) {
     if (active_notes[i] == 0) {
       thea::ym2612::stop_note(i);
@@ -31,9 +38,43 @@ void play_note(uint8_t note, float pitch) {
   }
 }
 
+void play_note_mono(uint8_t note, float pitch) {
+  bool retrigger = active_notes[0] == 0;
+
+  active_notes[0] = note;
+  target_pitches[0] = pitch;
+
+  if (retrigger) {
+    active_pitches[0] = pitch;
+    thea::ym2612::set_channel_freq(0, pitch * pitch_bend_multiplier);
+    thea::ym2612::play_note(0);
+  }
+  // Otherwise, update_target_pitches will bring the note into pitch.
+}
+
+void play_note(uint8_t note, float pitch) {
+  switch(mode) {
+    case NoteMode::POLY:
+      play_note_poly(note, pitch);
+      break;
+    default:
+      play_note_mono(note, pitch);
+      break;
+  }
+}
+
 void stop_note(uint8_t note) {
   for (uint8_t i = 0; i < YM_CHANNELS; i++) {
     if (active_notes[i] == note) {
+      thea::ym2612::stop_note(i);
+      active_notes[i] = 0;
+    }
+  }
+}
+
+void stop_all_notes(uint8_t note) {
+  for (uint8_t i = 0; i < YM_CHANNELS; i++) {
+    if (active_notes[i] != 0) {
       thea::ym2612::stop_note(i);
       active_notes[i] = 0;
     }
@@ -51,6 +92,26 @@ void pitch_bend(float offset) {
       thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
     }
   }
+}
+
+void update_target_pitches() {
+  if(active_pitches[0] == target_pitches[0]) return;
+  active_pitches[0] += (target_pitches[0] - active_pitches[0]) / 5000.0f;
+
+  if(approximately_equal(active_pitches[0], target_pitches[0], 0.01f)) {
+    active_pitches[0] = target_pitches[0];
+  }
+
+  thea::ym2612::set_channel_freq(0, active_pitches[0] * pitch_bend_multiplier);
+}
+
+void change_mode(NoteMode mode) {
+  thea::synth::mode = mode;
+  stop_all_notes();
+}
+
+NoteMode get_mode() {
+  return mode;
 }
 
 void write_patch_to_eeprom(thea::ym2612::ChannelPatch &patch) {
@@ -161,6 +222,7 @@ void load_last_patch() {
 }
 
 void init() { load_last_patch(); }
+void loop() { update_target_pitches(); }
 
 } // namespace synth
 } // namespace thea

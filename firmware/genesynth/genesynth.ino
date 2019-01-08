@@ -11,6 +11,7 @@ thea::TaskManager taskmgr;
 thea::Task button_task("Btns", &thea::buttons::loop, 0);
 thea::Task ui_task("UI", &thea::ui::loop, DISPLAY_RATE);
 thea::Task midi_task("MIDI", &thea::midi_interface::loop, 0);
+thea::Task synth_task("Synth", &thea::synth::loop, 0);
 
 // the setup routine runs once when you press reset:
 void setup() {
@@ -47,6 +48,7 @@ void setup() {
   taskmgr.add(&button_task);
   taskmgr.add(&ui_task);
   taskmgr.add(&midi_task);
+  taskmgr.add(&synth_task);
   thea::ui::set_task_manager(&taskmgr);
 
   Serial.println("Sound chips and MIDI interface up.");
