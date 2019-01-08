@@ -16,11 +16,7 @@ with the synth core.
 namespace thea {
 namespace synth {
 
-enum NoteMode {
-    POLY,
-    MONO,
-    UNISON
-};
+enum NoteMode { POLY, MONO, UNISON };
 
 extern thea::ym2612::ChannelPatch patch;
 extern thea::ym2612::ChannelPatch::WriteOption last_write_option;

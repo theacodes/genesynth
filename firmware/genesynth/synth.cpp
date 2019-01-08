@@ -10,7 +10,7 @@ namespace synth {
 
 #define YM_CHANNELS 6
 
-NoteMode mode = NoteMode::MONO;
+NoteMode mode = NoteMode::UNISON;
 thea::ym2612::ChannelPatch patch;
 thea::ym2612::ChannelPatch::WriteOption last_write_option;
 unsigned long last_patch_modify_time;
@@ -18,11 +18,11 @@ unsigned long last_patch_modify_time;
 uint8_t active_notes[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
 float active_pitches[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
 float target_pitches[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
+float channel_spread_multipliers[YM_CHANNELS] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
 float pitch_bend_multiplier = 1.f;
 
-
 bool approximately_equal(float a, float b, float epsilon) {
-  return fabs(a - b) <= ( (fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
+  return fabs(a - b) <= ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
 }
 
 void play_note_poly(uint8_t note, float pitch) {
@@ -38,28 +38,33 @@ void play_note_poly(uint8_t note, float pitch) {
   }
 }
 
-void play_note_mono(uint8_t note, float pitch) {
+void play_note_unison(uint8_t note, float pitch, unsigned int voices) {
   bool retrigger = active_notes[0] == 0;
 
-  active_notes[0] = note;
-  target_pitches[0] = pitch;
+  for (unsigned int i = 0; i < voices; i++) {
+    active_notes[i] = note;
+    target_pitches[i] = pitch * channel_spread_multipliers[i];
 
-  if (retrigger) {
-    active_pitches[0] = pitch;
-    thea::ym2612::set_channel_freq(0, pitch * pitch_bend_multiplier);
-    thea::ym2612::play_note(0);
+    if (retrigger) {
+      active_pitches[i] = target_pitches[i];
+      thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
+      thea::ym2612::play_note(i);
+    }
+    // Otherwise, update_target_pitches will bring the note into pitch.
   }
-  // Otherwise, update_target_pitches will bring the note into pitch.
+
+  Serial.printf("Target pitches: %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n", target_pitches[0], target_pitches[1],
+                target_pitches[2], target_pitches[3], target_pitches[4], target_pitches[5]);
 }
 
 void play_note(uint8_t note, float pitch) {
-  switch(mode) {
-    case NoteMode::POLY:
-      play_note_poly(note, pitch);
-      break;
-    default:
-      play_note_mono(note, pitch);
-      break;
+  switch (mode) {
+  case NoteMode::POLY:
+    play_note_poly(note, pitch);
+    break;
+  default:
+    play_note_unison(note, pitch, 6);
+    break;
   }
 }
 
@@ -74,10 +79,8 @@ void stop_note(uint8_t note) {
 
 void stop_all_notes(uint8_t note) {
   for (uint8_t i = 0; i < YM_CHANNELS; i++) {
-    if (active_notes[i] != 0) {
-      thea::ym2612::stop_note(i);
-      active_notes[i] = 0;
-    }
+    thea::ym2612::stop_note(i);
+    active_notes[i] = 0;
   }
 }
 
@@ -95,14 +98,29 @@ void pitch_bend(float offset) {
 }
 
 void update_target_pitches() {
-  if(active_pitches[0] == target_pitches[0]) return;
-  active_pitches[0] += (target_pitches[0] - active_pitches[0]) / 5000.0f;
+  for (uint8_t i = 0; i < YM_CHANNELS; i++) {
+    if (active_notes[i] == 0)
+      continue;
+    if (active_pitches[i] == target_pitches[i])
+      continue;
 
-  if(approximately_equal(active_pitches[0], target_pitches[0], 0.01f)) {
-    active_pitches[0] = target_pitches[0];
+    active_pitches[i] += ((target_pitches[i] - active_pitches[i]) / 100.0f) * channel_spread_multipliers[i];
+
+    if (approximately_equal(active_pitches[i], target_pitches[i], 0.01f)) {
+      active_pitches[i] = target_pitches[i];
+    }
+
+    thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
   }
+}
 
-  thea::ym2612::set_channel_freq(0, active_pitches[0] * pitch_bend_multiplier);
+void set_unison_spread(float spread) {
+  channel_spread_multipliers[0] = 1.0f;
+  channel_spread_multipliers[1] = 1.0f + spread;
+  channel_spread_multipliers[2] = 1.0f - spread;
+  channel_spread_multipliers[3] = 1.0f + (spread * 0.56);
+  channel_spread_multipliers[4] = 1.0f - (spread * 0.34);
+  channel_spread_multipliers[5] = 1.0f + (spread * 0.23);
 }
 
 void change_mode(NoteMode mode) {
@@ -110,9 +128,7 @@ void change_mode(NoteMode mode) {
   stop_all_notes();
 }
 
-NoteMode get_mode() {
-  return mode;
-}
+NoteMode get_mode() { return mode; }
 
 void write_patch_to_eeprom(thea::ym2612::ChannelPatch &patch) {
   auto byte_array = (char *)&patch;
@@ -221,7 +237,11 @@ void load_last_patch() {
   update_patch();
 }
 
-void init() { load_last_patch(); }
+void init() {
+  load_last_patch();
+  set_unison_spread(0.01f);
+}
+
 void loop() { update_target_pitches(); }
 
 } // namespace synth
