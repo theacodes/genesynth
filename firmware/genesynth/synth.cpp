@@ -101,7 +101,6 @@ void stop_note_unison(uint8_t note) {
   } else {
     // update_target_pitches will change the pitch to the current top of stack
     // note.
-    update_target_pitches();
   }
 }
 
