@@ -2,6 +2,7 @@
 #include <EEPROM.h>
 
 #include "hardware_constants.h"
+#include "src/theacommon/note_stack.h"
 #include "synth.h"
 #include "tfi_parser.h"
 
@@ -10,18 +11,30 @@ namespace synth {
 
 #define YM_CHANNELS 6
 
-NoteMode mode = NoteMode::UNISON;
 thea::ym2612::ChannelPatch patch;
 thea::ym2612::ChannelPatch::WriteOption last_write_option;
 unsigned long last_patch_modify_time;
-// The active midi note numbers, used for polyphony tracking.
+
+// The note mode, used for switching between mono, unison, and poly.
+NoteMode mode = NoteMode::UNISON;
+
+// The active midi note numbers for polyphony tracking.
+// TODO: Replace this with a "VoiceStack".
 uint8_t active_notes[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
+
+// The currently set pitches for each channel. Used by all note modes.
 float active_pitches[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
-float target_pitches[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
+
+// Channel spread is used exclusively by the unison mode.
 float channel_spread_multipliers[YM_CHANNELS] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+
+// Pitch bend is applied to all modes when setting the channel frequency.
 float pitch_bend_multiplier = 1.f;
 
-bool approximately_equal(float a, float b, float epsilon) {
+// The note stack is used exclusively by the unison and mono modes.
+NoteStack mono_note_stack;
+
+inline bool approximately_equal(float a, float b, float epsilon) {
   return fabs(a - b) <= ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
 }
 
@@ -39,22 +52,18 @@ void play_note_poly(uint8_t note, float pitch) {
 }
 
 void play_note_unison(uint8_t note, float pitch, unsigned int voices) {
-  bool retrigger = active_notes[0] == 0;
+  bool retrigger = mono_note_stack.is_empty();
 
-  for (unsigned int i = 0; i < voices; i++) {
-    active_notes[i] = note;
-    target_pitches[i] = pitch * channel_spread_multipliers[i];
+  mono_note_stack.push(note, pitch);
 
-    if (retrigger) {
-      active_pitches[i] = target_pitches[i];
+  if (retrigger) {
+    for (unsigned int i = 0; i < voices; i++) {
+      auto target_pitch = pitch * channel_spread_multipliers[i];
+      active_pitches[i] = target_pitch;
       thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
       thea::ym2612::play_note(i);
     }
-    // Otherwise, update_target_pitches will bring the note into pitch.
   }
-
-  Serial.printf("Target pitches: %.2f, %.2f, %.2f, %.2f, %.2f, %.2f\n", target_pitches[0], target_pitches[1],
-                target_pitches[2], target_pitches[3], target_pitches[4], target_pitches[5]);
 }
 
 void play_note(uint8_t note, float pitch) {
@@ -68,12 +77,42 @@ void play_note(uint8_t note, float pitch) {
   }
 }
 
-void stop_note(uint8_t note) {
+void stop_note_poly(uint8_t note) {
   for (uint8_t i = 0; i < YM_CHANNELS; i++) {
     if (active_notes[i] == note) {
       thea::ym2612::stop_note(i);
       active_notes[i] = 0;
     }
+  }
+}
+
+void stop_note_unison(uint8_t note) {
+  // This situation shouldn't happen, but if it does, don't panic.
+  if (mono_note_stack.is_empty())
+    return;
+
+  mono_note_stack.pop(note);
+
+  if (mono_note_stack.is_empty()) {
+    for (uint8_t i = 0; i < YM_CHANNELS; i++) {
+      thea::ym2612::stop_note(i);
+      active_notes[i] = 0;
+    }
+  } else {
+    // update_target_pitches will change the pitch to the current top of stack
+    // note.
+    update_target_pitches();
+  }
+}
+
+void stop_note(uint8_t note) {
+  switch (mode) {
+  case NoteMode::POLY:
+    stop_note_poly(note);
+    break;
+  default:
+    stop_note_unison(note);
+    break;
   }
 }
 
@@ -98,16 +137,23 @@ void pitch_bend(float offset) {
 }
 
 void update_target_pitches() {
+  // TODO: Only run this for mono/unison.
+  if (mono_note_stack.is_empty())
+    return;
+
+  auto current_note = mono_note_stack.top();
+
+  // TODO: Change from YM_CHANNELS to VOICES.
   for (uint8_t i = 0; i < YM_CHANNELS; i++) {
-    if (active_notes[i] == 0)
-      continue;
-    if (active_pitches[i] == target_pitches[i])
+    auto target_pitch = current_note.pitch * channel_spread_multipliers[i];
+
+    if (active_pitches[i] == target_pitch)
       continue;
 
-    active_pitches[i] += ((target_pitches[i] - active_pitches[i]) / 100.0f) * channel_spread_multipliers[i];
+    active_pitches[i] += ((target_pitch - active_pitches[i]) / 100.0f) * channel_spread_multipliers[i];
 
-    if (approximately_equal(active_pitches[i], target_pitches[i], 0.01f)) {
-      active_pitches[i] = target_pitches[i];
+    if (approximately_equal(active_pitches[i], target_pitch, 0.01f)) {
+      active_pitches[i] = target_pitch;
     }
 
     thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
@@ -239,7 +285,7 @@ void load_last_patch() {
 
 void init() {
   load_last_patch();
-  set_unison_spread(0.01f);
+  set_unison_spread(0.02f);
 }
 
 void loop() { update_target_pitches(); }
