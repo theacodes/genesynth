@@ -44,6 +44,8 @@ void setup() {
   // Setup MIDI
   thea::midi_interface::setup();
 
+  Serial.println("Sound chips and MIDI interface up.");
+
   // Add tasks to the task manager.
   taskmgr.add(&button_task);
   taskmgr.add(&ui_task);
@@ -51,7 +53,7 @@ void setup() {
   taskmgr.add(&synth_task);
   thea::ui::set_task_manager(&taskmgr);
 
-  Serial.println("Sound chips and MIDI interface up.");
+  Serial.println("Setup complete.");
 }
 
 void loop() { taskmgr.run(); }

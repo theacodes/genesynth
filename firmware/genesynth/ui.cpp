@@ -23,7 +23,6 @@ const char *main_menu_options[MAIN_MENU_OPTIONS_LEN] = {"Load patch", "Save patc
 #define NOTE_MODE_MENU_OPTIONS_LEN 3
 const char *note_mode_menu_options[NOTE_MODE_MENU_OPTIONS_LEN] = {"Poly", "Mono", "Unison"};
 
-
 class IdleMenu : public thea::menu::AbstractMenu {
 public:
   IdleMenu(U8G2 *u8g2, thea::menu::MenuController &menu_ctrl) : u8g2(u8g2), menu_ctrl(menu_ctrl) {}
@@ -91,17 +90,13 @@ private:
   int screen = 0;
 };
 
-
 class NoteModeMenu : public thea::menu::StringOptionsMenu {
 public:
-  NoteModeMenu(U8G2 *u8g2)
-      : thea::menu::StringOptionsMenu(u8g2, note_mode_menu_options, NOTE_MODE_MENU_OPTIONS_LEN) {
+  NoteModeMenu(U8G2 *u8g2) : thea::menu::StringOptionsMenu(u8g2, note_mode_menu_options, NOTE_MODE_MENU_OPTIONS_LEN) {
     selected = thea::synth::get_note_mode();
   }
 
-  virtual void forward() {
-    thea::synth::set_note_mode(thea::synth::NoteMode(selected));
-  }
+  virtual void forward() { thea::synth::set_note_mode(thea::synth::NoteMode(selected)); }
 };
 
 class MainMenu : public thea::menu::StringOptionsMenu {
@@ -156,7 +151,7 @@ void file_select_callback(SdFile selected) {
 
   thea::synth::load_patch(selected, &selected_folder);
 
-  //menu_ctrl.unwind();
+  // menu_ctrl.unwind();
 }
 
 void button_press_callback(int button) {

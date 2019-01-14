@@ -318,9 +318,7 @@ void stop_note(uint8_t note) { current_note_strategy->note_off(note); }
 
 void stop_all_notes(uint8_t note) { current_note_strategy->reset(); }
 
-void pitch_bend(float offset) {
-  current_note_strategy->pitch_bend(offset);
-}
+void pitch_bend(float offset) { current_note_strategy->pitch_bend(offset); }
 
 void set_note_mode(NoteMode mode) {
   current_note_strategy->reset();
