@@ -309,8 +309,8 @@ private:
 UnisonStrategy unison;
 UnisonStrategy mono;
 PolyStrategy poly;
-NoteMode current_note_mode = NoteMode::UNISON;
-NoteStrategy *current_note_strategy = &unison;
+NoteMode current_note_mode = NoteMode::POLY;
+NoteStrategy *current_note_strategy = &poly;
 
 void play_note(uint8_t note, float pitch) { current_note_strategy->note_on(note, pitch); }
 
@@ -322,7 +322,7 @@ void pitch_bend(float offset) {
   current_note_strategy->pitch_bend(offset);
 }
 
-void change_note_mode(NoteMode mode) {
+void set_note_mode(NoteMode mode) {
   current_note_strategy->reset();
   current_note_mode = mode;
   switch (mode) {
@@ -350,7 +350,7 @@ NoteMode get_note_mode() { return current_note_mode; }
 
 void init() {
   mono.set_voices(1);
-  unison.set_spread(0.02f);
+  unison.set_spread(0.01f);
   load_last_patch();
 }
 

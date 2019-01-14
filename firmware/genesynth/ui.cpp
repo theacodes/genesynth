@@ -20,6 +20,9 @@ namespace ui {
 thea::TaskManager *taskmgr;
 #define MAIN_MENU_OPTIONS_LEN 5
 const char *main_menu_options[MAIN_MENU_OPTIONS_LEN] = {"Load patch", "Save patch", "Polyphony", "Stats", "<3"};
+#define NOTE_MODE_MENU_OPTIONS_LEN 3
+const char *note_mode_menu_options[NOTE_MODE_MENU_OPTIONS_LEN] = {"Poly", "Mono", "Unison"};
+
 
 class IdleMenu : public thea::menu::AbstractMenu {
 public:
@@ -88,6 +91,19 @@ private:
   int screen = 0;
 };
 
+
+class NoteModeMenu : public thea::menu::StringOptionsMenu {
+public:
+  NoteModeMenu(U8G2 *u8g2)
+      : thea::menu::StringOptionsMenu(u8g2, note_mode_menu_options, NOTE_MODE_MENU_OPTIONS_LEN) {
+    selected = thea::synth::get_note_mode();
+  }
+
+  virtual void forward() {
+    thea::synth::set_note_mode(thea::synth::NoteMode(selected));
+  }
+};
+
 class MainMenu : public thea::menu::StringOptionsMenu {
 public:
   MainMenu(U8G2 *u8g2, thea::menu::MenuController &menu_ctrl)
@@ -114,6 +130,7 @@ SdFatSdio sd;
 
 thea::menu::MenuController menu_ctrl;
 IdleMenu idle_menu(&u8g2, menu_ctrl);
+NoteModeMenu note_mode_menu(&u8g2);
 MainMenu main_menu(&u8g2, menu_ctrl);
 StatsMenu stats_menu(&u8g2);
 
@@ -139,7 +156,7 @@ void file_select_callback(SdFile selected) {
 
   thea::synth::load_patch(selected, &selected_folder);
 
-  menu_ctrl.unwind();
+  //menu_ctrl.unwind();
 }
 
 void button_press_callback(int button) {
@@ -202,6 +219,7 @@ void init(bool wait_for_serial) {
   folder_menu.set_callback(&folder_select_callback);
   file_menu.set_callback(&file_select_callback);
   main_menu.submenus[0] = &folder_menu;
+  main_menu.submenus[2] = &note_mode_menu;
   main_menu.submenus[3] = &stats_menu;
 
   /* Wire up hardware buttons to the menu system */
