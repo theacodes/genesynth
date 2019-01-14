@@ -32,8 +32,8 @@ void stop_all_notes();
 void pitch_bend(float offset);
 
 // Change the note mode. If notes are playing, they will be stopped.
-void change_mode(NoteMode mode);
-NoteMode get_mode();
+void change_note_mode(NoteMode mode);
+NoteMode get_note_mode();
 
 /* Change a patch parameter.
 

@@ -11,169 +11,13 @@ namespace synth {
 
 #define YM_CHANNELS 6
 
+/*
+  Patch management and eeprom interaction.
+*/
+
 thea::ym2612::ChannelPatch patch;
 thea::ym2612::ChannelPatch::WriteOption last_write_option;
 unsigned long last_patch_modify_time;
-
-// The note mode, used for switching between mono, unison, and poly.
-NoteMode mode = NoteMode::UNISON;
-
-// The active midi note numbers for polyphony tracking.
-// TODO: Replace this with a "VoiceStack".
-uint8_t active_notes[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
-
-// The currently set pitches for each channel. Used by all note modes.
-float active_pitches[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
-
-// Channel spread is used exclusively by the unison mode.
-float channel_spread_multipliers[YM_CHANNELS] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
-
-// Pitch bend is applied to all modes when setting the channel frequency.
-float pitch_bend_multiplier = 1.f;
-
-// The note stack is used exclusively by the unison and mono modes.
-NoteStack mono_note_stack;
-
-inline bool approximately_equal(float a, float b, float epsilon) {
-  return fabs(a - b) <= ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
-}
-
-void play_note_poly(uint8_t note, float pitch) {
-  for (uint8_t i = 0; i < YM_CHANNELS; i++) {
-    if (active_notes[i] == 0) {
-      thea::ym2612::stop_note(i);
-      thea::ym2612::set_channel_freq(i, pitch * pitch_bend_multiplier);
-      thea::ym2612::play_note(i);
-      active_notes[i] = note;
-      active_pitches[i] = pitch;
-      break;
-    }
-  }
-}
-
-void play_note_unison(uint8_t note, float pitch, unsigned int voices) {
-  bool retrigger = mono_note_stack.is_empty();
-
-  mono_note_stack.push(note, pitch);
-
-  if (retrigger) {
-    for (unsigned int i = 0; i < voices; i++) {
-      auto target_pitch = pitch * channel_spread_multipliers[i];
-      active_pitches[i] = target_pitch;
-      thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
-      thea::ym2612::play_note(i);
-    }
-  }
-}
-
-void play_note(uint8_t note, float pitch) {
-  switch (mode) {
-  case NoteMode::POLY:
-    play_note_poly(note, pitch);
-    break;
-  default:
-    play_note_unison(note, pitch, 6);
-    break;
-  }
-}
-
-void stop_note_poly(uint8_t note) {
-  for (uint8_t i = 0; i < YM_CHANNELS; i++) {
-    if (active_notes[i] == note) {
-      thea::ym2612::stop_note(i);
-      active_notes[i] = 0;
-    }
-  }
-}
-
-void stop_note_unison(uint8_t note) {
-  // This situation shouldn't happen, but if it does, don't panic.
-  if (mono_note_stack.is_empty())
-    return;
-
-  mono_note_stack.pop(note);
-
-  if (mono_note_stack.is_empty()) {
-    for (uint8_t i = 0; i < YM_CHANNELS; i++) {
-      thea::ym2612::stop_note(i);
-      active_notes[i] = 0;
-    }
-  } else {
-    // update_target_pitches will change the pitch to the current top of stack
-    // note.
-  }
-}
-
-void stop_note(uint8_t note) {
-  switch (mode) {
-  case NoteMode::POLY:
-    stop_note_poly(note);
-    break;
-  default:
-    stop_note_unison(note);
-    break;
-  }
-}
-
-void stop_all_notes(uint8_t note) {
-  for (uint8_t i = 0; i < YM_CHANNELS; i++) {
-    thea::ym2612::stop_note(i);
-    active_notes[i] = 0;
-  }
-}
-
-void pitch_bend(float offset) {
-  // Adjustable: a 1.0 multiplier means that the pitch wheel all the way up *doubles* the frequency.
-  // A 0.5 multipler lowers the range a bit, making it a bit more musically usabe.
-  offset *= 0.5f;
-
-  pitch_bend_multiplier = 1.f + offset;
-  for (uint8_t i = 0; i < YM_CHANNELS; i++) {
-    if (active_notes[i] != 0) {
-      thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
-    }
-  }
-}
-
-void update_target_pitches() {
-  // TODO: Only run this for mono/unison.
-  if (mono_note_stack.is_empty())
-    return;
-
-  auto current_note = mono_note_stack.top();
-
-  // TODO: Change from YM_CHANNELS to VOICES.
-  for (uint8_t i = 0; i < YM_CHANNELS; i++) {
-    auto target_pitch = current_note.pitch * channel_spread_multipliers[i];
-
-    if (active_pitches[i] == target_pitch)
-      continue;
-
-    active_pitches[i] += ((target_pitch - active_pitches[i]) / 100.0f) * channel_spread_multipliers[i];
-
-    if (approximately_equal(active_pitches[i], target_pitch, 0.01f)) {
-      active_pitches[i] = target_pitch;
-    }
-
-    thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
-  }
-}
-
-void set_unison_spread(float spread) {
-  channel_spread_multipliers[0] = 1.0f;
-  channel_spread_multipliers[1] = 1.0f + spread;
-  channel_spread_multipliers[2] = 1.0f - spread;
-  channel_spread_multipliers[3] = 1.0f + (spread * 0.56);
-  channel_spread_multipliers[4] = 1.0f - (spread * 0.34);
-  channel_spread_multipliers[5] = 1.0f + (spread * 0.23);
-}
-
-void change_mode(NoteMode mode) {
-  thea::synth::mode = mode;
-  stop_all_notes();
-}
-
-NoteMode get_mode() { return mode; }
 
 void write_patch_to_eeprom(thea::ym2612::ChannelPatch &patch) {
   auto byte_array = (char *)&patch;
@@ -282,12 +126,241 @@ void load_last_patch() {
   update_patch();
 }
 
-void init() {
-  load_last_patch();
-  set_unison_spread(0.02f);
+/*
+  Note handling
+*/
+
+inline bool approximately_equal(float a, float b, float epsilon) {
+  return fabs(a - b) <= ((fabs(a) < fabs(b) ? fabs(b) : fabs(a)) * epsilon);
 }
 
-void loop() { update_target_pitches(); }
+/* Encapsulates common functionality for poly, mono, and unison. */
+class NoteStrategy {
+public:
+  virtual ~NoteStrategy(){};
+
+  virtual void reset();
+
+  /* Called every loop() to update pitches, etc. */
+  virtual void update();
+
+  virtual void note_on(uint8_t note, float pitch);
+  virtual void note_off(uint8_t note);
+
+  virtual void pitch_bend(float offset) {
+    // Adjustable: a 1.0 multiplier means that the pitch wheel all the way up *doubles* the frequency.
+    // A 0.5 multipler lowers the range a bit, making it a bit more musically usabe.
+    offset *= 0.5f;
+
+    pitch_bend_multiplier = 1.f + offset;
+  }
+
+protected:
+  // Pitch bend is applied to all modes when setting the channel frequency.
+  float pitch_bend_multiplier = 1.f;
+};
+
+/* Unison strategy is used for both monophonic and unison modes. Mono just
+ uses one voice. */
+class UnisonStrategy : public NoteStrategy {
+public:
+  virtual void reset() {
+    note_stack.clear();
+    for (uint8_t i = 0; i < YM_CHANNELS; i++) {
+      thea::ym2612::stop_note(i);
+    }
+  }
+
+  virtual void update() {
+    if (note_stack.is_empty())
+      return;
+
+    auto current_note = note_stack.top();
+
+    for (uint8_t i = 0; i < voices; i++) {
+      auto target_pitch = current_note.pitch * channel_spread_multipliers[i];
+
+      if (active_pitches[i] == target_pitch)
+        continue;
+
+      active_pitches[i] += ((target_pitch - active_pitches[i]) / 100.0f) * channel_spread_multipliers[i];
+
+      if (approximately_equal(active_pitches[i], target_pitch, 0.01f)) {
+        active_pitches[i] = target_pitch;
+      }
+
+      thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
+    }
+  }
+
+  virtual void note_on(uint8_t note, float pitch) {
+    bool retrigger = note_stack.is_empty();
+
+    note_stack.push(note, pitch);
+
+    if (retrigger) {
+      for (uint8_t i = 0; i < voices; i++) {
+        auto target_pitch = pitch * channel_spread_multipliers[i];
+        active_pitches[i] = target_pitch;
+        thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
+        thea::ym2612::play_note(i);
+      }
+    }
+  }
+
+  virtual void note_off(uint8_t note) {
+    // This situation shouldn't happen, but if it does, don't panic.
+    if (note_stack.is_empty())
+      return;
+
+    note_stack.pop(note);
+
+    if (note_stack.is_empty()) {
+      for (uint8_t i = 0; i < YM_CHANNELS; i++) {
+        thea::ym2612::stop_note(i);
+      }
+    } else {
+      // update() will change the pitch to the current top of stack
+      // note.
+    }
+  }
+
+  void pitch_bend(float offset) {
+    NoteStrategy::pitch_bend(offset);
+    for (uint8_t i = 0; i < voices; i++) {
+      thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
+    }
+  }
+
+  void set_spread(float spread) {
+    channel_spread_multipliers[0] = 1.0f;
+    channel_spread_multipliers[1] = 1.0f + spread;
+    channel_spread_multipliers[2] = 1.0f - spread;
+    channel_spread_multipliers[3] = 1.0f + (spread * 0.56);
+    channel_spread_multipliers[4] = 1.0f - (spread * 0.34);
+    channel_spread_multipliers[5] = 1.0f + (spread * 0.23);
+  }
+
+  float get_spread() { return channel_spread_multipliers[1] - 1.0f; }
+
+  void set_voices(uint8_t voices) { this->voices = voices; }
+
+  uint8_t get_voices() { return voices; }
+
+private:
+  uint8_t voices = 6;
+  NoteStack note_stack;
+  /* Track each channel's pitches separately. This allows the spread multiplier
+    to be applied to each channel's frequency as we interpolate through the
+    glide parameter (see update()). */
+  float active_pitches[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
+  float channel_spread_multipliers[YM_CHANNELS] = {1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 1.0f};
+};
+
+class PolyStrategy : public NoteStrategy {
+public:
+  virtual void reset() {
+    for (uint8_t i = 0; i < YM_CHANNELS; i++) {
+      thea::ym2612::stop_note(i);
+      active_notes[i] = 0;
+    }
+  }
+
+  virtual void update() {}
+
+  virtual void note_on(uint8_t note, float pitch) {
+    for (uint8_t i = 0; i < YM_CHANNELS; i++) {
+      if (active_notes[i] == 0) {
+        thea::ym2612::stop_note(i);
+        thea::ym2612::set_channel_freq(i, pitch * pitch_bend_multiplier);
+        thea::ym2612::play_note(i);
+        active_notes[i] = note;
+        active_pitches[i] = pitch;
+        break;
+      }
+    }
+  }
+
+  virtual void note_off(uint8_t note) {
+    for (uint8_t i = 0; i < YM_CHANNELS; i++) {
+      if (active_notes[i] == note) {
+        thea::ym2612::stop_note(i);
+        active_notes[i] = 0;
+      }
+    }
+  }
+
+  void pitch_bend(float offset) {
+    NoteStrategy::pitch_bend(offset);
+    for (uint8_t i = 0; i < YM_CHANNELS; i++) {
+      if (active_notes[i] != 0) {
+        thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
+      }
+    }
+  }
+
+private:
+  // The active midi note numbers for each channel.
+  uint8_t active_notes[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
+  // The currently set pitches for each channel.
+  float active_pitches[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
+};
+
+UnisonStrategy unison;
+UnisonStrategy mono;
+PolyStrategy poly;
+NoteMode current_note_mode = NoteMode::UNISON;
+NoteStrategy *current_note_strategy = &unison;
+
+void play_note(uint8_t note, float pitch) { current_note_strategy->note_on(note, pitch); }
+
+void stop_note(uint8_t note) { current_note_strategy->note_off(note); }
+
+void stop_all_notes(uint8_t note) { current_note_strategy->reset(); }
+
+void pitch_bend(float offset) {
+  current_note_strategy->pitch_bend(offset);
+  // TODO: Move into strategies.
+  // for (uint8_t i = 0; i < YM_CHANNELS; i++) {
+  //   if (active_notes[i] != 0) {
+  //     thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
+  //   }
+  // }
+}
+
+void change_note_mode(NoteMode mode) {
+  current_note_strategy->reset();
+  current_note_mode = mode;
+  switch (mode) {
+  case NoteMode::UNISON:
+    current_note_strategy = &unison;
+    break;
+  case NoteMode::MONO:
+    current_note_strategy = &mono;
+    break;
+  case NoteMode::POLY:
+    current_note_strategy = &poly;
+    break;
+  default:
+    current_note_strategy = &poly;
+    break;
+  }
+  current_note_strategy->reset();
+}
+
+NoteMode get_note_mode() { return current_note_mode; }
+
+/*
+  Init() and Loop() functions.
+*/
+
+void init() {
+  mono.set_voices(1);
+  unison.set_spread(0.02f);
+  load_last_patch();
+}
+
+void loop() { current_note_strategy->update(); }
 
 } // namespace synth
 } // namespace thea
