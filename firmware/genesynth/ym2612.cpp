@@ -174,9 +174,10 @@ void set_reg(uint8_t address, uint8_t data) { return set_reg(address, data, 0); 
 void set_channel_freq(int channel, float freq) {
   // From YM2612 Datasheet:
   // Freq Number = (144 * note * 2^20 / Clock) / 2^(block-1)
+  // (change to 2^20, because it seemed to be setting the wrong octaive).
   // Figure out the base frequency number first, then start iterating through
   // blocks until it's within range 0 < freq_int < 2000
-  float base_freq = 144 * freq * pow(2.f, 20) / 7500000;
+  float base_freq = 144.f * freq * pow(2.f, 19) / 7500000.f;
   uint32_t freq_int = 2001;
 
   int block = 1;
