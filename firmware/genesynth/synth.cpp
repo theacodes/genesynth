@@ -320,12 +320,6 @@ void stop_all_notes(uint8_t note) { current_note_strategy->reset(); }
 
 void pitch_bend(float offset) {
   current_note_strategy->pitch_bend(offset);
-  // TODO: Move into strategies.
-  // for (uint8_t i = 0; i < YM_CHANNELS; i++) {
-  //   if (active_notes[i] != 0) {
-  //     thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
-  //   }
-  // }
 }
 
 void change_note_mode(NoteMode mode) {
