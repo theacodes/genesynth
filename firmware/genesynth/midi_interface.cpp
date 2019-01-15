@@ -57,6 +57,53 @@ void handleControlChange(byte channel, byte control, byte value) {
     return;
 
   switch (control) {
+  case 1: // Modulation wheel.
+    // TODO
+    break;
+  case 21: // Modulation wheel LSB.
+    // TODO
+    break;
+
+  case 5: // Portamento Time (Glide)
+    thea::synth::set_glide_amount(value / 127.0f);
+    break;
+  case 25: // Portamento Time LSB (Glide)
+    // Ignored.
+    break;
+  case 41: // Portamento On/Off (<=63 off, >=64 on)
+    if (value <= 63) {
+      thea::synth::disable_glide();
+    } else {
+      // Leave the value unmodified.
+      thea::synth::enable_glide();
+    }
+    break;
+
+  case 28: // Spread amount for unison voices / unison detune.
+    thea::synth::set_unison_spread(value / 127.0f);
+    break;
+
+  case 126: // Set Mono/Unison mode (& number of voices.)
+    // Mono: 0 or 1, Unison: >= 1.
+    if (value <= 1) {
+      thea::synth::set_note_mode(thea::synth::NoteMode::MONO);
+    } else {
+      thea::synth::set_note_mode(thea::synth::NoteMode::UNISON);
+      // Cap at the number of YM2612 channels.
+      if (value > 6)
+        value = 6;
+      thea::synth::set_unison_voices(value);
+    }
+    break;
+  case 127: // Set Poly mode.
+    thea::synth::set_note_mode(thea::synth::NoteMode::POLY);
+    break;
+
+  case 123:
+  case 120: // All notes off.
+    thea::synth::stop_all_notes();
+    break;
+
   /* NRPN Handling. */
   case 99: // NRPN Parameter MSB
     nrpn_message.parameter = value << 7;

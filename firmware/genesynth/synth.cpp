@@ -172,10 +172,17 @@ public:
   }
 
   virtual void update() {
-    if (note_stack.is_empty())
+    // This is only needed if there's notes on the stack and if glide is enabled.
+    if (note_stack.is_empty() || !glide)
       return;
 
     auto current_note = note_stack.top();
+
+    // Glide is normalized (0-1.f), mulitply it by a useful time constant.
+    float glide_denominator = glide_amount * 300.0f;
+    // Avoid divide by 0.
+    if (glide_denominator < 1.0f)
+      glide_denominator = 1.0f;
 
     for (uint8_t i = 0; i < voices; i++) {
       auto target_pitch = current_note.pitch * channel_spread_multipliers[i];
@@ -183,7 +190,7 @@ public:
       if (active_pitches[i] == target_pitch)
         continue;
 
-      active_pitches[i] += ((target_pitch - active_pitches[i]) / 100.0f) * channel_spread_multipliers[i];
+      active_pitches[i] += ((target_pitch - active_pitches[i]) / glide_denominator) * channel_spread_multipliers[i];
 
       if (approximately_equal(active_pitches[i], target_pitch, 0.01f)) {
         active_pitches[i] = target_pitch;
@@ -194,7 +201,11 @@ public:
   }
 
   virtual void note_on(uint8_t note, float pitch) {
-    bool retrigger = note_stack.is_empty();
+    bool retrigger = !glide || note_stack.is_empty();
+
+    // If glide is off, we'll need to stop
+    // the previous note.
+    bool stop_previous = !glide;
 
     note_stack.push(note, pitch);
 
@@ -202,6 +213,10 @@ public:
       for (uint8_t i = 0; i < voices; i++) {
         auto target_pitch = pitch * channel_spread_multipliers[i];
         active_pitches[i] = target_pitch;
+
+        if (stop_previous)
+          thea::ym2612::stop_note(i);
+
         thea::ym2612::set_channel_freq(i, active_pitches[i] * pitch_bend_multiplier);
         thea::ym2612::play_note(i);
       }
@@ -220,8 +235,17 @@ public:
         thea::ym2612::stop_note(i);
       }
     } else {
-      // update() will change the pitch to the current top of stack
-      // note.
+      if (!glide) {
+        // The note at the top of the stack needs to be re-triggered.
+        // The easiest way to do this is just pop it off and re-push it with
+        // note_on.
+        auto next_note = note_stack.top();
+        note_stack.pop(next_note.note);
+        note_on(next_note.note, next_note.pitch);
+      } else {
+        // update() will change the pitch to the current top of stack
+        // note.
+      }
     }
   }
 
@@ -233,22 +257,36 @@ public:
   }
 
   void set_spread(float spread) {
+    // Spread is a normalized value between 0-1.f, reduce it to a usable value.
+    auto spread_amount = spread * 0.1f;
     channel_spread_multipliers[0] = 1.0f;
-    channel_spread_multipliers[1] = 1.0f + spread;
-    channel_spread_multipliers[2] = 1.0f - spread;
-    channel_spread_multipliers[3] = 1.0f + (spread * 0.56);
-    channel_spread_multipliers[4] = 1.0f - (spread * 0.34);
-    channel_spread_multipliers[5] = 1.0f + (spread * 0.23);
+    channel_spread_multipliers[1] = 1.0f + spread_amount;
+    channel_spread_multipliers[2] = 1.0f - spread_amount;
+    channel_spread_multipliers[3] = 1.0f + (spread_amount * 0.56);
+    channel_spread_multipliers[4] = 1.0f - (spread_amount * 0.34);
+    channel_spread_multipliers[5] = 1.0f + (spread_amount * 0.23);
   }
 
-  float get_spread() { return channel_spread_multipliers[1] - 1.0f; }
+  float get_spread() { return channel_spread_multipliers[1] - 1.0f / 0.1f; }
 
   void set_voices(uint8_t voices) { this->voices = voices; }
 
   uint8_t get_voices() { return voices; }
 
+  void enable_glide() { glide = true; }
+
+  void disable_glide() { glide = false; }
+
+  bool glide_enabled() { return glide; }
+
+  void set_glide_amount(float glide_amount) { this->glide_amount = glide_amount; }
+
+  float get_glide_amount() { return glide_amount; }
+
 private:
   uint8_t voices = 6;
+  bool glide = false;
+  float glide_amount = 0.1f;
   NoteStack note_stack;
   /* Track each channel's pitches separately. This allows the spread multiplier
     to be applied to each channel's frequency as we interpolate through the
@@ -316,7 +354,7 @@ void play_note(uint8_t note, float pitch) { current_note_strategy->note_on(note,
 
 void stop_note(uint8_t note) { current_note_strategy->note_off(note); }
 
-void stop_all_notes(uint8_t note) { current_note_strategy->reset(); }
+void stop_all_notes() { current_note_strategy->reset(); }
 
 void pitch_bend(float offset) { current_note_strategy->pitch_bend(offset); }
 
@@ -341,6 +379,36 @@ void set_note_mode(NoteMode mode) {
 }
 
 NoteMode get_note_mode() { return current_note_mode; }
+
+// Set the glide amount.
+void enable_glide() {
+  mono.enable_glide();
+  unison.enable_glide();
+}
+
+void disable_glide() {
+  mono.disable_glide();
+  unison.disable_glide();
+}
+
+bool glide_enabled() { return mono.glide_enabled(); }
+
+void set_glide_amount(float glide) {
+  mono.set_glide_amount(glide);
+  unison.set_glide_amount(glide);
+}
+
+float get_glide_amount() { return mono.get_glide_amount(); }
+
+// Set the number of unison voices.
+void set_unison_voices(int voices) { unison.set_voices(voices); }
+
+int get_unison_voices() { return unison.get_voices(); }
+
+// Set the unison spread
+void set_unison_spread(float spread) { unison.set_spread(spread); }
+
+float get_unison_spread() { return unison.get_spread(); }
 
 /*
   Init() and Loop() functions.

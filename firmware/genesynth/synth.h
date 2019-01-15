@@ -35,6 +35,21 @@ void pitch_bend(float offset);
 void set_note_mode(NoteMode mode);
 NoteMode get_note_mode();
 
+// Set the glide amount.
+void enable_glide();
+void disable_glide();
+bool glide_enabled();
+void set_glide_amount(float glide);
+float get_glide();
+
+// Set the number of unison voices.
+void set_unison_voices(int voices);
+int get_unison_voices();
+
+// Set the unison spread.
+void set_unison_spread(float spread);
+float get_unison_spread();
+
 /* Change a patch parameter.
 
 Args:
