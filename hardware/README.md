@@ -17,3 +17,8 @@ The audio amplifier is a relatively straightforward summing amplifier and buffer
 ## Display board
 
 The display board holds a simple OLED display module and provides 4 tac switches for displaying and navigating the menu.
+
+
+## Shared Libraries
+
+I used the [SparkFun KiCad Libraries](https://github.com/sparkfun/SparkFun-KiCad-Libraries) for some of the footprints.
