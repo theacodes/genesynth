@@ -15,3 +15,5 @@ More details for the hardware is available under the hardware folder, and more d
 ## License
 
 This project is under the Apache License, Version 2.0. See LICENSE for more details.
+
+If you use anything in this for a project, please let me know! I'd love to hear what you do with it. :)
