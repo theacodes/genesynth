@@ -1,11 +1,14 @@
 #include <Arduino.h>
 
+#include "filesystem.h"
 #include "midi_interface.h"
 #include "synth.h"
 #include "ym2612.h"
 
 namespace thea {
 namespace midi_interface {
+
+#define SYSEX_SAVE_PATCH_COMMAND_BYTE 0x1A
 
 struct NRPNMessage {
   uint16_t parameter = 0;
@@ -129,8 +132,60 @@ void handleControlChange(byte channel, byte control, byte value) {
   }
 }
 
+void save_patch(const char *filename) {
+  SdFile root;
+  root.openRoot(thea::filesystem::sd().vol());
+
+  SdFile dir;
+  auto success = dir.open(&root, "user", O_READ);
+
+  if (!success || !dir.isDir()) {
+    Serial.printf("Creating user patch directory.\n");
+    dir.mkdir(&root, "user");
+    dir.open(&root, "user", O_READ);
+  } else {
+    Serial.printf("User directory present.\n");
+  }
+
+  SdFile patch_file;
+
+  if (!patch_file.open(&dir, filename, O_WRITE | O_TRUNC | O_CREAT)) {
+    Serial.printf("Creating patch file failed!\n");
+    return;
+  }
+
+  thea::synth::save_patch(patch_file);
+
+  // Immediately load the patch so that the UI shows the new filename.
+  if (!patch_file.open(&dir, filename, O_READ)) {
+    Serial.printf("Saving the patch file failed!\n");
+    return;
+  }
+
+  thea::synth::load_patch(patch_file, &dir);
+}
+
 void handleSystemExclusive(byte *data, unsigned int length) {
   Serial.printf("Got SysEx, first byte: 0x%02X, length: %i\n", data[0], length);
+
+  if (length < 3) {
+    // The message must contain the start byte (0xF0), any valid manufacturer byte,
+    // and a command byte. If it's not long enough, return.
+    return;
+  }
+
+  char command = data[2];
+  auto payload_length = length - 4; // 3 for the header, 1 for the stop byte.
+  byte *payload = data + 4;
+
+  Serial.printf("Command: 0x%02X, payload length: %i\n", command, payload_length);
+
+  if (command == SYSEX_SAVE_PATCH_COMMAND_BYTE) {
+    char filename[128];
+    strncpy(filename, (char *)payload, payload_length > 128 ? 128 : payload_length);
+    Serial.printf("Got patch save command with filename: %s\n", filename);
+    save_patch(filename);
+  }
 }
 
 void setup() {

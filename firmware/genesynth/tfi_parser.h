@@ -14,6 +14,7 @@ namespace thea {
 namespace tfi {
 
 bool load(SdFile &file, SdFile *folder, thea::ym2612::ChannelPatch *patch);
+void save(SdFile &file, thea::ym2612::ChannelPatch &patch);
 
 } // namespace tfi
 } // namespace thea

@@ -49,5 +49,34 @@ bool load(SdFile &file, SdFile *folder, thea::ym2612::ChannelPatch *patch) {
   return true;
 }
 
+void save(SdFile &file, thea::ym2612::ChannelPatch &patch) {
+  if (!file.isOpen()) {
+    Serial.println("Bad file, not open.");
+    return;
+  }
+
+  char data[42];
+
+  data[0] = patch.algorithm;
+  data[1] = patch.feedback;
+
+  for (int i = 0; i < 4; i++) {
+    size_t offset = 2 + (10 * i);
+    data[offset + 0] = patch.operators[i].MUL;
+    data[offset + 1] = patch.operators[i].DT1;
+    data[offset + 2] = patch.operators[i].TL;
+    data[offset + 3] = patch.operators[i].RS;
+    data[offset + 4] = patch.operators[i].AR;
+    data[offset + 5] = patch.operators[i].D1R;
+    data[offset + 6] = patch.operators[i].D2R;
+    data[offset + 7] = patch.operators[i].RR;
+    data[offset + 8] = patch.operators[i].D1L;
+  }
+
+  file.write(data);
+  file.sync();
+  file.close();
+}
+
 } // namespace tfi
 } // namespace thea

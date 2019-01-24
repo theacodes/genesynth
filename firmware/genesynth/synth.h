@@ -79,6 +79,9 @@ void load_patch(SdFile &file, SdFile *folder = nullptr);
 /* Load the last used patch before the synth was powered off. */
 void load_last_patch();
 
+/* Save the patch to the SD card */
+void save_patch(SdFile &file);
+
 } // namespace synth
 } // namespace thea
 

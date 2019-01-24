@@ -7,6 +7,7 @@
 #endif
 
 #include "ambient_ui.h"
+#include "filesystem.h"
 #include "fs_menu.h"
 #include "hardware_constants.h"
 #include "src/theacommon/abstract_menu_system.h"
@@ -18,8 +19,8 @@ namespace thea {
 namespace ui {
 
 thea::TaskManager *taskmgr;
-#define MAIN_MENU_OPTIONS_LEN 5
-const char *main_menu_options[MAIN_MENU_OPTIONS_LEN] = {"Load patch", "Save patch", "Polyphony", "Stats", "<3"};
+#define MAIN_MENU_OPTIONS_LEN 4
+const char *main_menu_options[MAIN_MENU_OPTIONS_LEN] = {"Load patch", "Polyphony", "Stats", "<3"};
 #define NOTE_MODE_MENU_OPTIONS_LEN 3
 const char *note_mode_menu_options[NOTE_MODE_MENU_OPTIONS_LEN] = {"Poly", "Mono", "Unison"};
 
@@ -121,7 +122,6 @@ private:
 
 U8G2_SH1106_128X64_NONAME_F_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/DISPLAY_CS, /* dc=*/DISPLAY_DC,
                                            /* reset=*/DISPLAY_RESET);
-SdFatSdio sd;
 
 thea::menu::MenuController menu_ctrl;
 IdleMenu idle_menu(&u8g2, menu_ctrl);
@@ -204,8 +204,7 @@ void init(bool wait_for_serial) {
   }
 
   /* Initialize filesystem access */
-  sd.begin();
-  fs_root.openRoot(sd.vol());
+  fs_root.openRoot(thea::filesystem::sd().vol());
 
   /* Wire up the menu hierarchy */
   idle_menu.set_main_menu(&main_menu);
@@ -214,8 +213,8 @@ void init(bool wait_for_serial) {
   folder_menu.set_callback(&folder_select_callback);
   file_menu.set_callback(&file_select_callback);
   main_menu.submenus[0] = &folder_menu;
-  main_menu.submenus[2] = &note_mode_menu;
-  main_menu.submenus[3] = &stats_menu;
+  main_menu.submenus[1] = &note_mode_menu;
+  main_menu.submenus[2] = &stats_menu;
 
   /* Wire up hardware buttons to the menu system */
   thea::buttons::on_button_press(&button_press_callback);

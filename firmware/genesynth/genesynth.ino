@@ -1,3 +1,4 @@
+#include "filesystem.h"
 #include "hardware_constants.h"
 #include "midi_interface.h"
 #include "src/theacommon/buttons.h"
@@ -16,7 +17,6 @@ thea::Task synth_task("Synth", &thea::synth::loop, 0);
 // the setup routine runs once when you press reset:
 void setup() {
   // Initialize the display & buttons.
-  // thea::display::init();
   thea::buttons::init();
 
   // Wait for serial monitoring if the down button is pressed on boot.
@@ -29,10 +29,15 @@ void setup() {
   }
   bool wait_for_serial = thea::buttons::is_pressed(2);
 
+  Serial.println("Early initialization done.");
+
+  // Setup file system access.
+  thea::filesystem::init();
+
   // Initialize the user interface
   thea::ui::init(wait_for_serial);
 
-  Serial.println("Early initialization done.");
+  Serial.println("SD card & UI initialized.");
 
   // Setup sound chips.
   thea::ym2612::setup();

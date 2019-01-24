@@ -126,6 +126,8 @@ void load_last_patch() {
   update_patch();
 }
 
+void save_patch(SdFile &file) { thea::tfi::save(file, patch); };
+
 /*
   Note handling
 */
