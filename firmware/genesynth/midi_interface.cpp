@@ -18,7 +18,7 @@ struct NRPNMessage {
 
 NRPNMessage nrpn_message;
 
-void handleNoteOn(byte channel, byte note, byte velocity) {
+void handle_note_on(byte channel, byte note, byte velocity) {
   float pitch = pow(2, float(note - 69) / 12) * 440;
 
   if (channel == 1) {
@@ -26,13 +26,13 @@ void handleNoteOn(byte channel, byte note, byte velocity) {
   }
 }
 
-void handleNoteOff(byte channel, byte note, byte velocity) {
+void handle_note_off(byte channel, byte note, byte velocity) {
   if (channel == 1) {
     thea::synth::stop_note(note);
   }
 }
 
-void handlePitchBend(byte channel, int amount) {
+void handle_pitch_bend(byte channel, int amount) {
   if (channel != 1)
     return;
 
@@ -55,7 +55,7 @@ void handle_nrpn_message(const NRPNMessage nrpn_message) {
   Serial.printf("Unknown NRPN message param: %i, value: %i\n", nrpn_message.parameter, nrpn_message.value);
 };
 
-void handleControlChange(byte channel, byte control, byte value) {
+void handle_control_change(byte channel, byte control, byte value) {
   if (channel != 1)
     return;
 
@@ -165,7 +165,7 @@ void save_patch(const char *filename) {
   thea::synth::load_patch(patch_file, &dir);
 }
 
-void handleSystemExclusive(byte *data, unsigned int length) {
+void handle_system_exclusive(byte *data, unsigned int length) {
   Serial.printf("Got SysEx, first byte: 0x%02X, length: %i\n", data[0], length);
 
   if (length < 3) {
@@ -189,11 +189,11 @@ void handleSystemExclusive(byte *data, unsigned int length) {
 }
 
 void setup() {
-  usbMIDI.setHandleNoteOn(handleNoteOn);
-  usbMIDI.setHandleNoteOff(handleNoteOff);
-  usbMIDI.setHandlePitchChange(handlePitchBend);
-  usbMIDI.setHandleControlChange(handleControlChange);
-  usbMIDI.setHandleSystemExclusive(handleSystemExclusive);
+  usbMIDI.setHandleNoteOn(handle_note_on);
+  usbMIDI.setHandleNoteOff(handle_note_off);
+  usbMIDI.setHandlePitchChange(handle_pitch_bend);
+  usbMIDI.setHandleControlChange(handle_control_change);
+  usbMIDI.setHandleSystemExclusive(handle_system_exclusive);
 
   // Initiate MIDI communications, listen to all channels
   usbMIDI.begin();
