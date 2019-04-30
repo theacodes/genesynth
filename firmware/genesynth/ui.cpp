@@ -12,6 +12,7 @@
 #include "hardware_constants.h"
 #include "src/theacommon/abstract_menu_system.h"
 #include "src/theacommon/buttons.h"
+#include "src/theacommon/thea_easter_egg.h"
 #include "synth.h"
 #include "ui.h"
 
@@ -62,20 +63,20 @@ public:
           continue;
 
         u8g2->setCursor(0, 18 * i);
-        u8g2->printf("%s: %.0fms\n", task->name, task->average_execution_time);
+        u8g2->printf("%s: %.0fuS\n", task->name, task->average_execution_time);
         u8g2->setCursor(0, (18 * i) + 9);
-        u8g2->printf("%ims %ims\n", task->last_execution_time, task->max_execution_time);
+        u8g2->printf("%iuS %iuS\n", task->last_execution_time, task->max_execution_time);
       }
     } else {
       auto latency = thea::ym2612::get_latency();
       u8g2->setCursor(0, 0);
       u8g2->printf("YM2612 Latency:\n");
       u8g2->setCursor(0, 9);
-      u8g2->printf("Avg: %.0fms\n", latency.average);
+      u8g2->printf("Avg: %.0fuS\n", latency.average);
       u8g2->setCursor(0, 9 * 2);
-      u8g2->printf("Max: %ims\n", latency.max);
+      u8g2->printf("Max: %iuS\n", latency.max);
       u8g2->setCursor(0, 9 * 3);
-      u8g2->printf("Last: %ims\n", latency.last);
+      u8g2->printf("Last: %iuS\n", latency.last);
       u8g2->setCursor(0, 9 * 4);
       u8g2->printf("Bytes: %i\n", latency.bytes_written);
       u8g2->setCursor(0, 9 * 5);
@@ -120,6 +121,26 @@ private:
   thea::menu::MenuController &menu_ctrl;
 };
 
+
+class EasterEggMenu : public thea::menu::AbstractMenu {
+public:
+  EasterEggMenu(U8G2 *u8g2) :
+    u8g2(u8g2), dt(1000000) {}
+
+  virtual void display() {
+    thea::show_thea(u8g2, dt);
+  }
+
+  virtual void forward() {  dt += 100000; }
+  virtual void up() { dt += 100000; }
+  virtual void down() { dt -= 100000; }
+
+private:
+  U8G2 *u8g2;
+  unsigned long dt;
+};
+
+
 U8G2_SH1106_128X64_NONAME_F_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/DISPLAY_CS, /* dc=*/DISPLAY_DC,
                                            /* reset=*/DISPLAY_RESET);
 
@@ -128,6 +149,7 @@ IdleMenu idle_menu(&u8g2, menu_ctrl);
 NoteModeMenu note_mode_menu(&u8g2);
 MainMenu main_menu(&u8g2, menu_ctrl);
 StatsMenu stats_menu(&u8g2);
+EasterEggMenu easter_egg_menu(&u8g2);
 
 SdFile fs_root;
 thea::fs_menu::FileSystemMenu folder_menu(&u8g2, &fs_root);
@@ -229,6 +251,7 @@ void init(bool wait_for_serial) {
   main_menu.submenus[0] = &folder_menu;
   main_menu.submenus[1] = &note_mode_menu;
   main_menu.submenus[2] = &stats_menu;
+  main_menu.submenus[3] = &easter_egg_menu;
 
   /* Wire up hardware buttons to the menu system */
   thea::buttons::on_button_press(&button_press_callback);
