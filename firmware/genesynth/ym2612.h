@@ -25,6 +25,8 @@ void set_reg(uint8_t address, uint8_t data);
 void play_note(int channel);
 void stop_note(int channel);
 void set_channel_freq(int channel, float freq);
+void set_lfo(bool enable, uint8_t freq);
+
 
 class OperatorPatch {
 public:
@@ -138,8 +140,13 @@ public:
   // Feedback is the degree to which operator 1 feeds back into itself.
   // 0-7 (3 bits).
   uint8_t feedback;
-  // ???
-  uint8_t lfo;
+  // LFO Amplitude Modulation Sensitivity. 0-3 (2 bits).
+  // 0, 1.4, 5.9, 11.8 dB
+  uint8_t lfo_ams;
+  // LFO Frequency Modulation Sensitivity. 0-7 (3 bits).
+  // 0 ±3.4 ±6.7 ±10 ±14 ±20 ±40 ±80 % of a halftone.
+  uint8_t lfo_fms;
+
   OperatorPatch operators[4];
 
   void write_to_channel(uint8_t channel, WriteOption option);

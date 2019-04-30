@@ -31,6 +31,12 @@ void stop_all_notes();
 /* Offset is between -1.0 and 1.0. */
 void pitch_bend(float offset);
 
+void enable_lfo();
+void disable_lfo();
+void set_lfo_freq(uint8_t value);
+void set_lfo_fms(uint8_t value);
+void set_lfo_ams(uint8_t value);
+
 // Change the note mode. If notes are playing, they will be stopped.
 void set_note_mode(NoteMode mode);
 NoteMode get_note_mode();

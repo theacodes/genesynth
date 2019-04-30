@@ -52,7 +52,32 @@ void handle_nrpn_message(const NRPNMessage nrpn_message) {
     return;
   }
 
-  Serial.printf("Unknown NRPN message param: %i, value: %i\n", nrpn_message.parameter, nrpn_message.value);
+  switch(nrpn_message.parameter) {
+    /* Messages 50-5x are used to control LFO parameters. */
+    case 50:
+      if (nrpn_message.value <= 63) {
+        thea::synth::disable_lfo();
+      } else {
+        thea::synth::enable_lfo();
+      }
+      break;
+
+    case 51:
+      thea::synth::set_lfo_freq(nrpn_message.value);
+      break;
+
+    case 52:
+      thea::synth::set_lfo_fms(nrpn_message.value);
+      break;
+
+    case 53:
+      thea::synth::set_lfo_ams(nrpn_message.value);
+      break;
+
+    default:
+      Serial.printf("Unknown NRPN message param: %i, value: %i\n", nrpn_message.parameter, nrpn_message.value);
+      break;
+  }
 };
 
 void handle_control_change(byte channel, byte control, byte value) {
@@ -77,7 +102,6 @@ void handle_control_change(byte channel, byte control, byte value) {
     if (value <= 63) {
       thea::synth::disable_glide();
     } else {
-      // Leave the value unmodified.
       thea::synth::enable_glide();
     }
     break;

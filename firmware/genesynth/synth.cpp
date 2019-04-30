@@ -18,6 +18,8 @@ namespace synth {
 thea::ym2612::ChannelPatch patch;
 thea::ym2612::ChannelPatch::WriteOption last_write_option;
 unsigned long last_patch_modify_time;
+bool lfo_enabled;
+uint8_t lfo_freq;
 
 void write_patch_to_eeprom(thea::ym2612::ChannelPatch &patch) {
   auto byte_array = (char *)&patch;
@@ -133,6 +135,31 @@ void load_last_patch() {
 }
 
 void save_patch(SdFile &file) { thea::tfi::save(file, patch); };
+
+void enable_lfo() {
+  lfo_enabled = true;
+  thea::ym2612::set_lfo(lfo_enabled, lfo_freq);
+}
+
+void disable_lfo() {
+  lfo_enabled = false;
+  thea::ym2612::set_lfo(lfo_enabled, lfo_freq);
+}
+
+void set_lfo_freq(uint8_t value) {
+  lfo_freq = map(value, 0, 127, 0, 7);
+  thea::ym2612::set_lfo(lfo_enabled, lfo_freq);
+}
+
+void set_lfo_fms(uint8_t value) {
+  patch.lfo_fms = map(value, 0, 127, 0, 7);
+  update_patch(thea::ym2612::ChannelPatch::WriteOption::LFO);
+}
+
+void set_lfo_ams(uint8_t value) {
+  patch.lfo_fms = map(value, 0, 127, 0, 3);
+  update_patch(thea::ym2612::ChannelPatch::WriteOption::LFO);
+}
 
 /*
   Note handling
