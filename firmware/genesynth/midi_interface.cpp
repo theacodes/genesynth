@@ -45,38 +45,53 @@ void handle_nrpn_message(const NRPNMessage nrpn_message) {
 
   /* Messages 10 through 49 are used to change operator parameters (9 per operator). */
   if (nrpn_message.parameter >= 10 && nrpn_message.parameter < 50) {
-    auto option = thea::ym2612::ChannelPatch::WriteOption::ALL;
-    option = thea::ym2612::ChannelPatch::WriteOption(nrpn_message.parameter - 10);
+    auto option = thea::ym2612::ChannelPatch::WriteOption(nrpn_message.parameter - 10);
     thea::synth::modify_patch_parameter(option, nrpn_message.value);
     thea::synth::update_patch(option);
     return;
   }
 
-  switch(nrpn_message.parameter) {
-    /* Messages 50-5x are used to control LFO parameters. */
-    case 50:
-      if (nrpn_message.value <= 63) {
-        thea::synth::disable_lfo();
-      } else {
-        thea::synth::enable_lfo();
-      }
-      break;
+  auto option = thea::ym2612::ChannelPatch::WriteOption::ALL;
 
-    case 51:
-      thea::synth::set_lfo_freq(nrpn_message.value);
-      break;
+  switch (nrpn_message.parameter) {
+  /* Message 8 controls the FM algorithm. */
+  case 8:
+    option = thea::ym2612::ChannelPatch::WriteOption::ALGORITHM;
+    thea::synth::modify_patch_parameter(option, nrpn_message.value);
+    thea::synth::update_patch(option);
+    break;
 
-    case 52:
-      thea::synth::set_lfo_fms(nrpn_message.value);
-      break;
+  /* Message 9 controls the feedback. */
+  case 9:
+    option = thea::ym2612::ChannelPatch::WriteOption::FEEDBACK;
+    thea::synth::modify_patch_parameter(option, nrpn_message.value);
+    thea::synth::update_patch(option);
+    break;
 
-    case 53:
-      thea::synth::set_lfo_ams(nrpn_message.value);
-      break;
+  /* Messages 50-5x are used to control LFO parameters. */
+  case 50:
+    if (nrpn_message.value <= 63) {
+      thea::synth::disable_lfo();
+    } else {
+      thea::synth::enable_lfo();
+    }
+    break;
 
-    default:
-      Serial.printf("Unknown NRPN message param: %i, value: %i\n", nrpn_message.parameter, nrpn_message.value);
-      break;
+  case 51:
+    thea::synth::set_lfo_freq(nrpn_message.value);
+    break;
+
+  case 52:
+    thea::synth::set_lfo_fms(nrpn_message.value);
+    break;
+
+  case 53:
+    thea::synth::set_lfo_ams(nrpn_message.value);
+    break;
+
+  default:
+    Serial.printf("Unknown NRPN message param: %i, value: %i\n", nrpn_message.parameter, nrpn_message.value);
+    break;
   }
 };
 

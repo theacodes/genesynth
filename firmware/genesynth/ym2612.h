@@ -27,7 +27,6 @@ void stop_note(int channel);
 void set_channel_freq(int channel, float freq);
 void set_lfo(bool enable, uint8_t freq);
 
-
 class OperatorPatch {
 public:
   // DT1 gives small variations from the overall frequency × MUL. The MSB of
@@ -139,6 +138,7 @@ public:
   uint8_t algorithm;
   // Feedback is the degree to which operator 1 feeds back into itself.
   // 0-7 (3 bits).
+  // 0, pi/16, pi/8, pi/4, pi/2, pi, 2pi, 4pi
   uint8_t feedback;
   // LFO Amplitude Modulation Sensitivity. 0-3 (2 bits).
   // 0, 1.4, 5.9, 11.8 dB

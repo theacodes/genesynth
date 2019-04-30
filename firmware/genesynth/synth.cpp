@@ -62,7 +62,7 @@ void read_patch_from_eeprom(thea::ym2612::ChannelPatch *patch) {
   Serial.printf("Patch name: %s\n", patch->name);
 }
 
-void modify_patch_parameter(thea::ym2612::ChannelPatch::WriteOption option, uint8_t normalized_value) {
+void modify_operator_parameter(thea::ym2612::ChannelPatch::WriteOption option, uint8_t normalized_value) {
   auto normalized_option = thea::ym2612::ChannelPatch::WriteOption(option % 10);
   uint8_t operator_no = option / 10;
 
@@ -104,6 +104,25 @@ void modify_patch_parameter(thea::ym2612::ChannelPatch::WriteOption option, uint
     break;
   case thea::ym2612::ChannelPatch::WriteOption::OP0_AM:
     patch.operators[operator_no].AM = normalized_value;
+    break;
+  default:
+    break;
+  }
+}
+
+void modify_patch_parameter(thea::ym2612::ChannelPatch::WriteOption option, uint8_t normalized_value) {
+  if (option >= thea::ym2612::ChannelPatch::WriteOption::OP0_DT1 &&
+      option <= thea::ym2612::ChannelPatch::WriteOption::OP3_AM) {
+    modify_operator_parameter(option, normalized_value);
+    return;
+  }
+
+  switch (option) {
+  case thea::ym2612::ChannelPatch::WriteOption::ALGORITHM:
+    patch.algorithm = map(normalized_value, 0, 127, 0, 7);
+    break;
+  case thea::ym2612::ChannelPatch::WriteOption::FEEDBACK:
+    patch.feedback = map(normalized_value, 0, 127, 0, 7);
     break;
   default:
     break;

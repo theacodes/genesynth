@@ -207,7 +207,8 @@ void stop_note(int channel) {
 }
 
 void set_lfo(bool enable, uint8_t freq) {
-  if(freq > 7) freq = 7; // 3 bits (0-7)
+  if (freq > 7)
+    freq = 7; // 3 bits (0-7)
   uint8_t lfo_reg = (enable << 3) | (freq);
   set_reg(0x22, lfo_reg);
 }
@@ -268,7 +269,7 @@ void ChannelPatch::write_to_channel(uint8_t channel, ChannelPatch::WriteOption o
   }
 
   if (option == WriteOption::ALL or option == WriteOption::LFO) {
-     // Enable output on both speakers (for now) with 0xC0
+    // Enable output on both speakers (for now) with 0xC0
     uint8_t lr_ams_fms_byte = 0xC0 | (lfo_ams << 5) | (lfo_fms);
     set_reg(0xB4 + channel, lr_ams_fms_byte, port);
   }

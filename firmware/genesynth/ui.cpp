@@ -121,17 +121,13 @@ private:
   thea::menu::MenuController &menu_ctrl;
 };
 
-
 class EasterEggMenu : public thea::menu::AbstractMenu {
 public:
-  EasterEggMenu(U8G2 *u8g2) :
-    u8g2(u8g2), dt(1000000) {}
+  EasterEggMenu(U8G2 *u8g2) : u8g2(u8g2), dt(1000000) {}
 
-  virtual void display() {
-    thea::show_thea(u8g2, dt);
-  }
+  virtual void display() { thea::show_thea(u8g2, dt); }
 
-  virtual void forward() {  dt += 100000; }
+  virtual void forward() { dt += 100000; }
   virtual void up() { dt += 100000; }
   virtual void down() { dt -= 100000; }
 
@@ -139,7 +135,6 @@ private:
   U8G2 *u8g2;
   unsigned long dt;
 };
-
 
 U8G2_SH1106_128X64_NONAME_F_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/DISPLAY_CS, /* dc=*/DISPLAY_DC,
                                            /* reset=*/DISPLAY_RESET);
@@ -177,7 +172,7 @@ unsigned long last_file_select_time = 0;
 
 void file_select_callback(SdFile selected) {
   // If double-pressed, exit.
-  if(last_file_select_time > millis() - DOUBLE_PRESS_TIME_MS) {
+  if (last_file_select_time > millis() - DOUBLE_PRESS_TIME_MS) {
     menu_ctrl.unwind();
     return;
   }

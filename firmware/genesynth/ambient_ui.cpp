@@ -81,13 +81,17 @@ void display(U8G2 &u8g2, thea::ym2612::ChannelPatch &patch, thea::ym2612::Channe
   if (screen == Screen::IDLE) {
     auto was_modified_recently = last_patch_modify_time > (now - ENV_SCREEN_DISPLAY_TIME);
     if (was_modified_recently && write_option != thea::ym2612::ChannelPatch::WriteOption::ALL) {
-      auto normalized_option = write_option % 10;
-      auto is_env = (normalized_option >= thea::ym2612::ChannelPatch::WriteOption::OP0_TL &&
-                     normalized_option <= thea::ym2612::ChannelPatch::WriteOption::OP0_RR);
-      if (is_env) {
-        show(Screen::ENVEDIT, ENV_SCREEN_DISPLAY_TIME);
-      } else {
-        show(Screen::OPEDIT, ENV_SCREEN_DISPLAY_TIME);
+      auto is_op = (write_option >= thea::ym2612::ChannelPatch::WriteOption::OP0_DT1 &&
+                    write_option <= thea::ym2612::ChannelPatch::WriteOption::OP3_AM);
+      if (is_op) {
+        auto normalized_option = write_option % 10;
+        auto is_env = (normalized_option >= thea::ym2612::ChannelPatch::WriteOption::OP0_TL &&
+                       normalized_option <= thea::ym2612::ChannelPatch::WriteOption::OP0_RR);
+        if (is_env) {
+          show(Screen::ENVEDIT, ENV_SCREEN_DISPLAY_TIME);
+        } else {
+          show(Screen::OPEDIT, ENV_SCREEN_DISPLAY_TIME);
+        }
       }
     }
   }
