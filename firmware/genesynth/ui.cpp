@@ -138,20 +138,34 @@ void folder_select_callback(SdFile selected) {
   char name[127];
   selected.getName(name, 127);
   Serial.printf("Selected: %s\n", name);
-  selected_folder = selected;
-  file_menu.set_root(&selected_folder);
-  file_menu.reset();
+
+  // If the *same* folder was selected, we don't need to do this. Otherwise,
+  // set the root and reset. This preserves where the user is in the menu if
+  // they come back.
+  if (selected_folder.dirIndex() != selected.dirIndex()) {
+    selected_folder = selected;
+    file_menu.set_root(&selected_folder);
+    file_menu.reset();
+  }
   menu_ctrl.advance(&file_menu);
 }
 
+#define DOUBLE_PRESS_TIME_MS 1000
+unsigned long last_file_select_time = 0;
+
 void file_select_callback(SdFile selected) {
+  // If double-pressed, exit.
+  if(last_file_select_time > millis() - DOUBLE_PRESS_TIME_MS) {
+    menu_ctrl.unwind();
+    return;
+  }
+  last_file_select_time = millis();
+
   char name[127];
   selected.getName(name, 127);
   Serial.printf("Selected: %s\n", name);
 
   thea::synth::load_patch(selected, &selected_folder);
-
-  // menu_ctrl.unwind();
 }
 
 void button_press_callback(int button) {
