@@ -59,6 +59,7 @@ public:
   // D1L is the secondary amplitude reached after the first period of rapid
   // decay. It should be multiplied by 8 if one wishes to compare it to TL.
   // Again as TL, the higher the number, the more attenuated the sound.
+  // 0-15 (4 bits)
   uint8_t D1L;
   // The final angle of amplitude decrease, after ‘key off’.
   // 0-15 (4 bits)

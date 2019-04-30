@@ -68,11 +68,12 @@ void draw_envelope_edit_screen(U8G2 &u8g2, const thea::ym2612::ChannelPatch &pat
   float h = 64 - y_offset;
 
   // Calculate normalized (0-1.0) floats for each envelope parameters
-  float level = 1.0f - (op.TL / 128.0f); // inverted.
-  float attack = op.AR / 32.0;
-  float decay = op.D1R / 32.0f;
-  float sustain = 1.0f - (op.D1L / 16.0f);
-  float release = op.RR / 16.0f;
+  float level = 1.0f - (op.TL / 127.0f); // inverted.
+  float attack = 1.0f - (op.AR / 31.0);
+  float decay = 1.0f - (op.D1R / 31.0f);
+  float sustain = 1.0f - (op.D1L / 15.0f);
+  float damping = 1.0f - (op.D2R / 31.0f);
+  float release = 1.0f - (op.RR / 15.0f);
 
   // Attack can occupy up to 25% of the screen.
   float attack_percentage = attack * 0.25f;
@@ -90,14 +91,15 @@ void draw_envelope_edit_screen(U8G2 &u8g2, const thea::ym2612::ChannelPatch &pat
   int attack_x_end = attack_percentage * w;
   int delay_x_end = attack_x_end + delay_percentage * w;
   int sustain_y = h - sustain_percentage * h;
+  int sustain_end_y = h - sustain_percentage * (h * damping);
   int release_x_start = w - release_percentage * w;
 
   // Draw envelope graph
   u8g2.setDrawColor(1);
   u8g2.drawLine(0, y_offset + h, attack_x_end, y_offset);
   u8g2.drawLine(attack_x_end, y_offset, delay_x_end, y_offset + sustain_y);
-  u8g2.drawLine(delay_x_end, y_offset + sustain_y, release_x_start, y_offset + sustain_y);
-  u8g2.drawLine(release_x_start, y_offset + sustain_y, w, y_offset + h);
+  u8g2.drawLine(delay_x_end, y_offset + sustain_y, release_x_start, y_offset + sustain_end_y);
+  u8g2.drawLine(release_x_start, y_offset + sustain_end_y, w, y_offset + h);
 
   // Draw text
   u8g2.setCursor(0, 0);
@@ -106,22 +108,22 @@ void draw_envelope_edit_screen(U8G2 &u8g2, const thea::ym2612::ChannelPatch &pat
 
   switch (write_option % 10) {
   case thea::ym2612::ChannelPatch::WriteOption::OP0_TL:
-    u8g2.printf("Level: %i", int(level * 100));
+    u8g2.printf("TL: %i", int(level * 100));
     break;
   case thea::ym2612::ChannelPatch::WriteOption::OP0_AR:
-    u8g2.printf("Attack: %i", int(attack * 100));
+    u8g2.printf("AR: %i", int(attack * 100));
     break;
   case thea::ym2612::ChannelPatch::WriteOption::OP0_D1R:
-    u8g2.printf("Decay: %i", int(decay * 100));
+    u8g2.printf("D1R: %i", int(decay * 100));
     break;
   case thea::ym2612::ChannelPatch::WriteOption::OP0_D2R:
-    u8g2.printf("TODO");
+    u8g2.printf("D2R: %i", int(damping * 100));
     break;
   case thea::ym2612::ChannelPatch::WriteOption::OP0_D1L:
-    u8g2.printf("Sustain: %i", int(sustain * 100));
+    u8g2.printf("D1L: %i", int(sustain * 100));
     break;
   case thea::ym2612::ChannelPatch::WriteOption::OP0_RR:
-    u8g2.printf("Release: %i", int(release * 100));
+    u8g2.printf("RR: %i", int(release * 100));
     break;
   default:
     break;

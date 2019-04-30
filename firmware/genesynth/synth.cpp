@@ -64,6 +64,12 @@ void modify_patch_parameter(thea::ym2612::ChannelPatch::WriteOption option, uint
   auto normalized_option = thea::ym2612::ChannelPatch::WriteOption(option % 10);
   uint8_t operator_no = option / 10;
 
+  // All operator parameters are actually inverted - the lower values are
+  // associated with what humans would think are "higher" knob values. That is
+  // to say, if the parameter were "volume", 0 would be the loudest and 127
+  // would be the softest. No frickin' clue why Yamaha did this.
+  normalized_value = 127 - normalized_value;
+
   // Serial.printf("Option: %i, Normalized: %i, Operator: %i\n", option, normalized_option, operator_no);
 
   switch (normalized_option) {
@@ -86,7 +92,7 @@ void modify_patch_parameter(thea::ym2612::ChannelPatch::WriteOption option, uint
     patch.operators[operator_no].D2R = map(normalized_value, 0, 127, 0, 31);
     break;
   case thea::ym2612::ChannelPatch::WriteOption::OP0_D1L:
-    patch.operators[operator_no].D1L = map(normalized_value, 0, 127, 0, 31);
+    patch.operators[operator_no].D1L = map(normalized_value, 0, 127, 0, 15);
     break;
   case thea::ym2612::ChannelPatch::WriteOption::OP0_RR:
     patch.operators[operator_no].RR = map(normalized_value, 0, 127, 0, 15);
