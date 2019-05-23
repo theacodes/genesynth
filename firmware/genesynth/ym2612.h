@@ -142,10 +142,10 @@ public:
   uint8_t feedback;
   // LFO Amplitude Modulation Sensitivity. 0-3 (2 bits).
   // 0, 1.4, 5.9, 11.8 dB
-  uint8_t lfo_ams;
+  uint8_t lfo_ams = 0;
   // LFO Frequency Modulation Sensitivity. 0-7 (3 bits).
   // 0 ±3.4 ±6.7 ±10 ±14 ±20 ±40 ±80 % of a halftone.
-  uint8_t lfo_fms;
+  uint8_t lfo_fms = 0;
 
   OperatorPatch operators[4];
 
