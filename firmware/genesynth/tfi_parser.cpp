@@ -55,7 +55,7 @@ void save(SdFile &file, thea::ym2612::ChannelPatch &patch) {
     return;
   }
 
-  char data[42];
+  uint8_t data[42] = {0};
 
   data[0] = patch.algorithm;
   data[1] = patch.feedback;
@@ -73,7 +73,7 @@ void save(SdFile &file, thea::ym2612::ChannelPatch &patch) {
     data[offset + 8] = patch.operators[i].D1L;
   }
 
-  file.write(data);
+  file.write(data, 42);
   file.sync();
   file.close();
 }
