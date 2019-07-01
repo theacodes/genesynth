@@ -5,10 +5,10 @@ namespace thea {
 
 template <class T> class SimpleIterator {
 public:
-  virtual ~SimpleIterator(){};
-  virtual bool next();
-  virtual T item();
-  virtual bool end();
+  virtual ~SimpleIterator() = default;
+  virtual bool next() = 0;
+  virtual T item() = 0;
+  virtual bool end() = 0;
 };
 
 } // namespace thea

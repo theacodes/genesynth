@@ -9,11 +9,12 @@
 namespace thea {
 namespace fs {
 
-class SdFatIterator : thea::SimpleIterator<SdFile &> {
+class SdFatIterator : public thea::SimpleIterator<SdFile &> {
 public:
   SdFatIterator(SdFile *dir) : dir(dir), file(), _index() { rewind(); }
+  ~SdFatIterator() {};
 
-  virtual bool next() {
+  bool next() {
     if (hit_end)
       return false;
 
@@ -26,9 +27,9 @@ public:
 
   unsigned int index() { return _index; }
 
-  virtual SdFile &item() { return file; }
+  SdFile &item() { return file; }
 
-  virtual bool end() { return hit_end; }
+  bool end() { return hit_end; }
 
   void rewind() {
     if (file.isOpen())

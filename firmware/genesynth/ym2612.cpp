@@ -1,5 +1,4 @@
 #include <arduino.h>
-#include <util/delay.h> // For timing
 
 #include "hardware_constants.h"
 #include "nanodelay.h"

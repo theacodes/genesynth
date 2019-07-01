@@ -12,6 +12,6 @@ void display(U8G2 &, thea::ym2612::ChannelPatch &, thea::ym2612::ChannelPatch::W
              unsigned long last_patch_modify_time);
 
 } // namespace ambient_ui
-} // namspace thea
+} // namespace thea
 
 #endif

@@ -1,4 +1,5 @@
 #include "algorithm_gfx.h"
+#include <stdint.h>
 
 namespace thea {
 namespace algorithm_gfx {

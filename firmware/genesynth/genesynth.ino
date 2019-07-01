@@ -5,7 +5,6 @@
 #include "src/theacommon/tasks.h"
 #include "synth.h"
 #include "ui.h"
-#include "vgm.h"
 #include "ym2612.h"
 
 thea::TaskManager taskmgr;

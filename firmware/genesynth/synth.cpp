@@ -193,13 +193,13 @@ class NoteStrategy {
 public:
   virtual ~NoteStrategy(){};
 
-  virtual void reset();
+  virtual void reset() = 0;
 
   /* Called every loop() to update pitches, etc. */
-  virtual void update();
+  virtual void update() = 0;
 
-  virtual void note_on(uint8_t note, float pitch);
-  virtual void note_off(uint8_t note);
+  virtual void note_on(uint8_t note, float pitch) = 0;
+  virtual void note_off(uint8_t note) = 0;
 
   virtual void pitch_bend(float offset) {
     // Adjustable: a 1.0 multiplier means that the pitch wheel all the way up *doubles* the frequency.

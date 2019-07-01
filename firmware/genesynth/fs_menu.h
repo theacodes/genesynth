@@ -12,13 +12,14 @@ namespace fs_menu {
 class FileSystemMenu : public thea::menu::AbstractMenu {
 public:
   typedef void (*selection_callback)(SdFile);
-
   FileSystemMenu(U8G2 *u8g2, SdFile *root);
-  virtual void display();
-  virtual void up();
-  virtual void down();
-  virtual void forward();
-  virtual void reset();
+  ~FileSystemMenu(){};
+
+  void display();
+  void up();
+  void down();
+  void forward();
+  void reset();
   void set_root(SdFile *root);
   SdFile selected_file();
   inline void set_callback(selection_callback callback) { this->callback = callback; }
@@ -34,7 +35,7 @@ private:
   void clear_options();
   void populate_options();
 };
-}
-}
+} // namespace fs_menu
+} // namespace thea
 
 #endif

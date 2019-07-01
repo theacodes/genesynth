@@ -1,3 +1,5 @@
+#include <cstddef>
+#include <stdint.h>
 #include "thea_easter_egg.h"
 
 namespace thea {

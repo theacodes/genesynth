@@ -32,7 +32,7 @@ inline void draw_menu_options(U8G2 *u8g2, const char *const options[], int len, 
 class AbstractMenu {
 public:
   virtual ~AbstractMenu(){};
-  virtual void display();
+  virtual void display() = 0;
   virtual void up(){};
   virtual void down(){};
   virtual void forward(){};
@@ -44,9 +44,8 @@ public:
 class MenuController {
 public:
   MenuController() {}
-  virtual ~MenuController() {}
 
-  virtual void display() {
+  inline void display() {
     if (current_menu() == nullptr)
       return;
 
@@ -74,7 +73,7 @@ public:
     current_menu()->forward();
   }
 
-  virtual void back() {
+  inline void back() {
     if (current_menu() == nullptr || current_menu()->back()) {
       pop();
     }
