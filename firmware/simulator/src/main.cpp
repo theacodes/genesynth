@@ -32,8 +32,48 @@ void sdl_event_loop(SDL_Renderer* renderer, loop_func loop) {
     bool quit = false;
     while (!quit){
         while (SDL_PollEvent(&e)){
-            if (e.type == SDL_QUIT){
-                quit = true;
+            switch(e.type) {
+                case SDL_QUIT:
+                    quit = true;
+                    break;
+                case SDL_KEYDOWN:
+                    switch(e.key.keysym.sym) {
+                        case SDLK_UP:
+                            thea::simulator_context::context.up = true;
+                            break;
+                        case SDLK_RIGHT:
+                            thea::simulator_context::context.right = true;
+                            break;
+                        case SDLK_DOWN:
+                            thea::simulator_context::context.down = true;
+                            break;
+                        case SDLK_LEFT:
+                            thea::simulator_context::context.left = true;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                case SDL_KEYUP:
+                    switch(e.key.keysym.sym) {
+                        case SDLK_UP:
+                            thea::simulator_context::context.up = false;
+                            break;
+                        case SDLK_RIGHT:
+                            thea::simulator_context::context.right = false;
+                            break;
+                        case SDLK_DOWN:
+                            thea::simulator_context::context.down = false;
+                            break;
+                        case SDLK_LEFT:
+                            thea::simulator_context::context.left = false;
+                            break;
+                        default:
+                            break;
+                    }
+                    break;
+                default:
+                    break;
             }
         }
 

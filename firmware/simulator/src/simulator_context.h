@@ -8,6 +8,10 @@ namespace simulator_context
 {
     struct Context {
         SDL_Renderer* renderer;
+        bool up = false;
+        bool left = false;
+        bool right = false;
+        bool down = false;
     };
 
     extern Context context;
