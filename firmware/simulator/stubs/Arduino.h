@@ -21,8 +21,8 @@ enum PinState {
 
 typedef uint8_t byte;
 
-inline unsigned long micros() { return 0; };
-inline unsigned long millis() { return 0; };
+unsigned long micros();
+unsigned long millis();
 inline void delay(unsigned int) {};
 inline void delayMicroseconds(unsigned int) {};
 inline void pinMode(int, int) {};

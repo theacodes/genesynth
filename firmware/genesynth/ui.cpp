@@ -141,8 +141,7 @@ private:
   unsigned long dt;
 };
 
-U8G2_SH1106_128X64_NONAME_F_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/DISPLAY_CS, /* dc=*/DISPLAY_DC,
-                                           /* reset=*/DISPLAY_RESET);
+U8G2_INITIALIZATION;
 
 thea::menu::MenuController menu_ctrl;
 IdleMenu idle_menu(&u8g2, menu_ctrl);

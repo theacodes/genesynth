@@ -1,4 +1,4 @@
-#include <arduino.h>
+#include <Arduino.h>
 
 #include "hardware_constants.h"
 #include "nanodelay.h"
