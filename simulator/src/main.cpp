@@ -112,11 +112,11 @@ void audio_callback(void* userdata, uint8_t *stream, int len) {
 
 int get_and_open_midi_port(RtMidiIn* midiin) {
     unsigned int num_ports = midiin->getPortCount();
-    std::cout << "\nThere are " << num_ports << " MIDI input sources available.\n";
+    printf("There are %i MIDI input sources available.\n", num_ports);
     std::string port_name;
     for ( unsigned int i=0; i<num_ports; i++ ) {
         try {
-            std::cout << " #" << i << ": " << midiin->getPortName(i) << '\n';
+            printf(" #%i: %s\n", i, midiin->getPortName(i).c_str());
         }
         catch ( RtMidiError &error ) {
             error.printMessage();
@@ -125,9 +125,11 @@ int get_and_open_midi_port(RtMidiIn* midiin) {
         
     }
 
-    int port_num;
-    std::cout << "Which port? " << std::flush;
-    std::cin >> port_num;
+    int port_num = 0;
+    if(num_ports > 1) {
+        std::cout << "Which port? " << std::flush;
+        std::cin >> port_num;
+    }
 
     midiin->openPort(port_num);
 
