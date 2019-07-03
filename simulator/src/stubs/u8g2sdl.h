@@ -5,7 +5,7 @@
 
 class U8G2_SDL : public U8G2 {
 public:
-    U8G2_SDL(const u8g2_cb_t *rotation);
+  U8G2_SDL(const u8g2_cb_t *rotation);
 };
 
 #endif

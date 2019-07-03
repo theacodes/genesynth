@@ -5,11 +5,11 @@
 
 class _EEPROM {
 public:
-    _EEPROM() {};
+  _EEPROM(){};
 
-    char read(unsigned int addr) { return 0; };
-    void write(unsigned int addr, uint8_t val) {};
-    void update(unsigned int addr, uint8_t val) {};
+  char read(unsigned int addr) { return 0; };
+  void write(unsigned int addr, uint8_t val){};
+  void update(unsigned int addr, uint8_t val){};
 };
 
 extern _EEPROM EEPROM;

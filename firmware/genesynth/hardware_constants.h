@@ -46,14 +46,12 @@ than close enough.
 #define DISPLAY_DC 9
 #define DISPLAY_RESET 8
 #ifndef DISPLAY_RATE
-    #define DISPLAY_RATE 66666 // 1/15th of a second in microseconds.
+#define DISPLAY_RATE 66666 // 1/15th of a second in microseconds.
 #endif
 #ifndef U8G2_INITIALIZATION
-    #define U8G2_INITIALIZATION U8G2_SH1106_128X64_NONAME_F_4W_HW_SPI u8g2(\
-          /* rotation=*/U8G2_R2,\
-          /* cs=*/DISPLAY_CS,\
-          /* dc=*/DISPLAY_DC,\
-          /* reset=*/DISPLAY_RESET);
+#define U8G2_INITIALIZATION                                                                                            \
+  U8G2_SH1106_128X64_NONAME_F_4W_HW_SPI u8g2(/* rotation=*/U8G2_R2, /* cs=*/DISPLAY_CS, /* dc=*/DISPLAY_DC,            \
+                                             /* reset=*/DISPLAY_RESET);
 #endif
 // Buttons use descending pins from the first button's pin.
 #define BUTTON_ONE 27
