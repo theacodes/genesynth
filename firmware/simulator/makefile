@@ -14,7 +14,7 @@ INC_DIRS := $(INC_DIRS) ./u8g2/cppsrc ./u8g2/csrc
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
 LDFLAGS := -stdlib=libc++ -l SDL2-2.0.0 u8g2.a
 
-CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -std=c++11 -stdlib=libc++ -DHARDWARE_CONSTANTS_OVERRIDE=1
+CPPFLAGS ?= $(INC_FLAGS) -g -MMD -MP -std=c++11 -stdlib=libc++ -DHARDWARE_CONSTANTS_OVERRIDE=1
 
 $(TARGET_EXEC): $(OBJS)
 	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
