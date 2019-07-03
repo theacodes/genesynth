@@ -29,7 +29,7 @@ inline void pinMode(int, int) {};
 inline void analogWriteFrequency(int, int) {};
 inline void analogWrite(int, int) {};
 inline int digitalReadFast(int) { return 0; };
-inline void digitalWriteFast(int, int) {};
+void digitalWriteFast(int pin, bool value);
 
 inline long map(long x, long in_min, long in_max, long out_min, long out_max) {
     long divisor = (in_max - in_min);
