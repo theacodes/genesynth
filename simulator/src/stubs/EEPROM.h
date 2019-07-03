@@ -3,15 +3,21 @@
 
 #include <stdint.h>
 
-class _EEPROM {
-public:
-  _EEPROM(){};
+#define EEPROM_SIZE 1024
+#define EEPROM_FILENAME "EEPROM.bin"
 
-  char read(unsigned int addr) { return 0; };
-  void write(unsigned int addr, uint8_t val){};
-  void update(unsigned int addr, uint8_t val){};
+class EEPROMStub {
+public:
+  EEPROMStub();
+
+  char read(unsigned int addr);
+  void write(unsigned int addr, uint8_t val);
+  void update(unsigned int addr, uint8_t val);
+
+private:
+  uint8_t data[EEPROM_SIZE];
 };
 
-extern _EEPROM EEPROM;
+extern EEPROMStub EEPROM;
 
 #endif
