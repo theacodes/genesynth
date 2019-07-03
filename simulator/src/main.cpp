@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <SDL2/SDL.h>
+#include <RtMidi.h>
 
 #include "ym2612core/ym2612.h"
 #include "simulator_context.h"
@@ -64,6 +65,7 @@ void sound_test() {
 #define SCREEN_H 64
 
 typedef void (*loop_func)(void);
+
 
 void sdl_event_loop(SDL_Renderer* renderer, loop_func loop) {
     // Target used for rendering the u8g2 stuff.
@@ -140,9 +142,8 @@ void sdl_event_loop(SDL_Renderer* renderer, loop_func loop) {
         // Run the Arduino loop
         loop();
 
-        // TODO: Render UI for buttons.
+        // Render the screen.
         SDL_SetRenderTarget(renderer, NULL);
-
         SDL_SetRenderDrawColor(renderer, 200, 30, 140, SDL_ALPHA_OPAQUE);
         SDL_RenderClear(renderer);
         SDL_RenderCopy(renderer, u8g2Target, NULL, &u8g2DestRect);
@@ -161,6 +162,30 @@ void audio_callback(void* userdata, uint8_t *stream, int len) {
     for(auto i = 0; i < len; i++) {
         stream_buf[i] = ym_buf[i];
     }
+}
+
+int get_and_open_midi_port(RtMidiIn* midiin) {
+    unsigned int num_ports = midiin->getPortCount();
+    std::cout << "\nThere are " << num_ports << " MIDI input sources available.\n";
+    std::string port_name;
+    for ( unsigned int i=0; i<num_ports; i++ ) {
+        try {
+            std::cout << " #" << i << ": " << midiin->getPortName(i) << '\n';
+        }
+        catch ( RtMidiError &error ) {
+            error.printMessage();
+            return -1;
+        }
+        
+    }
+
+    int port_num;
+    std::cout << "Which port? " << std::flush;
+    std::cin >> port_num;
+
+    midiin->openPort(port_num);
+
+    return port_num;
 }
 
 int main(int argc, char const *argv[]) {
@@ -183,6 +208,7 @@ int main(int argc, char const *argv[]) {
     want.userdata = NULL;
     want.channels = 2;
 
+    // Use "Loopback Audio" as the first argument to do screen recording.
     auto audiodev = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
     if ( audiodev == 0 ) {
         printf("SDL_OpenAudio Error: %s\n", SDL_GetError());
@@ -211,10 +237,25 @@ int main(int argc, char const *argv[]) {
 
     printf("Done with SDL setup.\n");
 
-    printf("Running setup.\n");
+    printf("Setting up RtMidi.\n");
+
+    RtMidiIn *midiin = nullptr;
+    try {
+        midiin = new RtMidiIn();
+    } catch (RtMidiError &error) {
+        // Handle the exception here
+        error.printMessage();
+        return 1;
+    }
+
+    get_and_open_midi_port(midiin);
+    thea::simulator_context::context.midiin = midiin;
+
+
+    printf("Running Arduino setup.\n");
     setup();
 
-    printf("Starting loop.\n");
+    printf("Starting Arduino loop.\n");
     sdl_event_loop(ren, &loop);
 
     return 0;

@@ -46,7 +46,6 @@ void digitalWriteFast(int pin, bool value) {
         // Write was just activated, signaling we should send the byte to
         // the chip.
         if(!value && ym_write_bit) {
-            printf("Writing %02x to port %i\n", ym_data_port_byte, ym_write_address);
             YM2612Write(ym_write_address, ym_data_port_byte);
         }
         ym_write_bit = value;

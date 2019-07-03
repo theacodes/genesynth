@@ -9,7 +9,7 @@ DEPS := $(OBJS:.o=.d)
 INC_DIRS := $(shell find $(SRC_DIR) -type d)
 INC_DIRS := $(INC_DIRS) ./third_party/u8g2/cppsrc ./third_party/u8g2/csrc ./third_party/ym2612core
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
-LDFLAGS := -stdlib=libc++ -l SDL2-2.0.0 ./third_party/u8g2.a ./third_party/ym2612core.a
+LDFLAGS := -stdlib=libc++ -l SDL2-2.0.0 -l RtMidi ./third_party/u8g2.a ./third_party/ym2612core.a
 
 CPPFLAGS ?= $(INC_FLAGS) -g -MMD -MP -std=c++11 -stdlib=libc++ -DHARDWARE_CONSTANTS_OVERRIDE=1
 
