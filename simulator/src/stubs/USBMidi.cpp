@@ -1,10 +1,7 @@
 #include "USBMidi.h"
-#include "simulator_context.h"
-#include <RtMidi.h>
+#include "simulator.h"
 
 USBMidi usbMIDI;
-
-using thea::simulator_context::context;
 
 int get_type_from_status(uint8_t status) { return status & 0xF0; }
 
@@ -12,7 +9,7 @@ int get_channel_from_status(uint8_t status) { return status & 0X0F; }
 
 bool USBMidi::read() {
   std::vector<uint8_t> message;
-  double stamp = context.midiin->getMessage(&message);
+  simulator::get_midi_message(&message);
   int len = message.size();
 
   if (len == 0)

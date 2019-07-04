@@ -1,28 +1,17 @@
 #include "u8g2sdl.h"
 #include "SDL2/SDL.h"
-#include "simulator_context.h"
 #include "u8g2.h"
 
-static void u8g_sdl_set_pixel(int x, int y, bool color) {
-  if (color) {
-    SDL_SetRenderDrawColor(thea::simulator_context::context.renderer, 127, 127, 255, SDL_ALPHA_OPAQUE);
-  } else {
-    SDL_SetRenderDrawColor(thea::simulator_context::context.renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-  }
-
-  SDL_RenderDrawPoint(thea::simulator_context::context.renderer, x, y);
-}
+#include "simulator.h"
 
 static void u8g_sdl_set_8pixel(int x, int y, uint8_t pixel) {
   int cnt = 8;
   int bg = 0;
-  // if ( (x/8 + y/8)  & 1 )
-  //   bg = 4;
   while (cnt > 0) {
     if ((pixel & 1) == 0) {
-      u8g_sdl_set_pixel(x, y, bg);
+      simulator::set_pixel(x, y, bg);
     } else {
-      u8g_sdl_set_pixel(x, y, 3);
+      simulator::set_pixel(x, y, 3);
     }
     pixel >>= 1;
     y++;
