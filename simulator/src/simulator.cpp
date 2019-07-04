@@ -158,9 +158,7 @@ void set_pixel(int x, int y, bool color) {
   SDL_RenderDrawPoint(sdl_renderer, x, y);
 }
 
-void get_midi_message(std::vector<uint8_t>* dst) {
-  rt_midiin->getMessage(dst);
-}
+void get_midi_message(std::vector<uint8_t> *dst) { rt_midiin->getMessage(dst); }
 
 bool get_button_state(int button) {
   switch (button) {
