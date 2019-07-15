@@ -1,6 +1,7 @@
 #include "SdFat.h"
 #include <cstdio>
 #include <string>
+#include <sys/stat.h>
 
 bool SdFile::openRoot(FatVolume *vol) {
   if ((directory_dirp = opendir(".")) == NULL) {
@@ -14,6 +15,13 @@ bool SdFile::openRoot(FatVolume *vol) {
 
   sprintf(fullpath, ".");
   return true;
+}
+
+bool SdFile::isDir() {
+  struct stat statbuf;
+  if (stat(fullpath, &statbuf) != 0)
+    return false;
+  return S_ISDIR(statbuf.st_mode);
 }
 
 void SdFile::rewind() {
@@ -37,9 +45,9 @@ bool SdFile::openNext(SdFile *dir, int flag) {
 
   dir_index = dir->parent_dir_index++;
 
-  directory_dirp = opendir(file_direntp->d_name);
-
   sprintf(fullpath, "%s/%s", dir->fullpath, file_direntp->d_name);
+
+  directory_dirp = opendir(fullpath);
 
   return true;
 }

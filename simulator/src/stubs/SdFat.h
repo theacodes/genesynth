@@ -28,7 +28,7 @@ public:
   bool openRoot(FatVolume *);
   bool openNext(SdFile *dir, int flag);
   bool isOpen() { return true; };
-  bool isDir() { return true; };
+  bool isDir();
   void close(){};
   void rewind();
   bool getName(char *, int);

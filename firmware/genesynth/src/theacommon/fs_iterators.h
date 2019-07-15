@@ -32,6 +32,8 @@ public:
   bool end() { return hit_end; }
 
   void rewind() {
+    if(dir == nullptr) return;
+
     if (file.isOpen())
       file.close();
 

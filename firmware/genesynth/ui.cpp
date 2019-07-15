@@ -19,11 +19,28 @@
 namespace thea {
 namespace ui {
 
+/* External global state */
+
 thea::TaskManager *taskmgr;
-#define MAIN_MENU_OPTIONS_LEN 4
-const char *main_menu_options[MAIN_MENU_OPTIONS_LEN] = {"Load patch", "Polyphony", "Stats", "<3"};
-#define NOTE_MODE_MENU_OPTIONS_LEN 3
-const char *note_mode_menu_options[NOTE_MODE_MENU_OPTIONS_LEN] = {"Poly", "Mono", "Unison"};
+void set_task_manager(thea::TaskManager *taskmgr) { thea::ui::taskmgr = taskmgr; }
+
+/* Helpers */
+
+void wait_for_serial_loop(U8G2 &u8g2) {
+  u8g2.firstPage();
+  do {
+    u8g2.setCursor(0, 0);
+    u8g2.printf("Waiting for");
+    u8g2.setCursor(0, 9);
+    u8g2.printf("serial...");
+  } while (u8g2.nextPage());
+
+  while (!Serial.dtr()) {
+    delay(10);
+  }
+}
+
+/* Menu classes */
 
 class IdleMenu : public thea::menu::AbstractMenu {
 public:
@@ -94,9 +111,12 @@ private:
   int screen = 0;
 };
 
+const char *note_mode_menu_options[] = {"Poly", "Mono", "Unison"};
+const size_t note_mode_menu_options_len = sizeof(note_mode_menu_options) / sizeof(char *);
+
 class NoteModeMenu : public thea::menu::StringOptionsMenu {
 public:
-  NoteModeMenu(U8G2 *u8g2) : thea::menu::StringOptionsMenu(u8g2, note_mode_menu_options, NOTE_MODE_MENU_OPTIONS_LEN) {
+  NoteModeMenu(U8G2 *u8g2) : thea::menu::StringOptionsMenu(u8g2, note_mode_menu_options, note_mode_menu_options_len) {
     selected = thea::synth::get_note_mode();
   }
   ~NoteModeMenu() {}
@@ -104,10 +124,13 @@ public:
   virtual void forward() { thea::synth::set_note_mode(thea::synth::NoteMode(selected)); }
 };
 
+const char *main_menu_options[] = {"Load patch", "Polyphony", "Stats", "<3"};
+const size_t main_menu_options_len = sizeof(main_menu_options) / sizeof(char *);
+
 class MainMenu : public thea::menu::StringOptionsMenu {
 public:
   MainMenu(U8G2 *u8g2, thea::menu::MenuController &menu_ctrl)
-      : thea::menu::StringOptionsMenu(u8g2, main_menu_options, MAIN_MENU_OPTIONS_LEN), menu_ctrl(menu_ctrl) {}
+      : thea::menu::StringOptionsMenu(u8g2, main_menu_options, main_menu_options_len), menu_ctrl(menu_ctrl) {}
   ~MainMenu() {}
 
   virtual void forward() {
@@ -119,7 +142,7 @@ public:
     menu_ctrl.advance(submenu);
   }
 
-  thea::menu::AbstractMenu *submenus[MAIN_MENU_OPTIONS_LEN];
+  thea::menu::AbstractMenu *submenus[main_menu_options_len];
 
 private:
   thea::menu::MenuController &menu_ctrl;
@@ -141,53 +164,85 @@ private:
   unsigned long dt;
 };
 
+class PatchLoadMenu : public thea::fs_menu::FileSystemMenu {
+public:
+  PatchLoadMenu(U8G2 *u8g2, thea::menu::MenuController &menu_ctrl)
+      : FileSystemMenu(u8g2, nullptr), menu_ctrl(menu_ctrl){};
+  ~PatchLoadMenu(){};
+
+  void set_top_directory(SdFile &file) {
+    folder_stack[0] = SdFile(file);
+    set_root(&folder_stack[0]);
+    reset();
+  }
+
+  bool back() {
+    if (folder_stack_ptr >= 1) {
+      folder_stack_ptr--;
+      set_root(&folder_stack[folder_stack_ptr]);
+      reset();
+      printf("Navigating up, depth: %i\n", folder_stack_ptr);
+      /* Don't pop the menu. */
+      return false;
+    }
+    /* They hit back on the root folder, pop the menu. */
+    return true;
+  };
+
+  void forward() {
+    SdFile selected = selected_file();
+    char name[127];
+    selected.getName(name, 127);
+    Serial.printf("Selected: %s, depth: %i\n", name, folder_stack_ptr);
+
+    // Is this a tfi patch file? If so, load it and leave the menu.
+    char *dot = strrchr(name, '.');
+    if (dot && !strcmp(dot, ".tfi")) {
+      thea::synth::load_patch(selected, &folder_stack[folder_stack_ptr]);
+
+      // If double-pressed, exit.
+      if (last_file_select_time > millis() - double_press_time_ms) {
+        menu_ctrl.unwind();
+        return;
+      }
+
+      last_file_select_time = millis();
+      return;
+    }
+
+    // Otherwise if this is a directory open it and push the stack.
+    if (!selected.isDir()) {
+      return;
+    }
+
+    // TODO: Bounds check.
+    folder_stack_ptr++;
+    folder_stack[folder_stack_ptr] = SdFile(selected);
+    set_root(&folder_stack[folder_stack_ptr]);
+    reset();
+  };
+
+private:
+  thea::menu::MenuController &menu_ctrl;
+  SdFile folder_stack[5];
+  // Zeroth item is the root folder and is never popped, should be set by
+  // `set_top_directory`.
+  size_t folder_stack_ptr = 0;
+  const unsigned double_press_time_ms = 1000;
+  unsigned long last_file_select_time = 0;
+};
+
+/* Local global state and callbacks */
+
 U8G2_INITIALIZATION;
 
 thea::menu::MenuController menu_ctrl;
 IdleMenu idle_menu(&u8g2, menu_ctrl);
 NoteModeMenu note_mode_menu(&u8g2);
 MainMenu main_menu(&u8g2, menu_ctrl);
+PatchLoadMenu patch_load_menu(&u8g2, menu_ctrl);
 StatsMenu stats_menu(&u8g2);
 EasterEggMenu easter_egg_menu(&u8g2);
-
-SdFile fs_root;
-thea::fs_menu::FileSystemMenu folder_menu(&u8g2, &fs_root);
-SdFile selected_folder;
-thea::fs_menu::FileSystemMenu file_menu(&u8g2, &selected_folder);
-
-void folder_select_callback(SdFile selected) {
-  char name[127];
-  selected.getName(name, 127);
-  Serial.printf("Selected: %s\n", name);
-
-  // If the *same* folder was selected, we don't need to do this. Otherwise,
-  // set the root and reset. This preserves where the user is in the menu if
-  // they come back.
-  if (selected_folder.dirIndex() != selected.dirIndex()) {
-    selected_folder = selected;
-    file_menu.set_root(&selected_folder);
-    file_menu.reset();
-  }
-  menu_ctrl.advance(&file_menu);
-}
-
-#define DOUBLE_PRESS_TIME_MS 1000
-unsigned long last_file_select_time = 0;
-
-void file_select_callback(SdFile selected) {
-  // If double-pressed, exit.
-  if (last_file_select_time > millis() - DOUBLE_PRESS_TIME_MS) {
-    menu_ctrl.unwind();
-    return;
-  }
-  last_file_select_time = millis();
-
-  char name[127];
-  selected.getName(name, 127);
-  Serial.printf("Selected: %s\n", name);
-
-  thea::synth::load_patch(selected, &selected_folder);
-}
 
 void button_press_callback(int button) {
   switch (button) {
@@ -210,22 +265,6 @@ void button_press_callback(int button) {
 
 void button_release_callback(int button) {}
 
-void set_task_manager(thea::TaskManager *taskmgr) { thea::ui::taskmgr = taskmgr; }
-
-void wait_for_serial_loop(U8G2 &u8g2) {
-  u8g2.firstPage();
-  do {
-    u8g2.setCursor(0, 0);
-    u8g2.printf("Waiting for");
-    u8g2.setCursor(0, 9);
-    u8g2.printf("serial...");
-  } while (u8g2.nextPage());
-
-  while (!Serial.dtr()) {
-    delay(10);
-  }
-}
-
 void init(bool wait_for_serial) {
   /* Initialize display */
   u8g2.begin();
@@ -239,15 +278,14 @@ void init(bool wait_for_serial) {
   }
 
   /* Initialize filesystem access */
+  SdFile fs_root;
   fs_root.openRoot(thea::filesystem::sd().vol());
+  patch_load_menu.set_top_directory(fs_root);
 
   /* Wire up the menu hierarchy */
   idle_menu.set_main_menu(&main_menu);
   menu_ctrl.set_root(&idle_menu);
-  folder_menu.reset();
-  folder_menu.set_callback(&folder_select_callback);
-  file_menu.set_callback(&file_select_callback);
-  main_menu.submenus[0] = &folder_menu;
+  main_menu.submenus[0] = &patch_load_menu;
   main_menu.submenus[1] = &note_mode_menu;
   main_menu.submenus[2] = &stats_menu;
   main_menu.submenus[3] = &easter_egg_menu;
