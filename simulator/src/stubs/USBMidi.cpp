@@ -32,6 +32,12 @@ bool USBMidi::read() {
     }
     break;
 
+  case 0xB0:
+    // CC
+    printf("Sending control change: %i, %i, %i\n", channel, message[1], message[2]);
+    control_change_handler(channel, message[1], message[2]);
+    break;
+
   default:
     printf("Unknown MIDI message %02x\n", type);
     for (auto i = 0; i < len; i++) {

@@ -16,7 +16,7 @@ public:
   void setHandleNoteOn(note_on_handler_t handler) { note_on_handler = handler; };
   void setHandleNoteOff(note_off_handler_t handler) { note_off_handler = handler; };
   void setHandlePitchChange(pitch_change_handler_t){};
-  void setHandleControlChange(control_change_handler_t){};
+  void setHandleControlChange(control_change_handler_t handler) { control_change_handler = handler; };
   void setHandleSystemExclusive(sysex_handler_t){};
   void begin(){};
   bool read();
@@ -24,6 +24,7 @@ public:
 private:
   note_on_handler_t note_on_handler;
   note_off_handler_t note_off_handler;
+  control_change_handler_t control_change_handler;
 };
 
 extern USBMidi usbMIDI;
