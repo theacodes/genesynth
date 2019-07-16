@@ -1,7 +1,5 @@
 #include "fs_menu.h"
 
-#define MIN(x, y) (((x) < (y)) ? (x) : (y))
-
 namespace thea {
 namespace fs_menu {
 
