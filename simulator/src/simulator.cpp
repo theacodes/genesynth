@@ -15,6 +15,7 @@ namespace simulator {
 static SDL_Window *sdl_window = nullptr;
 static SDL_Renderer *sdl_renderer = nullptr;
 static SDL_AudioDeviceID sdl_audiodev = 0;
+static std::vector<uint8_t> simulated_midi_message;
 static RtMidiIn *rt_midiin = nullptr;
 static bool button_up, button_right, button_down, button_left;
 
@@ -158,7 +159,14 @@ void set_pixel(int x, int y, bool color) {
   SDL_RenderDrawPoint(sdl_renderer, x, y);
 }
 
-void get_midi_message(std::vector<uint8_t> *dst) { rt_midiin->getMessage(dst); }
+void get_midi_message(std::vector<uint8_t> *dst) {
+  if (!simulated_midi_message.empty()) {
+    *dst = simulated_midi_message;
+    simulated_midi_message.clear();
+    return;
+  }
+  rt_midiin->getMessage(dst);
+}
 
 bool get_button_state(int button) {
   switch (button) {
@@ -206,6 +214,11 @@ static bool process_sdl_events() {
         break;
       case SDLK_LEFT:
         button_left = key_state;
+        break;
+      case SDLK_1:
+        simulated_midi_message.push_back(0xB0);
+        simulated_midi_message.push_back(0x01);
+        simulated_midi_message.push_back(0x50);
         break;
       default:
         break;
