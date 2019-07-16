@@ -6,6 +6,7 @@
 namespace thea {
 namespace menu {
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
 #define MENU_PAGE_SIZE 6
 #define MENU_FONT_HEIGHT 9
 
@@ -22,7 +23,7 @@ inline void draw_menu_options(U8G2 *u8g2, const char *const options[], int len, 
     } else {
       u8g2->setDrawColor(1);
     }
-    u8g2->printf(value);
+    u8g2->printf("%s", value);
 
     // reset draw color
     u8g2->setDrawColor(1);
@@ -106,8 +107,9 @@ public:
   virtual void display() {
     int page = selected / MENU_PAGE_SIZE;
     int page_start = page * MENU_PAGE_SIZE;
+    int len = MIN(options_len - page_start, MENU_PAGE_SIZE);
 
-    draw_menu_options(u8g2, options + page_start, options_len - page_start, selected - page_start);
+    draw_menu_options(u8g2, options + page_start, len, selected - page_start);
   }
 
   virtual void up() {
