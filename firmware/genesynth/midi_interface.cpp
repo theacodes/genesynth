@@ -17,6 +17,9 @@ struct NRPNMessage {
 };
 
 NRPNMessage nrpn_message;
+uint8_t last_cc;
+
+uint8_t get_last_cc() { return last_cc; }
 
 void handle_note_on(byte channel, byte note, byte velocity) {
   float pitch = pow(2, float(note - 69) / 12) * 440;
@@ -100,13 +103,6 @@ void handle_control_change(byte channel, byte control, byte value) {
     return;
 
   switch (control) {
-  case 1: // Modulation wheel.
-    // TODO
-    break;
-  case 21: // Modulation wheel LSB.
-    // TODO
-    break;
-
   case 5: // Portamento Time (Glide)
     thea::synth::set_glide_amount(value / 127.0f);
     break;
@@ -161,6 +157,7 @@ void handle_control_change(byte channel, byte control, byte value) {
     nrpn_message.ready = true;
     break;
   default:
+    last_cc = control;
     Serial.printf("Unmapped CC %i: %i.\n", control, value);
     break;
   }
