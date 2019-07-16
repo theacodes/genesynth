@@ -49,6 +49,11 @@ bool SdFile::openNext(SdFile *dir, int flag) {
 
   directory_dirp = opendir(fullpath);
 
+  /* Skip the entry named ".." */
+  if(strcmp(file_direntp->d_name, "..") == 0) {
+    return openNext(dir, flag);
+  }
+
   return true;
 }
 
