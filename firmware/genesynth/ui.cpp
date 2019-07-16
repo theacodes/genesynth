@@ -10,6 +10,8 @@
 #include "filesystem.h"
 #include "fs_menu.h"
 #include "hardware_constants.h"
+#include "midi_interface.h"
+#include "param_mapping.h"
 #include "src/theacommon/abstract_menu_system.h"
 #include "src/theacommon/buttons.h"
 #include "src/theacommon/thea_easter_egg.h"
@@ -84,7 +86,7 @@ public:
         u8g2->setCursor(0, 18 * i);
         u8g2->printf("%s: %.0fuS\n", task->name, task->average_execution_time);
         u8g2->setCursor(0, (18 * i) + 9);
-        u8g2->printf("%iuS %iuS\n", task->last_execution_time, task->max_execution_time);
+        u8g2->printf("%luuS %luuS\n", task->last_execution_time, task->max_execution_time);
       }
     } else {
       auto latency = thea::ym2612::get_latency();
@@ -97,7 +99,7 @@ public:
       u8g2->setCursor(0, 9 * 3);
       u8g2->printf("Last: %iuS\n", latency.last);
       u8g2->setCursor(0, 9 * 4);
-      u8g2->printf("Bytes: %i\n", latency.bytes_written);
+      u8g2->printf("Bytes: %lu\n", latency.bytes_written);
       u8g2->setCursor(0, 9 * 5);
       u8g2->printf("Timed out?: %i\n", latency.hit_max_wait_cycles);
     }
@@ -124,7 +126,7 @@ public:
   virtual void forward() { thea::synth::set_note_mode(thea::synth::NoteMode(selected)); }
 };
 
-const char *main_menu_options[] = {"Load patch", "Polyphony", "Stats", "<3"};
+const char *main_menu_options[] = {"Load patch", "Params", "Polyphony", "Stats", "<3"};
 const size_t main_menu_options_len = sizeof(main_menu_options) / sizeof(char *);
 
 class MainMenu : public thea::menu::StringOptionsMenu {
@@ -150,7 +152,7 @@ private:
 
 class EasterEggMenu : public thea::menu::AbstractMenu {
 public:
-  EasterEggMenu(U8G2 *u8g2) : u8g2(u8g2), dt(1000000) {}
+  EasterEggMenu(U8G2 *u8g2) : thea::menu::AbstractMenu(), u8g2(u8g2), dt(1000000) {}
   ~EasterEggMenu() {}
 
   virtual void display() { thea::show_thea(u8g2, dt); }
@@ -204,6 +206,105 @@ private:
   unsigned long last_file_select_time = 0;
 };
 
+class ParamMappingMenu : public thea::menu::AbstractMenu {
+public:
+  ParamMappingMenu(U8G2 *u8g2) : thea::menu::AbstractMenu(), u8g2(u8g2){};
+  ~ParamMappingMenu(){};
+
+  void display() {
+    if (mapping.midi_cc == 0) {
+      thea::menu::draw_option(u8g2, 0, "Learn", selected == 0);
+    } else {
+      char cc_text[128];
+      sprintf(cc_text, "CC%i", mapping.midi_cc);
+      thea::menu::draw_option(u8g2, 0, cc_text, selected == 0);
+    }
+
+    char curve_text[128];
+    switch (thea::params::Curves(mapping.curve)) {
+    case thea::params::Curves::LINEAR:
+      sprintf(curve_text, "Linear");
+      break;
+    case thea::params::Curves::EXPO_IN:
+      sprintf(curve_text, "Expo in");
+      break;
+    case thea::params::Curves::EXPO_OUT:
+      sprintf(curve_text, "Expo out");
+      break;
+    case thea::params::Curves::CUBIC_IN:
+      sprintf(curve_text, "Cubic in");
+      break;
+    case thea::params::Curves::CUBIC_OUT:
+      sprintf(curve_text, "Cubic out");
+      break;
+    default:
+      break;
+    }
+    thea::menu::draw_option(u8g2, 1, curve_text, selected == 1);
+
+    thea::menu::draw_option(u8g2, 2, "Clear", selected == 2);
+  };
+
+  void up() {
+    if (selected > 0) {
+      selected--;
+    }
+  }
+
+  void down() {
+    if (selected < 2) {
+      selected++;
+    }
+  }
+
+  void forward() {
+    switch (selected) {
+    // (re)learn.
+    case 0:
+      mapping.midi_cc = thea::midi_interface::get_last_cc();
+      break;
+    // Change curve
+    case 1:
+      if (mapping.curve < uint8_t(thea::params::Curves::NUM_CURVES) - 1) {
+        mapping.curve++;
+      } else {
+        mapping.curve = 0;
+      }
+      break;
+    // Reset
+    case 2:
+      mapping.midi_cc = 0;
+      mapping.curve = 0;
+    default:
+      break;
+    }
+  }
+
+  void set_mapping(thea::params::ParamMapping mapping) { this->mapping = thea::params::ParamMapping(mapping); }
+
+private:
+  U8G2 *u8g2;
+  uint8_t selected;
+  thea::params::ParamMapping mapping;
+};
+
+class ParamListMenu : public thea::menu::StringOptionsMenu {
+public:
+  ParamListMenu(U8G2 *u8g2, thea::menu::MenuController &menu_ctrl, ParamMappingMenu *param_mapping_menu)
+      : thea::menu::StringOptionsMenu(u8g2, thea::params::param_names, thea::params::get_num_params()),
+        menu_ctrl(menu_ctrl), param_mapping_menu(param_mapping_menu) {}
+  ~ParamListMenu() {}
+
+  void forward() {
+    param_mapping_menu->set_mapping(thea::params::get_mapping_for_param(selected));
+    menu_ctrl.advance(param_mapping_menu);
+  }
+
+private:
+  thea::menu::MenuController &menu_ctrl;
+  ParamMappingMenu *param_mapping_menu;
+};
+
 /* Local global state and callbacks */
 
 U8G2_INITIALIZATION;
@@ -214,6 +315,8 @@ NoteModeMenu note_mode_menu(&u8g2);
 MainMenu main_menu(&u8g2, menu_ctrl);
 PatchLoadMenu patch_load_menu(&u8g2, menu_ctrl);
 StatsMenu stats_menu(&u8g2);
+ParamMappingMenu param_mapping_menu(&u8g2);
+ParamListMenu param_list_menu(&u8g2, menu_ctrl, &param_mapping_menu);
 EasterEggMenu easter_egg_menu(&u8g2);
 
 void button_press_callback(int button) {
@@ -258,9 +361,10 @@ void init(bool wait_for_serial) {
   idle_menu.set_main_menu(&main_menu);
   menu_ctrl.set_root(&idle_menu);
   main_menu.submenus[0] = &patch_load_menu;
-  main_menu.submenus[1] = &note_mode_menu;
-  main_menu.submenus[2] = &stats_menu;
-  main_menu.submenus[3] = &easter_egg_menu;
+  main_menu.submenus[1] = &param_list_menu;
+  main_menu.submenus[2] = &note_mode_menu;
+  main_menu.submenus[3] = &stats_menu;
+  main_menu.submenus[4] = &easter_egg_menu;
 
   /* Wire up hardware buttons to the menu system */
   thea::buttons::on_button_press(&button_press_callback);
