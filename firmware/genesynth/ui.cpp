@@ -164,41 +164,21 @@ private:
   unsigned long dt;
 };
 
-class PatchLoadMenu : public thea::fs_menu::FileSystemMenu {
+class PatchLoadMenu : public thea::fs_menu::FileSelectMenu {
 public:
-  PatchLoadMenu(U8G2 *u8g2, thea::menu::MenuController &menu_ctrl)
-      : FileSystemMenu(u8g2, nullptr), menu_ctrl(menu_ctrl){};
+  PatchLoadMenu(U8G2 *u8g2, thea::menu::MenuController &menu_ctrl) : FileSelectMenu(u8g2), menu_ctrl(menu_ctrl){};
   ~PatchLoadMenu(){};
-
-  void set_top_directory(SdFile &file) {
-    folder_stack[0] = SdFile(file);
-    set_root(&folder_stack[0]);
-    reset();
-  }
-
-  bool back() {
-    if (folder_stack_ptr >= 1) {
-      folder_stack_ptr--;
-      set_root(&folder_stack[folder_stack_ptr]);
-      reset();
-      printf("Navigating up, depth: %i\n", folder_stack_ptr);
-      /* Don't pop the menu. */
-      return false;
-    }
-    /* They hit back on the root folder, pop the menu. */
-    return true;
-  };
 
   void forward() {
     SdFile selected = selected_file();
     char name[127];
     selected.getName(name, 127);
-    Serial.printf("Selected: %s, depth: %i\n", name, folder_stack_ptr);
+    Serial.printf("Selected: %s\n", name);
 
     // Is this a tfi patch file? If so, load it and leave the menu.
     char *dot = strrchr(name, '.');
     if (dot && !strcmp(dot, ".tfi")) {
-      thea::synth::load_patch(selected, &folder_stack[folder_stack_ptr]);
+      thea::synth::load_patch(selected, current_directory());
 
       // If double-pressed, exit.
       if (last_file_select_time > millis() - double_press_time_ms) {
@@ -215,19 +195,11 @@ public:
       return;
     }
 
-    // TODO: Bounds check.
-    folder_stack_ptr++;
-    folder_stack[folder_stack_ptr] = SdFile(selected);
-    set_root(&folder_stack[folder_stack_ptr]);
-    reset();
+    push_directory(selected);
   };
 
 private:
   thea::menu::MenuController &menu_ctrl;
-  SdFile folder_stack[5];
-  // Zeroth item is the root folder and is never popped, should be set by
-  // `set_top_directory`.
-  size_t folder_stack_ptr = 0;
   const unsigned double_press_time_ms = 1000;
   unsigned long last_file_select_time = 0;
 };

@@ -5,7 +5,7 @@
 namespace thea {
 namespace fs_menu {
 
-FileSystemMenu::FileSystemMenu(U8G2 *u8g2, SdFile *root) : u8g2(u8g2), iterator(root) {
+FileSystemMenu::FileSystemMenu(U8G2 *u8g2) : u8g2(u8g2), iterator(nullptr) {
   clear_options();
   strncpy(current_options[0], "I haven't been", 14);
   strncpy(current_options[1], "reset()", 7);
@@ -38,19 +38,13 @@ void FileSystemMenu::down() {
   populate_options();
 };
 
-void FileSystemMenu::forward() {
-  if (callback != nullptr) {
-    callback(selected_file());
-  }
-};
-
 void FileSystemMenu::reset() {
   selected = 0;
   max = 255;
   populate_options();
 };
 
-void FileSystemMenu::set_root(SdFile *root) {
+void FileSystemMenu::set_directory(SdFile *root) {
   iterator.close();
   iterator = thea::fs::SdFatIterator(root);
 }
@@ -81,29 +75,46 @@ void FileSystemMenu::populate_options() {
   }
 }
 
-// void test_fs_iterators() {
-//   SdFatSdio sd;
-//   sd.begin();
+/* FileSelectMenu */
 
-//   SdFile root;
-//   root.openRoot(sd.vol());
+FileSelectMenu::FileSelectMenu(U8G2 *u8g2) : FileSystemMenu(u8g2){};
 
-//   char item_name[127];
+void FileSelectMenu::set_top_directory(SdFile &folder) {
+  folder_stack[0] = SdFile(folder);
+  set_directory(&folder_stack[0]);
+  reset();
+}
 
-//   for (auto it = thea::fs::SdFatIterator(&root); !it.end(); it.next()) {
-//     it.item().getName(item_name, 127);
-//     Serial.printf("Item: %s, index: %i\n", item_name, it.index());
+void FileSelectMenu::push_directory(SdFile &folder) {
+  // TODO: Bounds check.
+  folder_stack_ptr++;
+  folder_stack[folder_stack_ptr] = SdFile(folder);
+  set_directory(&folder_stack[folder_stack_ptr]);
+  reset();
+}
 
-//     SdFile subdir = it.item();
+bool FileSelectMenu::pop_directory() {
+  if (folder_stack_ptr >= 1) {
+    folder_stack_ptr--;
+    set_directory(&folder_stack[folder_stack_ptr]);
+    reset();
+    /* Don't pop the menu. */
+    return false;
+  }
+  /* They hit back on the root folder, pop the menu. */
+  return true;
+}
 
-//     Serial.printf("Listing subdir:\n");
+SdFile *FileSelectMenu::current_directory() { return &folder_stack[folder_stack_ptr]; }
 
-//     for (auto it = thea::fs::SdFatIterator(&subdir); !it.end(); it.next()) {
-//       it.item().getName(item_name, 127);
-//       Serial.printf("> Item: %s, index: %i\n", item_name, it.index());
-//     }
-//   }
-// }
+bool FileSelectMenu::back() { return pop_directory(); }
+
+void FileSelectMenu::forward() {
+  SdFile selected = selected_file();
+  if (selected.isDir()) {
+    push_directory(selected);
+  }
+}
 
 } // namespace fs_menu
 } // namespace thea
