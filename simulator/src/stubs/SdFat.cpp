@@ -4,16 +4,16 @@
 #include <sys/stat.h>
 
 bool SdFile::openRoot(FatVolume *vol) {
-  if ((directory_dirp = opendir(".")) == NULL) {
-    printf("couldn't opendir '.'");
+  if ((directory_dirp = opendir("./fsroot")) == NULL) {
+    printf("couldn't opendir './fsroot'");
     return false;
   }
   if ((directory_direntp = readdir(directory_dirp)) == NULL) {
-    printf("couldn't readdir '.'");
+    printf("couldn't readdir './fsroot'");
     return false;
   }
 
-  sprintf(fullpath, ".");
+  sprintf(fullpath, "./fsroot");
   return true;
 }
 
