@@ -10,23 +10,26 @@ namespace menu {
 #define MENU_PAGE_SIZE 6
 #define MENU_FONT_HEIGHT 9
 
+inline void draw_option(U8G2* u8g2, int pos, const char* text, bool selected) {
+  int y = pos * MENU_FONT_HEIGHT;
+  u8g2->setCursor(0, y);
+
+  if (selected) {
+    u8g2->setDrawColor(1);
+    u8g2->drawBox(0, y, 128, MENU_FONT_HEIGHT);
+    u8g2->setDrawColor(0);
+  } else {
+    u8g2->setDrawColor(1);
+  }
+  u8g2->printf("%s", text);
+
+  // reset draw color
+  u8g2->setDrawColor(1);
+}
+
 inline void draw_menu_options(U8G2 *u8g2, const char *const options[], int len, int selected) {
   for (int i = 0; i < len; i++) {
-    auto value = options[i];
-    int y = i * MENU_FONT_HEIGHT;
-    u8g2->setCursor(0, y);
-
-    if (i == selected) {
-      u8g2->setDrawColor(1);
-      u8g2->drawBox(0, y, 128, MENU_FONT_HEIGHT);
-      u8g2->setDrawColor(0);
-    } else {
-      u8g2->setDrawColor(1);
-    }
-    u8g2->printf("%s", value);
-
-    // reset draw color
-    u8g2->setDrawColor(1);
+    draw_option(u8g2, i, options[i], selected == i);
   }
 }
 
