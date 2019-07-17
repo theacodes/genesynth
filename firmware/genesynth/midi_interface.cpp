@@ -2,6 +2,7 @@
 
 #include "filesystem.h"
 #include "midi_interface.h"
+#include "param_mapping.h"
 #include "synth.h"
 #include "ym2612.h"
 
@@ -98,6 +99,55 @@ void handle_nrpn_message(const NRPNMessage nrpn_message) {
   }
 };
 
+void handle_custom_cc_mapping(byte control, byte value) {
+  thea::params::ParamMapping mapping = thea::params::get_mapping_for_cc(control);
+  if (mapping.midi_cc == 0)
+    return;
+
+  /* Map this to a NRPN message, since it's the easiest way to deal with this
+  stuff. */
+  NRPNMessage msg;
+  msg.value = value;
+  msg.ready = true;
+
+  switch (mapping.param) {
+  // Alg
+  case 0:
+    msg.parameter = 8;
+    break;
+  // Feedback
+  case 1:
+    msg.parameter = 9;
+    break;
+  // LFO Enable
+  case 2:
+    msg.parameter = 50;
+    break;
+  // LFO Freq
+  case 3:
+    msg.parameter = 51;
+    break;
+  // LFO FMS
+  case 4:
+    msg.parameter = 52;
+    break;
+  // LFO AMS
+  case 5:
+    msg.parameter = 53;
+    break;
+  default:
+    break;
+  }
+
+  if (mapping.param > 5) {
+    // Operator parameters, map directly into the NRPN 10+ range.
+    msg.parameter = 10 + mapping.param - 5;
+  }
+
+  if (msg.parameter != 0)
+    handle_nrpn_message(msg);
+}
+
 void handle_control_change(byte channel, byte control, byte value) {
   if (channel != 1)
     return;
@@ -155,16 +205,13 @@ void handle_control_change(byte channel, byte control, byte value) {
   case 38: // NRPN Parameter value LSB
     nrpn_message.value = nrpn_message.value + value;
     nrpn_message.ready = true;
+    handle_nrpn_message(nrpn_message);
+    nrpn_message.ready = false;
     break;
   default:
     last_cc = control;
-    Serial.printf("Unmapped CC %i: %i.\n", control, value);
+    handle_custom_cc_mapping(control, value);
     break;
-  }
-
-  if (nrpn_message.ready) {
-    handle_nrpn_message(nrpn_message);
-    nrpn_message.ready = false;
   }
 }
 

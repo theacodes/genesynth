@@ -278,6 +278,8 @@ public:
     default:
       break;
     }
+
+    thea::params::set_mapping_for_param(mapping);
   }
 
   void set_mapping(thea::params::ParamMapping mapping) { this->mapping = thea::params::ParamMapping(mapping); }
