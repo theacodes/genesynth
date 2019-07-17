@@ -125,6 +125,7 @@ inline static void wait_ready() {
 }
 
 void set_reg(uint8_t address, uint8_t data, int port) {
+  Serial.printf("Writing %02x to %02x on %i\n", data, address, port);
   auto start = micros();
 
   // Wait for any previous writes to finish before writing.
@@ -212,52 +213,62 @@ void set_lfo(bool enable, uint8_t freq) {
   set_reg(0x22, lfo_reg);
 }
 
+void write_operator_values(int port, int channel, int operator_num, OperatorPatch &oper,
+                           ChannelPatch::WriteOption option) {
+  // wrap the write option around if its an operator specific option in *this* operator's range.
+  if (option >= 10 * operator_num && option <= 10 * (operator_num + 1)) {
+    option = ChannelPatch::WriteOption(option % 10);
+  }
+  // If this wasn't an operator-specific option and also not a option to write
+  // All params, then there's nothing to do here.
+  else if (option != ChannelPatch::WriteOption::ALL) {
+    return;
+  }
+
+  uint8_t operator_offset = 4 * operator_num;
+
+  uint8_t dt1_mul_byte = (oper.DT1 << 4) | (oper.MUL & 0xF);
+  uint8_t tl_byte = oper.TL & 0x7F;
+  uint8_t rs_ar_byte = (oper.RS << 6) | (oper.AR & 0x1F);
+  uint8_t am_d1r_byte = (oper.AM << 7) | (oper.D1R & 0x1F);
+  uint8_t d2r_byte = oper.D2R & 0x1F;
+  uint8_t d1l_rr_byte = (oper.D1L << 4) | (oper.RR & 0xF);
+
+  if (option == ChannelPatch::WriteOption::ALL or option == ChannelPatch::WriteOption::OP0_DT1 or
+      option == ChannelPatch::WriteOption::OP0_MUL) {
+    set_reg(0x30 + operator_offset + channel, dt1_mul_byte, port);
+  }
+
+  if (option == ChannelPatch::WriteOption::ALL or option == ChannelPatch::WriteOption::OP0_TL) {
+    set_reg(0x40 + operator_offset + channel, tl_byte, port);
+  }
+
+  if (option == ChannelPatch::WriteOption::ALL or option == ChannelPatch::WriteOption::OP0_RS or
+      option == ChannelPatch::WriteOption::OP0_AR) {
+    set_reg(0x50 + operator_offset + channel, rs_ar_byte, port);
+  }
+
+  if (option == ChannelPatch::WriteOption::ALL or option == ChannelPatch::WriteOption::OP0_AM or
+      option == ChannelPatch::WriteOption::OP0_D1R) {
+    set_reg(0x60 + operator_offset + channel, am_d1r_byte, port);
+  }
+
+  if (option == ChannelPatch::WriteOption::ALL or option == ChannelPatch::WriteOption::OP0_D2R) {
+    set_reg(0x70 + operator_offset + channel, d2r_byte, port);
+  }
+
+  if (option == ChannelPatch::WriteOption::ALL or option == ChannelPatch::WriteOption::OP0_D1L or
+      option == ChannelPatch::WriteOption::OP0_RR) {
+    set_reg(0x80 + operator_offset + channel, d1l_rr_byte, port);
+  }
+};
+
 void ChannelPatch::write_to_channel(uint8_t channel, ChannelPatch::WriteOption option) {
   int port = channel < 3 ? 0 : 1;
   channel = channel % 3;
 
-  // Setup operators.
-  // Note: this presently updates all of the operators even if only one operator option is
-  // specified in the write option.
-
-  // wrap the write option around if its an operator specific option.
-  if (option >= WriteOption::OP1_DT1 and option <= WriteOption::OP3_AM) {
-    option = WriteOption(option % 10);
-  }
-
   for (int i = 0; i < 4; i++) {
-    uint8_t dt1_mul_byte = (operators[i].DT1 << 4) | (operators[i].MUL & 0xF);
-    uint8_t tl_byte = operators[i].TL & 0x7F;
-    uint8_t rs_ar_byte = (operators[i].RS << 6) | (operators[i].AR & 0x1F);
-    uint8_t am_d1r_byte = (operators[i].AM << 7) | (operators[i].D1R & 0x1F);
-    uint8_t d2r_byte = operators[i].D2R & 0x1F;
-    uint8_t d1l_rr_byte = (operators[i].D1L << 4) | (operators[i].RR & 0xF);
-
-    uint8_t operator_offset = 4 * i;
-
-    if (option == WriteOption::ALL or option == WriteOption::OP0_DT1 or option == WriteOption::OP0_MUL) {
-      set_reg(0x30 + operator_offset + channel, dt1_mul_byte, port);
-    }
-
-    if (option == WriteOption::ALL or option == WriteOption::OP0_TL) {
-      set_reg(0x40 + operator_offset + channel, tl_byte, port);
-    }
-
-    if (option == WriteOption::ALL or option == WriteOption::OP0_RS or option == WriteOption::OP0_AR) {
-      set_reg(0x50 + operator_offset + channel, rs_ar_byte, port);
-    }
-
-    if (option == WriteOption::ALL or option == WriteOption::OP0_AM or option == WriteOption::OP0_D1R) {
-      set_reg(0x60 + operator_offset + channel, am_d1r_byte, port);
-    }
-
-    if (option == WriteOption::ALL or option == WriteOption::OP0_D2R) {
-      set_reg(0x70 + operator_offset + channel, d2r_byte, port);
-    }
-
-    if (option == WriteOption::ALL or option == WriteOption::OP0_D1L or option == WriteOption::OP0_RR) {
-      set_reg(0x80 + operator_offset + channel, d1l_rr_byte, port);
-    }
+    write_operator_values(port, channel, i, operators[i], option);
   }
 
   // Setup channel
