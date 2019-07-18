@@ -283,8 +283,12 @@ void setup() {
 }
 
 void loop() {
+  int count = 0;
   while (usbMIDI.read()) {
+    count++;
   };
+  // if (count)
+  //   Serial.printf("Processed %i MIDI messages.\n", count);
 }
 
 } // namespace midi_interface

@@ -47,5 +47,5 @@ bool USBMidi::read() {
     break;
   }
 
-  return false;
+  return true;
 }

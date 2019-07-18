@@ -7,9 +7,27 @@
 namespace thea {
 namespace ym2612 {
 
+/* Global state */
+
+struct WriteCommand {
+  uint8_t address = 0;
+  uint8_t data = 0;
+  uint8_t port = 0;
+};
+
+// 200 is a good size here, as it takes about 150 commands to write a full
+// patch.
+WriteCommand write_buffer[200];
+const size_t write_buffer_size = sizeof(write_buffer) / sizeof(WriteCommand);
+size_t write_buffer_len = 0;
+size_t write_buffer_start = 0;
+size_t write_buffer_end = 0;
+
 LatencyInfo latency;
 
-void initialize_clock() {
+/* Low-level functions */
+
+static void initialize_clock() {
   /* Uses PWM to generate clock for the YM2612 */
   pinMode(YM_CLOCK, OUTPUT);
   analogWriteFrequency(YM_CLOCK, YM_CLOCK_FREQ);
@@ -17,29 +35,7 @@ void initialize_clock() {
   delay(50); // wait a moment for the clock.
 }
 
-void setup() {
-  /* Setup the YM's pins. */
-  for (int i = 0; i < 8; i++) {
-    pinMode(YM_DATA - i, OUTPUT);
-    digitalWriteFast(YM_DATA - i, LOW);
-  }
-  pinMode(YM_IC, OUTPUT);
-  pinMode(YM_A1, OUTPUT);
-  pinMode(YM_A0, OUTPUT);
-  pinMode(YM_WR, OUTPUT);
-  pinMode(YM_CS, OUTPUT);
-  pinMode(YM_RD, OUTPUT);
-  digitalWriteFast(YM_IC, HIGH);
-  digitalWriteFast(YM_A1, LOW);
-  digitalWriteFast(YM_A0, LOW);
-  digitalWriteFast(YM_WR, HIGH);
-  digitalWriteFast(YM_CS, HIGH);
-  digitalWriteFast(YM_RD, HIGH);
-
-  initialize_clock();
-}
-
-void reset() {
+static void reset() {
   /* Reset the YM's state. */
   digitalWriteFast(YM_IC, HIGH);
   delayMicroseconds(YM_RESET_WAIT);
@@ -75,8 +71,6 @@ inline static void set_data_lines(byte b) {
     digitalWriteFast(YM_DATA - i, ((b >> i) & 1));
   }
 }
-
-const LatencyInfo &get_latency() { return latency; }
 
 inline static void wait_ready() {
   // Always wait a few nano seconds before toggling pin directions.
@@ -124,8 +118,8 @@ inline static void wait_ready() {
   }
 }
 
-void set_reg(uint8_t address, uint8_t data, int port) {
-  Serial.printf("Writing %02x to %02x on %i\n", data, address, port);
+static void write_out_reg(uint8_t address, uint8_t data, uint8_t port) {
+  //Serial.printf("Writing %02x to %02x on %i\n", data, address, port);
   auto start = micros();
 
   // Wait for any previous writes to finish before writing.
@@ -167,6 +161,72 @@ void set_reg(uint8_t address, uint8_t data, int port) {
     latency.max = latency.last;
   latency.average = (latency.average_alpha * latency.last) + (1.f - latency.average_alpha) * latency.average;
   latency.bytes_written++;
+}
+
+/* Top-level functions */
+
+void setup() {
+  /* Setup the YM's pins. */
+  for (int i = 0; i < 8; i++) {
+    pinMode(YM_DATA - i, OUTPUT);
+    digitalWriteFast(YM_DATA - i, LOW);
+  }
+  pinMode(YM_IC, OUTPUT);
+  pinMode(YM_A1, OUTPUT);
+  pinMode(YM_A0, OUTPUT);
+  pinMode(YM_WR, OUTPUT);
+  pinMode(YM_CS, OUTPUT);
+  pinMode(YM_RD, OUTPUT);
+  digitalWriteFast(YM_IC, HIGH);
+  digitalWriteFast(YM_A1, LOW);
+  digitalWriteFast(YM_A0, LOW);
+  digitalWriteFast(YM_WR, HIGH);
+  digitalWriteFast(YM_CS, HIGH);
+  digitalWriteFast(YM_RD, HIGH);
+
+  initialize_clock();
+  reset();
+}
+
+void loop() {
+  if (!write_buffer_len)
+    return;
+  //Serial.printf("There are %u commands to send.\n", write_buffer_len);
+  while (write_buffer_len) {
+    // Serial.printf("start: %u, end: %u, len: %u\n", write_buffer_start, write_buffer_end, write_buffer_len);
+    auto command = write_buffer[write_buffer_start];
+    write_out_reg(command.address, command.data, command.port);
+    write_buffer_start = (write_buffer_start + 1) % write_buffer_size;
+    write_buffer_len--;
+  }
+}
+
+const LatencyInfo &get_latency() { return latency; }
+
+void set_reg(uint8_t address, uint8_t data, uint8_t port) {
+  /* Queues a write command into the command buffer.*/
+
+  // Is this one of the parameter modifications? If so, de-duplicate the
+  // command to prevent overwhelming the ym2612.
+  if (address >= 0x30 && address <= 0x90) {
+    // step through the whole buffer and see if there's already a command
+    // queued. If so, modify it instead of inserting this.
+    for (auto i = 0; i < write_buffer_len; i++) {
+      auto &command = write_buffer[(write_buffer_start + i) % write_buffer_size];
+      if (command.address == address && command.port == port) {
+        //Serial.printf("Deduplicated a write to %02x:%u old: %02x new: %02x\n", address, port, command.data, data);
+        command.data = data;
+        return;
+      }
+    }
+  }
+
+  // Otherwise, insert the new command.
+  write_buffer[write_buffer_end].address = address;
+  write_buffer[write_buffer_end].data = data;
+  write_buffer[write_buffer_end].port = port;
+  write_buffer_end = (write_buffer_end + 1) % write_buffer_size;
+  write_buffer_len++;
 }
 
 void set_reg(uint8_t address, uint8_t data) { return set_reg(address, data, 0); }
@@ -213,8 +273,10 @@ void set_lfo(bool enable, uint8_t freq) {
   set_reg(0x22, lfo_reg);
 }
 
-void write_operator_values(int port, int channel, int operator_num, OperatorPatch &oper,
-                           ChannelPatch::WriteOption option) {
+/* Channel/OperatorPatch implementations */
+
+static void write_operator_values(int port, int channel, int operator_num, OperatorPatch &oper,
+                                  ChannelPatch::WriteOption option) {
   // wrap the write option around if its an operator specific option in *this* operator's range.
   if (option >= 10 * operator_num && option <= 10 * (operator_num + 1)) {
     option = ChannelPatch::WriteOption(option % 10);
@@ -284,130 +346,6 @@ void ChannelPatch::write_to_channel(uint8_t channel, ChannelPatch::WriteOption o
     set_reg(0xB4 + channel, lr_ams_fms_byte, port);
   }
 };
-
-void load_test_patch() {
-  ChannelPatch test_patch;
-  // MiOPMdrv sound bank Paramer Ver2002.04.22
-  // LFO: LFRQ AMD PMD WF NFRQ
-  //@:[Num] [Name]
-  // CH: PAN   FL(feedback) CON(algorithm) AMS(?) PMS(Phase mod?) SLOT(?) NE(noise)
-  //[OPname]: AR D1R D2R  RR D1L  TL  KS(RS) MUL DT1 DT2(ignored) AMS-EN(AM)
-
-  // @:0 Instrument 0
-  // LFO: 0 0 0 0 0
-  // CH: 64 6 6 0 0 120 0
-  // M1: 31 18 0 15 15 24 0 15 3 0 0
-  // C1: 31 17 10 15 0 18 0 1 3 0 0
-  // M2: 31 14 7 15 1 18 0 1 3 0 0
-  // C2: 31 0 9 15 0 18 0 1 3 0 0
-  test_patch.algorithm = 2;
-  test_patch.feedback = 6;
-  test_patch.operators[0].AR = 31;
-  test_patch.operators[0].D1R = 18;
-  test_patch.operators[0].D2R = 0;
-  test_patch.operators[0].RR = 15;
-  test_patch.operators[0].D1L = 15;
-  test_patch.operators[0].TL = 24;
-  test_patch.operators[0].RS = 0;
-  test_patch.operators[0].MUL = 15;
-  test_patch.operators[0].DT1 = 3;
-  test_patch.operators[0].AM = 0;
-  test_patch.operators[1].AR = 31;
-  test_patch.operators[1].D1R = 17;
-  test_patch.operators[1].D2R = 10;
-  test_patch.operators[1].RR = 15;
-  test_patch.operators[1].D1L = 0;
-  test_patch.operators[1].TL = 18;
-  test_patch.operators[1].RS = 0;
-  test_patch.operators[1].MUL = 1;
-  test_patch.operators[1].DT1 = 3;
-  test_patch.operators[1].AM = 0;
-  test_patch.operators[2].AR = 31;
-  test_patch.operators[2].D1R = 14;
-  test_patch.operators[2].D2R = 7;
-  test_patch.operators[2].RR = 15;
-  test_patch.operators[2].D1L = 1;
-  test_patch.operators[2].TL = 18;
-  test_patch.operators[2].RS = 0;
-  test_patch.operators[2].MUL = 1;
-  test_patch.operators[2].DT1 = 3;
-  test_patch.operators[2].AM = 0;
-  test_patch.operators[3].AR = 31;
-  test_patch.operators[3].D1R = 0;
-  test_patch.operators[3].D2R = 9;
-  test_patch.operators[3].RR = 15;
-  test_patch.operators[3].D1L = 0;
-  test_patch.operators[3].TL = 18;
-  test_patch.operators[3].RS = 0;
-  test_patch.operators[3].MUL = 1;
-  test_patch.operators[3].DT1 = 3;
-  test_patch.operators[3].AM = 0;
-  test_patch.write_to_channel(0);
-  test_patch.write_to_channel(1);
-  test_patch.write_to_channel(2);
-}
-
-void load_test_patch2() {
-  ChannelPatch test_patch;
-  // MiOPMdrv sound bank Paramer Ver2002.04.22
-  // LFO: LFRQ AMD PMD WF NFRQ
-  //@:[Num] [Name]
-  // CH: PAN   FL(feedback) CON(algorithm) AMS(?) PMS(Phase mod?) SLOT(?) NE(noise)
-  //[OPname]: AR D1R D2R  RR D1L  TL  KS(RS) MUL DT1 DT2(ignored) AMS-EN(AM)
-
-  // @:1 Instrument 1
-  // LFO: 0 0 0 0 0
-  // CH: 64 6 5 0 0 120 0
-  // M1: 16  7  1  8  2  29  0  2  3 0 0
-  // C1: 10  4 10 11  1  22  0  4  3 0 0
-  // M2: 12  4 10 11  1  21  0  2  3 0 0
-  // C2: 14  4 10 11  1  22  0  1  3 0 0
-  test_patch.feedback = 6;
-  test_patch.algorithm = 5;
-  test_patch.operators[0].AR = 16;
-  test_patch.operators[0].D1R = 7;
-  test_patch.operators[0].D2R = 1;
-  test_patch.operators[0].RR = 8;
-  test_patch.operators[0].D1L = 2;
-  test_patch.operators[0].TL = 29;
-  test_patch.operators[0].RS = 0;
-  test_patch.operators[0].MUL = 2;
-  test_patch.operators[0].DT1 = 3;
-  test_patch.operators[0].AM = 0;
-  test_patch.operators[1].AR = 10;
-  test_patch.operators[1].D1R = 4;
-  test_patch.operators[1].D2R = 10;
-  test_patch.operators[1].RR = 11;
-  test_patch.operators[1].D1L = 1;
-  test_patch.operators[1].TL = 22;
-  test_patch.operators[1].RS = 0;
-  test_patch.operators[1].MUL = 4;
-  test_patch.operators[1].DT1 = 3;
-  test_patch.operators[1].AM = 0;
-  test_patch.operators[2].AR = 12;
-  test_patch.operators[2].D1R = 4;
-  test_patch.operators[2].D2R = 10;
-  test_patch.operators[2].RR = 11;
-  test_patch.operators[2].D1L = 1;
-  test_patch.operators[2].TL = 21;
-  test_patch.operators[2].RS = 0;
-  test_patch.operators[2].MUL = 2;
-  test_patch.operators[2].DT1 = 3;
-  test_patch.operators[2].AM = 0;
-  test_patch.operators[3].AR = 14;
-  test_patch.operators[3].D1R = 4;
-  test_patch.operators[3].D2R = 10;
-  test_patch.operators[3].RR = 11;
-  test_patch.operators[3].D1L = 1;
-  test_patch.operators[3].TL = 22;
-  test_patch.operators[3].RS = 0;
-  test_patch.operators[3].MUL = 1;
-  test_patch.operators[3].DT1 = 3;
-  test_patch.operators[3].AM = 0;
-  test_patch.write_to_channel(0);
-  test_patch.write_to_channel(1);
-  test_patch.write_to_channel(2);
-}
 
 }; // namespace ym2612
 }; // namespace thea

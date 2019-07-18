@@ -12,6 +12,7 @@ thea::Task button_task("Btns", &thea::buttons::loop, 0);
 thea::Task ui_task("UI", &thea::ui::loop, DISPLAY_RATE);
 thea::Task midi_task("MIDI", &thea::midi_interface::loop, 0);
 thea::Task synth_task("Synth", &thea::synth::loop, 0);
+thea::Task ym2612_task("YM2612 I/O", &thea::ym2612::loop, 0);
 
 // the setup routine runs once when you press reset:
 void setup() {
@@ -40,7 +41,6 @@ void setup() {
 
   // Setup sound chips.
   thea::ym2612::setup();
-  thea::ym2612::reset();
 
   // Setup synth core.
   thea::synth::init();
@@ -55,6 +55,7 @@ void setup() {
   taskmgr.add(&ui_task);
   taskmgr.add(&midi_task);
   taskmgr.add(&synth_task);
+  taskmgr.add(&ym2612_task);
   thea::ui::set_task_manager(&taskmgr);
 
   Serial.println("Setup complete.");
