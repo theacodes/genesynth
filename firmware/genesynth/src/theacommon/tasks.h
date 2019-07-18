@@ -27,16 +27,12 @@ public:
 	TaskManager() {}
 
 	inline void add(Task* task) {
-		for(int i = 0; i < 32; i++) {
-			if(tasks[i] == nullptr) {
-				tasks[i] = task;
-				break;
-			}
-		}
+		tasks[num_tasks] = task;
+		num_tasks++;
 	}
 
 	inline void run() {
-		for(int i = 0; i < 32; i++) {
+		for(int i = 0; i < num_tasks; i++) {
 			auto task = tasks[i];
 			if(task == nullptr) continue;
 			run_task(task);
@@ -44,6 +40,7 @@ public:
 	}
 
 	Task* tasks[32];
+	size_t num_tasks = 0;
 
 private:
 

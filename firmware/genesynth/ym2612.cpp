@@ -119,7 +119,7 @@ inline static void wait_ready() {
 }
 
 static void write_out_reg(uint8_t address, uint8_t data, uint8_t port) {
-  //Serial.printf("Writing %02x to %02x on %i\n", data, address, port);
+  // Serial.printf("Writing %02x to %02x on %i\n", data, address, port);
   auto start = micros();
 
   // Wait for any previous writes to finish before writing.
@@ -191,7 +191,7 @@ void setup() {
 void loop() {
   if (!write_buffer_len)
     return;
-  //Serial.printf("There are %u commands to send.\n", write_buffer_len);
+  // Serial.printf("There are %u commands to send.\n", write_buffer_len);
   while (write_buffer_len) {
     // Serial.printf("start: %u, end: %u, len: %u\n", write_buffer_start, write_buffer_end, write_buffer_len);
     auto command = write_buffer[write_buffer_start];
@@ -214,7 +214,7 @@ void set_reg(uint8_t address, uint8_t data, uint8_t port) {
     for (auto i = 0; i < write_buffer_len; i++) {
       auto &command = write_buffer[(write_buffer_start + i) % write_buffer_size];
       if (command.address == address && command.port == port) {
-        //Serial.printf("Deduplicated a write to %02x:%u old: %02x new: %02x\n", address, port, command.data, data);
+        // Serial.printf("Deduplicated a write to %02x:%u old: %02x new: %02x\n", address, port, command.data, data);
         command.data = data;
         return;
       }
