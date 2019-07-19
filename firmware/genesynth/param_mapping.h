@@ -7,6 +7,8 @@
 namespace thea {
 namespace params {
 
+const uint8_t VELOCITY = 255;
+
 enum struct Curves : uint8_t {
   LINEAR,
   EXPO_IN,

@@ -216,7 +216,11 @@ public:
       thea::menu::draw_option(u8g2, 0, "Learn", selected == 0);
     } else {
       char cc_text[128];
-      sprintf(cc_text, "CC%i", mapping.midi_cc);
+      if(mapping.midi_cc == thea::params::VELOCITY) {
+        sprintf(cc_text, "Velocity");
+      } else {
+        sprintf(cc_text, "CC%i", mapping.midi_cc);
+      }
       thea::menu::draw_option(u8g2, 0, cc_text, selected == 0);
     }
 

@@ -125,7 +125,6 @@ inline static void wait_ready() {
 }
 
 void set_reg(uint8_t address, uint8_t data, int port) {
-  Serial.printf("Writing %02x to %02x on %i\n", data, address, port);
   auto start = micros();
 
   // Wait for any previous writes to finish before writing.
