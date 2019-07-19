@@ -18,9 +18,9 @@ struct LatencyInfo {
 };
 
 void setup();
-void reset();
+void loop();
 const LatencyInfo &get_latency();
-void set_reg(uint8_t address, uint8_t data, int port);
+void set_reg(uint8_t address, uint8_t data, uint8_t port);
 void set_reg(uint8_t address, uint8_t data);
 void play_note(int channel);
 void stop_note(int channel);
@@ -152,9 +152,6 @@ public:
   void write_to_channel(uint8_t channel, WriteOption option);
   void write_to_channel(uint8_t channel) { write_to_channel(channel, WriteOption::ALL); }
 };
-
-void load_test_patch();
-void load_test_patch2();
 
 }; // namespace ym2612
 }; // namespace thea

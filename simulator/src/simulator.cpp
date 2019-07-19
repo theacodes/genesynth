@@ -216,9 +216,11 @@ static bool process_sdl_events() {
         button_left = key_state;
         break;
       case SDLK_1:
-        simulated_midi_message.push_back(0xB0);
-        simulated_midi_message.push_back(0x01);
-        simulated_midi_message.push_back(0x50);
+        if (key_state) {
+          simulated_midi_message.push_back(0xB0);
+          simulated_midi_message.push_back(0x01);
+          simulated_midi_message.push_back(0x50);
+        }
         break;
       default:
         break;
