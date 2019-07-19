@@ -107,7 +107,6 @@ void handle_custom_cc_mapping(byte control, byte value) {
   /* Map this to a NRPN message, since it's the easiest way to deal with this
   stuff. */
   NRPNMessage msg;
-  msg.value = value;
   msg.ready = true;
 
   switch (mapping.param) {
@@ -144,8 +143,16 @@ void handle_custom_cc_mapping(byte control, byte value) {
     msg.parameter = 10 + mapping.param - 5;
   }
 
-  if (msg.parameter != 0)
-    handle_nrpn_message(msg);
+  // Failed to map it to anything, so just return.
+  if (msg.parameter == 0)
+    return;
+
+  // Map the value using the easing function.
+  float normalized = float(value) / 127.0f;
+  normalized = thea::params::map_value(mapping.curve, normalized);
+
+  msg.value = (uint8_t)(normalized * 127.0f);
+  handle_nrpn_message(msg);
 }
 
 void handle_control_change(byte channel, byte control, byte value) {

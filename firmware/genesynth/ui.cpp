@@ -221,29 +221,19 @@ public:
       thea::menu::draw_option(u8g2, 0, cc_text, selected == 0);
     }
 
-    char curve_text[128];
-    switch (thea::params::Curves(mapping.curve)) {
-    case thea::params::Curves::LINEAR:
-      sprintf(curve_text, "Linear");
-      break;
-    case thea::params::Curves::EXPO_IN:
-      sprintf(curve_text, "Expo in");
-      break;
-    case thea::params::Curves::EXPO_OUT:
-      sprintf(curve_text, "Expo out");
-      break;
-    case thea::params::Curves::CUBIC_IN:
-      sprintf(curve_text, "Cubic in");
-      break;
-    case thea::params::Curves::CUBIC_OUT:
-      sprintf(curve_text, "Cubic out");
-      break;
-    default:
-      break;
+    if (selected == 1) {
+      u8g2->setDrawColor(1);
+      u8g2->drawBox(0, 10, 128, 64 - 10 - 11);
+      u8g2->setDrawColor(0);
+    } else {
+      u8g2->setDrawColor(1);
     }
-    thea::menu::draw_option(u8g2, 1, curve_text, selected == 1);
+    for (uint8_t x = 0; x < 70; x++) {
+      uint8_t y = uint8_t(43.0f * thea::params::map_value(mapping.curve, float(x) / 70.0f));
+      u8g2->drawPixel(x + (128 - 70) / 2, 64 - 12 - y);
+    }
 
-    thea::menu::draw_option(u8g2, 2, "Clear", selected == 2);
+    thea::menu::draw_option(u8g2, 6, "Clear", selected == 2);
   };
 
   void up() {
@@ -266,16 +256,16 @@ public:
       break;
     // Change curve
     case 1:
-      if (mapping.curve < uint8_t(thea::params::Curves::NUM_CURVES) - 1) {
-        mapping.curve++;
+      if (mapping.curve != thea::params::Curves((unsigned int)(thea::params::Curves::NUM_CURVES)-1)) {
+        mapping.curve = thea::params::Curves((unsigned int)(mapping.curve) + 1);
       } else {
-        mapping.curve = 0;
+        mapping.curve = thea::params::Curves::LINEAR;
       }
       break;
     // Reset
     case 2:
       mapping.midi_cc = 0;
-      mapping.curve = 0;
+      mapping.curve = thea::params::Curves::LINEAR;
     default:
       break;
     }

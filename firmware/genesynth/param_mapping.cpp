@@ -75,5 +75,42 @@ ParamMapping get_mapping_for_cc(uint8_t midi_cc) {
 }
 void set_mapping_for_param(ParamMapping mapping) { mappings[mapping.param] = ParamMapping(mapping); }
 
+float map_value(Curves curve, float normalized) {
+  switch (curve) {
+  case Curves::LINEAR:
+    // Nothing to do for the linear case.
+    return normalized;
+    break;
+
+  case Curves::QUAD_IN:
+    return ease_in_quad(normalized);
+    break;
+  case Curves::QUAD_OUT:
+    return ease_out_quad(normalized);
+    break;
+  case Curves::CUBIC_IN:
+    return ease_in_cubic(normalized);
+    break;
+  case Curves::CUBIC_OUT:
+    return ease_out_cubic(normalized);
+    break;
+  case Curves::QUINT_IN:
+    return ease_in_quint(normalized);
+    break;
+  case Curves::QUINT_OUT:
+    return ease_out_quint(normalized);
+    break;
+  case Curves::EXPO_IN:
+    return ease_in_expo(normalized);
+    break;
+  case Curves::EXPO_OUT:
+    return ease_out_expo(normalized);
+    break;
+  default:
+    return normalized;
+    break;
+  }
+}
+
 } // namespace params
 } // namespace thea
