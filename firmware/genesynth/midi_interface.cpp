@@ -22,12 +22,21 @@ uint8_t last_cc;
 
 uint8_t get_last_cc() { return last_cc; }
 
+void handle_custom_cc_mapping(byte control, byte value);
+
 void handle_note_on(byte channel, byte note, byte velocity) {
   float pitch = pow(2, float(note - 69) / 12) * 440;
 
   if (channel == 1) {
     thea::synth::play_note(note, pitch);
   }
+
+  // Send velocity as a custom CC mapping.
+  handle_custom_cc_mapping(thea::params::VELOCITY, velocity);
+
+  // Set the last CC to the special value. This allows MIDI learn
+  // to map params to velocity.
+  last_cc = thea::params::VELOCITY;
 }
 
 void handle_note_off(byte channel, byte note, byte velocity) {
