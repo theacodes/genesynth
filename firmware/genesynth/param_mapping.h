@@ -27,6 +27,8 @@ struct ParamMapping {
   uint8_t param = 0;
   uint8_t midi_cc = 0;
   Curves curve = Curves::LINEAR;
+  uint8_t range_one = 10;
+  uint8_t range_two = 0;
 };
 
 extern const char *param_names[];
@@ -35,6 +37,7 @@ ParamMapping get_mapping_for_param(uint8_t param);
 ParamMapping get_mapping_for_cc(uint8_t midi_cc);
 void set_mapping_for_param(ParamMapping mapping);
 float map_value(Curves curve, float normalized);
+float map_range(ParamMapping mapping, float normalized);
 
 inline float ease_in_quad(float x) { return x * x; }
 inline float ease_out_quad(float x) { return 1.0f - (1.0f - x) * (1.0f - x); }

@@ -112,5 +112,13 @@ float map_value(Curves curve, float normalized) {
   }
 }
 
+float map_range(ParamMapping mapping, float normalized) {
+  float range_max = fmax(mapping.range_one, mapping.range_two) / 10.0f;
+  float range_min = fmin(mapping.range_one, mapping.range_two) / 10.0f;
+  float range = range_max - range_min;
+  float mapped = normalized * range;
+  return range_min + mapped;
+}
+
 } // namespace params
 } // namespace thea

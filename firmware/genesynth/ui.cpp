@@ -217,7 +217,7 @@ public:
       thea::menu::draw_option(u8g2, 0, "Learn", selected == 0);
     } else {
       char cc_text[128];
-      if(mapping.midi_cc == thea::params::VELOCITY) {
+      if (mapping.midi_cc == thea::params::VELOCITY) {
         sprintf(cc_text, "Velocity");
       } else {
         sprintf(cc_text, "CC%i", mapping.midi_cc);
@@ -225,19 +225,40 @@ public:
       thea::menu::draw_option(u8g2, 0, cc_text, selected == 0);
     }
 
+    const uint8_t curve_left = (128 / 2) - (70 / 2) - 8;
+    const uint8_t curve_top = 10;
+    const uint8_t curve_width = 70;
+    const uint8_t curve_height = 64 - curve_top - 11;
+
     if (selected == 1) {
       u8g2->setDrawColor(1);
-      u8g2->drawBox(0, 10, 128, 64 - 10 - 11);
+      u8g2->drawBox(curve_left, curve_top, curve_width, curve_height);
       u8g2->setDrawColor(0);
     } else {
       u8g2->setDrawColor(1);
     }
-    for (uint8_t x = 0; x < 70; x++) {
-      uint8_t y = uint8_t(43.0f * thea::params::map_value(mapping.curve, float(x) / 70.0f));
-      u8g2->drawPixel(x + (128 - 70) / 2, 64 - 12 - y);
+
+    for (uint8_t x = 0; x < curve_width; x++) {
+      uint8_t y = uint8_t(float(curve_height) * thea::params::map_value(mapping.curve, float(x) / curve_width));
+      u8g2->drawPixel(curve_left + x, 64 - 12 - y);
     }
 
-    thea::menu::draw_option(u8g2, 6, "Clear", selected == 2);
+    const uint8_t range_left = curve_left + curve_width + 5;
+    const uint8_t range_max = (uint8_t)(thea::params::map_range(mapping, 1.0f) * curve_height);
+    const uint8_t range_min = (uint8_t)(thea::params::map_range(mapping, 0.0f) * curve_height);
+
+    u8g2->setDrawColor(1);
+    u8g2->drawFrame(range_left, curve_top, 5, curve_height);
+    u8g2->drawBox(range_left, curve_top + (curve_height - range_max), 5, range_max - range_min);
+
+    if (selected == 2) {
+      u8g2->drawGlyph(range_left + 5, 6 + curve_height - uint8_t(mapping.range_one / 10.0f * curve_height), '<');
+    }
+    if (selected == 3) {
+      u8g2->drawGlyph(range_left + 5, 6 + curve_height - uint8_t(mapping.range_two / 10.0f * curve_height), '<');
+    }
+
+    thea::menu::draw_option(u8g2, 6, "Clear", selected == 4);
   };
 
   void up() {
@@ -247,7 +268,7 @@ public:
   }
 
   void down() {
-    if (selected < 2) {
+    if (selected < 4) {
       selected++;
     }
   }
@@ -266,8 +287,15 @@ public:
         mapping.curve = thea::params::Curves::LINEAR;
       }
       break;
-    // Reset
+    // Change range
     case 2:
+      mapping.range_one = (mapping.range_one + 1) % 11;
+      break;
+    case 3:
+      mapping.range_two = (mapping.range_two + 1) % 11;
+      break;
+    // Reset
+    case 4:
       mapping.midi_cc = 0;
       mapping.curve = thea::params::Curves::LINEAR;
     default:

@@ -34,7 +34,6 @@ bool USBMidi::read() {
 
   case 0xB0:
     // CC
-    printf("Sending control change: %i, %i, %i\n", channel, message[1], message[2]);
     control_change_handler(channel, message[1], message[2]);
     break;
 

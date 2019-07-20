@@ -159,6 +159,7 @@ void handle_custom_cc_mapping(byte control, byte value) {
   // Map the value using the easing function.
   float normalized = float(value) / 127.0f;
   normalized = thea::params::map_value(mapping.curve, normalized);
+  normalized = thea::params::map_range(mapping, normalized);
 
   msg.value = (uint8_t)(normalized * 127.0f);
   handle_nrpn_message(msg);
