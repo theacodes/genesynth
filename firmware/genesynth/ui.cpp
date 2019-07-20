@@ -298,6 +298,8 @@ public:
     case 4:
       mapping.midi_cc = 0;
       mapping.curve = thea::params::Curves::LINEAR;
+      mapping.range_one = 10;
+      mapping.range_two = 0;
     default:
       break;
     }
