@@ -37,8 +37,8 @@ void draw_alg_0(U8G2 &u8g2) {
 
   u8g2.drawLine(start_x, start_y + half_height, start_x + width * 4, start_y + half_height);
   draw_op_symbol(u8g2, 1, start_x, start_y, true);
-  draw_op_symbol(u8g2, 2, start_x + width, start_y, true);
-  draw_op_symbol(u8g2, 3, start_x + width * 2, start_y, true);
+  draw_op_symbol(u8g2, 3, start_x + width, start_y, true);
+  draw_op_symbol(u8g2, 2, start_x + width * 2, start_y, true);
   draw_op_symbol(u8g2, 4, start_x + width * 3, start_y, false);
   draw_out_symbol(u8g2, start_x + width * 4, start_y);
 }
@@ -61,8 +61,8 @@ void draw_alg_1(U8G2 &u8g2) {
   u8g2.drawLine(start_x + width, start_y + half_height, start_x + width * 3 + gap, start_y + half_height);
 
   draw_op_symbol(u8g2, 1, start_x, start_y - half_height - 1, true);
-  draw_op_symbol(u8g2, 2, start_x, start_y + half_height + 2, true);
-  draw_op_symbol(u8g2, 3, start_x + width + gap, start_y, true);
+  draw_op_symbol(u8g2, 3, start_x, start_y + half_height + 2, true);
+  draw_op_symbol(u8g2, 2, start_x + width + gap, start_y, true);
   draw_op_symbol(u8g2, 4, start_x + width * 2 + gap, start_y, false);
 
   draw_out_symbol(u8g2, start_x + width * 3 + gap, start_y);
@@ -88,8 +88,8 @@ void draw_alg_2(U8G2 &u8g2) {
   u8g2.drawLine(start_x + width * 2, start_y + half_height, start_x + width * 3 + gap, start_y + half_height);
 
   draw_op_symbol(u8g2, 1, start_x, upper_row_y, true);
-  draw_op_symbol(u8g2, 2, start_x, lower_row_y, true);
-  draw_op_symbol(u8g2, 3, start_x + width, lower_row_y, true);
+  draw_op_symbol(u8g2, 3, start_x, lower_row_y, true);
+  draw_op_symbol(u8g2, 2, start_x + width, lower_row_y, true);
   draw_op_symbol(u8g2, 4, start_x + width * 2 + gap, start_y, false);
 
   draw_out_symbol(u8g2, start_x + width * 3 + gap, start_y);
@@ -115,8 +115,8 @@ void draw_alg_3(U8G2 &u8g2) {
   u8g2.drawLine(start_x + width * 2, start_y + half_height, start_x + width * 3 + gap, start_y + half_height);
 
   draw_op_symbol(u8g2, 1, start_x, upper_row_y, true);
-  draw_op_symbol(u8g2, 2, start_x + width, upper_row_y, true);
-  draw_op_symbol(u8g2, 3, start_x + width, lower_row_y, true);
+  draw_op_symbol(u8g2, 3, start_x + width, upper_row_y, true);
+  draw_op_symbol(u8g2, 2, start_x + width, lower_row_y, true);
   draw_op_symbol(u8g2, 4, start_x + width * 2 + gap, start_y, false);
 
   draw_out_symbol(u8g2, start_x + width * 3 + gap, start_y);
@@ -142,8 +142,8 @@ void draw_alg_4(U8G2 &u8g2) {
   u8g2.drawLine(start_x + width * 2, start_y + half_height, start_x + width * 2 + gap, start_y + half_height);
 
   draw_op_symbol(u8g2, 1, start_x, upper_row_y, true);
-  draw_op_symbol(u8g2, 2, start_x + width, upper_row_y, false);
-  draw_op_symbol(u8g2, 3, start_x, lower_row_y, true);
+  draw_op_symbol(u8g2, 3, start_x + width, upper_row_y, false);
+  draw_op_symbol(u8g2, 2, start_x, lower_row_y, true);
   draw_op_symbol(u8g2, 4, start_x + width, lower_row_y, false);
 
   draw_out_symbol(u8g2, start_x + width * 2 + gap, start_y);
