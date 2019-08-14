@@ -4,6 +4,7 @@
 #include "ambient_ui.h"
 #include "operator_gfx.h"
 #include "src/theacommon/thea_easter_egg.h"
+#include "synth.h"
 
 namespace thea {
 namespace ambient_ui {
@@ -15,6 +16,7 @@ enum Screen {
   IDLE,
   OPEDIT,
   ENVEDIT,
+  LFO,
 };
 
 Screen screen = Screen::THEA;
@@ -72,6 +74,128 @@ void screen_idle(U8G2 &u8g2, thea::ym2612::ChannelPatch &patch) {
   }
 };
 
+void screen_lfo(U8G2 &u8g2, thea::ym2612::ChannelPatch &patch) {
+  u8g2.setDrawColor(1);
+  u8g2.setCursor(0, 0);
+
+  u8g2.printf("> LFO");
+
+  u8g2.setCursor(8 + 64, 32 - 9);
+  if (thea::synth::lfo_enabled()) {
+    u8g2.setDrawColor(0);
+    u8g2.printf("ON");
+  } else {
+    u8g2.printf("OFF");
+  }
+  u8g2.setDrawColor(1);
+
+  auto lfo_freq = 0.0f;
+  switch (thea::synth::get_lfo_freq()) {
+  case 0:
+    lfo_freq = 3.98f;
+    break;
+  case 1:
+    lfo_freq = 5.56f;
+    break;
+  case 2:
+    lfo_freq = 6.02f;
+    break;
+  case 3:
+    lfo_freq = 6.37f;
+    break;
+  case 4:
+    lfo_freq = 6.88f;
+    break;
+  case 5:
+    lfo_freq = 9.63;
+    break;
+  case 6:
+    lfo_freq = 48.1;
+    break;
+  case 7:
+    lfo_freq = 72.2;
+    break;
+  default:
+    break;
+  }
+
+  auto waveoffset = (millis() / 1000.0f) * lfo_freq;
+  auto offsetx = 4;
+  auto offsety = 16;
+  auto height = 30;
+  auto width = 64;
+
+  for (auto x = 0; x < width; x++) {
+    auto wave = sin(float(x) / width * 2 * M_PI + waveoffset);
+    u8g2.drawPixel(offsetx + x, offsety + (height / 2) + (wave * height / 2));
+  }
+
+  u8g2.setCursor(8 + 64, 32);
+  u8g2.printf("%.2fHz", lfo_freq);
+
+  auto lfo_ams = 0.0f;
+  switch (patch.lfo_ams) {
+  case 0:
+    break;
+  case 1:
+    lfo_ams = 1.4f;
+    break;
+  case 2:
+    lfo_ams = 5.9f;
+    break;
+  case 3:
+    lfo_ams = 11.8f;
+    break;
+  default:
+    break;
+  }
+
+  u8g2.setDrawColor(0);
+  u8g2.setCursor(0, 64 - 9);
+  u8g2.printf("A");
+
+  u8g2.setDrawColor(1);
+  u8g2.setCursor(9, 64 - 9);
+  u8g2.printf("%1.fdB", lfo_ams);
+
+  auto lfo_fms = 0.0f;
+  switch (patch.lfo_fms) {
+  case 0:
+    break;
+  case 1:
+    lfo_fms = 3.4f;
+    break;
+  case 2:
+    lfo_fms = 6.7f;
+    break;
+  case 3:
+    lfo_fms = 10.0f;
+    break;
+  case 4:
+    lfo_fms = 14.0f;
+    break;
+  case 5:
+    lfo_fms = 20.0f;
+    break;
+  case 6:
+    lfo_fms = 40.0f;
+    break;
+  case 7:
+    lfo_fms = 80.0f;
+    break;
+  default:
+    break;
+  }
+
+  u8g2.setDrawColor(0);
+  u8g2.setCursor(64, 64 - 9);
+  u8g2.printf("F");
+
+  u8g2.setDrawColor(1);
+  u8g2.setCursor(64 + 9, 64 - 9);
+  u8g2.printf("%.1f%%", lfo_fms);
+}
+
 void display(U8G2 &u8g2, thea::ym2612::ChannelPatch &patch, thea::ym2612::ChannelPatch::WriteOption write_option,
              unsigned long last_patch_modify_time) {
   auto now = micros();
@@ -93,6 +217,10 @@ void display(U8G2 &u8g2, thea::ym2612::ChannelPatch &patch, thea::ym2612::Channe
           show(Screen::OPEDIT, ENV_SCREEN_DISPLAY_TIME);
         }
       }
+
+      if (write_option == thea::ym2612::ChannelPatch::WriteOption::LFO) {
+        show(Screen::LFO, ENV_SCREEN_DISPLAY_TIME);
+      }
     }
   }
 
@@ -103,6 +231,9 @@ void display(U8G2 &u8g2, thea::ym2612::ChannelPatch &patch, thea::ym2612::Channe
     break;
   case Screen::IDLE:
     screen_idle(u8g2, patch);
+    break;
+  case Screen::LFO:
+    screen_lfo(u8g2, patch);
     break;
   case Screen::OPEDIT:
     thea::operator_gfx::draw_parameter_edit_screen(u8g2, patch, write_option);

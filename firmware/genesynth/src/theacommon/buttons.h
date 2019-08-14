@@ -12,7 +12,7 @@ bool is_pressed(int button);
 void init();
 void loop();
 
+} // namespace buttons
 } // namespace thea
-} // namespace display
 
 #endif

@@ -33,7 +33,9 @@ void pitch_bend(float offset);
 
 void enable_lfo();
 void disable_lfo();
+bool lfo_enabled();
 void set_lfo_freq(uint8_t value);
+uint8_t get_lfo_freq();
 void set_lfo_fms(uint8_t value);
 void set_lfo_ams(uint8_t value);
 

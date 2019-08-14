@@ -12,7 +12,7 @@ namespace fs {
 class SdFatIterator : public thea::SimpleIterator<SdFile &> {
 public:
   SdFatIterator(SdFile *dir) : dir(dir), file(), _index() { rewind(); }
-  ~SdFatIterator() {};
+  ~SdFatIterator(){};
 
   bool next() {
     if (hit_end)
@@ -32,7 +32,8 @@ public:
   bool end() { return hit_end; }
 
   void rewind() {
-    if(dir == nullptr) return;
+    if (dir == nullptr)
+      return;
 
     if (file.isOpen())
       file.close();
@@ -61,7 +62,7 @@ private:
   unsigned int _index = 0;
 };
 
-} // namspace fs
+} // namespace fs
 } // namespace thea
 
 #endif

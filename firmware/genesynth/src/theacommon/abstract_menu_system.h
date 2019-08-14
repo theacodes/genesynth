@@ -6,11 +6,11 @@
 namespace thea {
 namespace menu {
 
-#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
 #define MENU_PAGE_SIZE 6
 #define MENU_FONT_HEIGHT 9
 
-inline void draw_option(U8G2* u8g2, int pos, const char* text, bool selected) {
+inline void draw_option(U8G2 *u8g2, int pos, const char *text, bool selected) {
   int y = pos * MENU_FONT_HEIGHT;
   u8g2->setCursor(0, y);
 

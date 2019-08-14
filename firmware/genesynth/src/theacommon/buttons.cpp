@@ -8,7 +8,7 @@ namespace thea {
 namespace buttons {
 
 #ifndef BUTTON_BOUNCE_MS
-  #define BUTTON_BOUNCE_MS 25
+#define BUTTON_BOUNCE_MS 25
 #endif
 
 Bounce buttons[4];
@@ -46,5 +46,5 @@ void loop() {
   }
 }
 
-} // namespace thea
 } // namespace buttons
+} // namespace thea
