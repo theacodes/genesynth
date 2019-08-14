@@ -331,7 +331,7 @@ public:
     channel_spread_multipliers[5] = 1.0f + (spread_amount * 0.23);
   }
 
-  float get_spread() { return channel_spread_multipliers[1] - 1.0f / 0.1f; }
+  float get_spread() { return (channel_spread_multipliers[1] - 1.0f) * 10.0f; }
 
   void set_voices(uint8_t voices) { this->voices = voices; }
 

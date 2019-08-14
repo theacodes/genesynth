@@ -72,6 +72,24 @@ void screen_idle(U8G2 &u8g2, thea::ym2612::ChannelPatch &patch) {
     u8g2.setCursor(0, 9);
     u8g2.printf("Unkwn alg 0x%x\n", patch.algorithm);
   }
+
+  u8g2.drawLine(0, 64 - 9, 7, 64 - 9);
+  u8g2.setCursor(0, 64 - 9);
+  u8g2.setDrawColor(0);
+  switch (thea::synth::get_note_mode()) {
+  case thea::synth::NoteMode::POLY:
+    u8g2.printf("P");
+    break;
+  case thea::synth::NoteMode::MONO:
+    u8g2.printf("M");
+    break;
+  case thea::synth::NoteMode::UNISON:
+    u8g2.printf("U");
+    u8g2.setDrawColor(1);
+    u8g2.setCursor(9, 64 - 9);
+    u8g2.printf("x%i\xB1%.0f%%", thea::synth::get_unison_voices(), thea::synth::get_unison_spread() * 100.0f);
+    break;
+  }
 };
 
 void screen_lfo(U8G2 &u8g2, thea::ym2612::ChannelPatch &patch) {
@@ -82,6 +100,7 @@ void screen_lfo(U8G2 &u8g2, thea::ym2612::ChannelPatch &patch) {
 
   u8g2.setCursor(8 + 64, 32 - 9);
   if (thea::synth::lfo_enabled()) {
+    u8g2.drawLine(8 + 64, 32 - 9, 8 + 64 + 15, 32 - 9);
     u8g2.setDrawColor(0);
     u8g2.printf("ON");
   } else {
@@ -150,6 +169,7 @@ void screen_lfo(U8G2 &u8g2, thea::ym2612::ChannelPatch &patch) {
     break;
   }
 
+  u8g2.drawLine(0, 64 - 9, 7, 64 - 9);
   u8g2.setDrawColor(0);
   u8g2.setCursor(0, 64 - 9);
   u8g2.printf("A");
@@ -187,6 +207,7 @@ void screen_lfo(U8G2 &u8g2, thea::ym2612::ChannelPatch &patch) {
     break;
   }
 
+  u8g2.drawLine(64, 64 - 9, 64 + 7, 64 - 9);
   u8g2.setDrawColor(0);
   u8g2.setCursor(64, 64 - 9);
   u8g2.printf("F");
