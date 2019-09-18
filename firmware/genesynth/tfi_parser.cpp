@@ -49,8 +49,7 @@ bool load(SdFile &file, SdFile *folder, thea::ym2612::ChannelPatch *patch) {
   return true;
 }
 
-
-void serialize(thea::ym2612::ChannelPatch &patch, uint8_t* dest) {
+void serialize(thea::ym2612::ChannelPatch &patch, uint8_t *dest) {
   dest[0] = patch.algorithm;
   dest[1] = patch.feedback;
 

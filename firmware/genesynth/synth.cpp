@@ -62,71 +62,8 @@ void read_patch_from_eeprom(thea::ym2612::ChannelPatch *patch) {
   Serial.printf("Patch name: %s\n", patch->name);
 }
 
-void modify_operator_parameter(thea::ym2612::ChannelPatch::WriteOption option, uint8_t normalized_value) {
-  auto normalized_option = thea::ym2612::ChannelPatch::WriteOption(option % 10);
-  uint8_t operator_no = option / 10;
-
-  // All operator parameters are actually inverted - the lower values are
-  // associated with what humans would think are "higher" knob values. That is
-  // to say, if the parameter were "volume", 0 would be the loudest and 127
-  // would be the softest. No frickin' clue why Yamaha did this.
-  normalized_value = 127 - normalized_value;
-
-  // Serial.printf("Option: %i, Normalized: %i, Operator: %i\n", option, normalized_option, operator_no);
-
-  switch (normalized_option) {
-  case thea::ym2612::ChannelPatch::WriteOption::OP0_DT1:
-    patch.operators[operator_no].DT1 = map(normalized_value, 0, 127, 0, 7);
-    break;
-  case thea::ym2612::ChannelPatch::WriteOption::OP0_MUL:
-    patch.operators[operator_no].MUL = map(normalized_value, 0, 127, 0, 15);
-    break;
-  case thea::ym2612::ChannelPatch::WriteOption::OP0_TL:
-    patch.operators[operator_no].TL = normalized_value;
-    break;
-  case thea::ym2612::ChannelPatch::WriteOption::OP0_AR:
-    patch.operators[operator_no].AR = map(normalized_value, 0, 127, 0, 31);
-    break;
-  case thea::ym2612::ChannelPatch::WriteOption::OP0_D1R:
-    patch.operators[operator_no].D1R = map(normalized_value, 0, 127, 0, 31);
-    break;
-  case thea::ym2612::ChannelPatch::WriteOption::OP0_D2R:
-    patch.operators[operator_no].D2R = map(normalized_value, 0, 127, 0, 31);
-    break;
-  case thea::ym2612::ChannelPatch::WriteOption::OP0_D1L:
-    patch.operators[operator_no].D1L = map(normalized_value, 0, 127, 0, 15);
-    break;
-  case thea::ym2612::ChannelPatch::WriteOption::OP0_RR:
-    patch.operators[operator_no].RR = map(normalized_value, 0, 127, 0, 15);
-    break;
-  case thea::ym2612::ChannelPatch::WriteOption::OP0_RS:
-    patch.operators[operator_no].RS = map(normalized_value, 0, 127, 0, 3);
-    break;
-  case thea::ym2612::ChannelPatch::WriteOption::OP0_AM:
-    patch.operators[operator_no].AM = normalized_value;
-    break;
-  default:
-    break;
-  }
-}
-
 void modify_patch_parameter(thea::ym2612::ChannelPatch::WriteOption option, uint8_t normalized_value) {
-  if (option >= thea::ym2612::ChannelPatch::WriteOption::OP0_DT1 &&
-      option <= thea::ym2612::ChannelPatch::WriteOption::OP3_AM) {
-    modify_operator_parameter(option, normalized_value);
-    return;
-  }
-
-  switch (option) {
-  case thea::ym2612::ChannelPatch::WriteOption::ALGORITHM:
-    patch.algorithm = map(normalized_value, 0, 127, 0, 7);
-    break;
-  case thea::ym2612::ChannelPatch::WriteOption::FEEDBACK:
-    patch.feedback = map(normalized_value, 0, 127, 0, 7);
-    break;
-  default:
-    break;
-  }
+  patch.set_parameter(option, normalized_value, true);
 }
 
 void update_patch(thea::ym2612::ChannelPatch::WriteOption option) {
@@ -158,14 +95,15 @@ void save_patch(SdFile &file) { thea::tfi::save(file, patch); };
 void enable_lfo() {
   is_lfo_enabled = true;
   thea::ym2612::set_lfo(is_lfo_enabled, lfo_freq);
-  last_write_option = thea::ym2612::ChannelPatch::WriteOption::LFO;
+  last_write_option = thea::ym2612::ChannelPatch::WriteOption::LFO_AMS;
   last_patch_modify_time = micros();
 }
 
 void disable_lfo() {
   is_lfo_enabled = false;
   thea::ym2612::set_lfo(is_lfo_enabled, lfo_freq);
-  last_write_option = thea::ym2612::ChannelPatch::WriteOption::LFO;
+  // Should be LFO_ENABLE, but I haven't rolled that into the patch logic (it's global for now).
+  last_write_option = thea::ym2612::ChannelPatch::WriteOption::LFO_AMS;
   last_patch_modify_time = micros();
 }
 
@@ -174,20 +112,21 @@ bool lfo_enabled() { return is_lfo_enabled; }
 void set_lfo_freq(uint8_t value) {
   lfo_freq = map(value, 0, 127, 0, 7);
   thea::ym2612::set_lfo(is_lfo_enabled, lfo_freq);
-  last_write_option = thea::ym2612::ChannelPatch::WriteOption::LFO;
+  // Should be LFO_ENABLE, but I haven't rolled that into the patch logic (it's global for now).
+  last_write_option = thea::ym2612::ChannelPatch::WriteOption::LFO_AMS;
   last_patch_modify_time = micros();
 }
 
 uint8_t get_lfo_freq() { return lfo_freq; }
 
 void set_lfo_fms(uint8_t value) {
-  patch.lfo_fms = map(value, 0, 127, 0, 7);
-  update_patch(thea::ym2612::ChannelPatch::WriteOption::LFO);
+  patch.set_parameter(thea::ym2612::ChannelPatch::WriteOption::LFO_FMS, value, true);
+  update_patch(thea::ym2612::ChannelPatch::WriteOption::LFO_FMS);
 }
 
 void set_lfo_ams(uint8_t value) {
-  patch.lfo_ams = map(value, 0, 127, 0, 3);
-  update_patch(thea::ym2612::ChannelPatch::WriteOption::LFO);
+  patch.set_parameter(thea::ym2612::ChannelPatch::WriteOption::LFO_AMS, value, true);
+  update_patch(thea::ym2612::ChannelPatch::WriteOption::LFO_FMS);
 }
 
 /*

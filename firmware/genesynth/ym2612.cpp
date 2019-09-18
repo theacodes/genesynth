@@ -340,12 +340,139 @@ void ChannelPatch::write_to_channel(uint8_t channel, ChannelPatch::WriteOption o
     set_reg(0xB0 + channel, feedback_algorithm_byte, port);
   }
 
-  if (option == WriteOption::ALL or option == WriteOption::LFO) {
+  if (option == WriteOption::ALL || option == WriteOption::LFO_AMS || option == WriteOption::LFO_FMS) {
     // Enable output on both speakers (for now) with 0xC0
     uint8_t lr_ams_fms_byte = 0xC0 | (lfo_ams << 5) | (lfo_fms);
     set_reg(0xB4 + channel, lr_ams_fms_byte, port);
   }
 };
+
+void ChannelPatch::set_parameter(ChannelPatch::WriteOption option, uint8_t value, bool normalized) {
+  if (normalized)
+    value = normalized_to_ym2612(value, option);
+
+  /* Global parameters */
+  switch (option) {
+  case WriteOption::ALGORITHM:
+    algorithm = value;
+    return;
+  case WriteOption::FEEDBACK:
+    feedback = value;
+    return;
+  case WriteOption::LFO_FMS:
+    lfo_fms = value;
+    return;
+  case WriteOption::LFO_AMS:
+    lfo_ams = value;
+    return;
+  default:
+    break;
+  }
+
+  /* Operator parameters */
+  if (option >= thea::ym2612::ChannelPatch::WriteOption::OP3_AM) {
+    /* Unknown option */
+    return;
+  }
+
+  auto normalized_option = thea::ym2612::ChannelPatch::WriteOption(option % 10);
+  auto operator_no = option / 10;
+
+  switch (normalized_option) {
+  case WriteOption::OP0_DT1:
+    operators[operator_no].DT1 = value;
+    break;
+  case WriteOption::OP0_MUL:
+    operators[operator_no].MUL = value;
+    break;
+  case WriteOption::OP0_TL:
+    operators[operator_no].TL = value;
+    break;
+  case WriteOption::OP0_AR:
+    operators[operator_no].AR = value;
+    break;
+  case WriteOption::OP0_D1R:
+    operators[operator_no].D1R = value;
+    break;
+  case WriteOption::OP0_D2R:
+    operators[operator_no].D2R = value;
+    break;
+  case WriteOption::OP0_D1L:
+    operators[operator_no].D1L = value;
+    break;
+  case WriteOption::OP0_RR:
+    operators[operator_no].RR = value;
+    break;
+  case WriteOption::OP0_RS:
+    operators[operator_no].RS = value;
+    break;
+  case WriteOption::OP0_AM:
+    operators[operator_no].AM = value;
+    break;
+  default:
+    break;
+  }
+}
+
+/* Normalization / denormalization routines */
+
+uint8_t ym2612_to_normalized(uint8_t value, ChannelPatch::WriteOption option) {
+  // TODO
+  return 0;
+}
+
+uint8_t normalized_to_ym2612(uint8_t value, ChannelPatch::WriteOption option) {
+  // Is this a global parameter?
+  switch (option) {
+  case ChannelPatch::WriteOption::ALGORITHM:
+    return map(value, 0, 127, 0, 7);
+  case ChannelPatch::WriteOption::FEEDBACK:
+    return map(value, 0, 127, 0, 7);
+  case ChannelPatch::WriteOption::LFO_FMS:
+    return map(value, 0, 127, 0, 7);
+  case ChannelPatch::WriteOption::LFO_AMS:
+    return map(value, 0, 127, 0, 3);
+  default:
+    break;
+  }
+
+  // This is an operator value.
+  auto normalized_option = thea::ym2612::ChannelPatch::WriteOption(option % 10);
+  uint8_t operator_no = option / 10;
+
+  // All operator parameters are actually inverted - the lower values are
+  // associated with what humans would think are "higher" knob values. That is
+  // to say, if the parameter were "volume", 0 would be the loudest and 127
+  // would be the softest. No frickin' clue why Yamaha did this.
+  value = 127 - value;
+
+  switch (normalized_option) {
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_DT1:
+    return map(value, 0, 127, 0, 7);
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_MUL:
+    return map(value, 0, 127, 0, 15);
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_TL:
+    return value;
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_AR:
+    return map(value, 0, 127, 0, 31);
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_D1R:
+    return map(value, 0, 127, 0, 31);
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_D2R:
+    return map(value, 0, 127, 0, 31);
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_D1L:
+    return map(value, 0, 127, 0, 15);
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_RR:
+    return map(value, 0, 127, 0, 15);
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_RS:
+    return map(value, 0, 127, 0, 3);
+  case thea::ym2612::ChannelPatch::WriteOption::OP0_AM:
+    return value;
+  default:
+    return 0;
+  }
+
+  return 0;
+}
 
 }; // namespace ym2612
 }; // namespace thea

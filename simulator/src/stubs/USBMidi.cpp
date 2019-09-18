@@ -56,6 +56,4 @@ bool USBMidi::read() {
   return true;
 }
 
-void USBMidi::sendSysEx(uint32_t length, uint8_t *data, bool hasTerm) {
-  simulator::send_midi_message(data, length);
-}
+void USBMidi::sendSysEx(uint32_t length, uint8_t *data, bool hasTerm) { simulator::send_midi_message(data, length); }

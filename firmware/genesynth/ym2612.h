@@ -127,7 +127,8 @@ public:
 
     ALGORITHM,
     FEEDBACK,
-    LFO,
+    LFO_AMS,
+    LFO_FMS,
     ALL,
   };
 
@@ -151,7 +152,12 @@ public:
 
   void write_to_channel(uint8_t channel, WriteOption option);
   void write_to_channel(uint8_t channel) { write_to_channel(channel, WriteOption::ALL); }
+  void set_parameter(WriteOption option, uint8_t value, bool normalized);
 };
+
+// Used to move between normalized (0-127, increasing in value) to denormalized (parameter specific) values.
+uint8_t ym2612_to_normalized(uint8_t value, ChannelPatch::WriteOption option);
+uint8_t normalized_to_ym2612(uint8_t value, ChannelPatch::WriteOption option);
 
 }; // namespace ym2612
 }; // namespace thea

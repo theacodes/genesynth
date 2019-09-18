@@ -239,7 +239,8 @@ void display(U8G2 &u8g2, thea::ym2612::ChannelPatch &patch, thea::ym2612::Channe
         }
       }
 
-      if (write_option == thea::ym2612::ChannelPatch::WriteOption::LFO) {
+      if (write_option == thea::ym2612::ChannelPatch::WriteOption::LFO_AMS ||
+          write_option == thea::ym2612::ChannelPatch::WriteOption::LFO_FMS) {
         show(Screen::LFO, ENV_SCREEN_DISPLAY_TIME);
       }
     }

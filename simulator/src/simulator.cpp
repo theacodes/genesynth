@@ -124,7 +124,7 @@ static bool initialize_midi() {
 
   rt_midiin->openPort(port_num);
   // don't ignore sysex
-  rt_midiin->ignoreTypes( false, true, true );
+  rt_midiin->ignoreTypes(false, true, true);
 
   // Assumes same number of in and out ports. Probably a bad assumption.
   rt_midiout->openPort(port_num);
@@ -175,9 +175,7 @@ void get_midi_message(std::vector<uint8_t> *dst) {
   rt_midiin->getMessage(dst);
 }
 
-void send_midi_message(uint8_t* data, uint32_t size) {
-  rt_midiout->sendMessage(data, size);
-}
+void send_midi_message(uint8_t *data, uint32_t size) { rt_midiout->sendMessage(data, size); }
 
 bool get_button_state(int button) {
   switch (button) {

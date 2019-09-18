@@ -4,8 +4,8 @@
 #include "midi_interface.h"
 #include "param_mapping.h"
 #include "synth.h"
-#include "ym2612.h"
 #include "tfi_parser.h"
+#include "ym2612.h"
 
 namespace thea {
 namespace midi_interface {
@@ -283,28 +283,27 @@ void handle_system_exclusive(byte *data, unsigned int length) {
 
   Serial.printf("Command: 0x%02X, payload length: %i\n", command, payload_length);
 
-  switch(command) {
-    case SYSEX_SAVE_PATCH_COMMAND_BYTE:
-      char filename[128];
-      strncpy(filename, (char *)payload, payload_length > 128 ? 128 : payload_length);
-      Serial.printf("Got patch save command with filename: %s\n", filename);
-      save_patch(filename);
-      break;
-    case SYSEX_SEND_PATCH_COMMAND_BYTE:
-      {
-        uint8_t message[255] = {0};
-        message[0] = 0xF0;
-        message[1] = 0x11;
-        message[2] = SYSEX_SEND_PATCH_RESPONSE_BYTE;
-        message[254] = 0xF7;
+  switch (command) {
+  case SYSEX_SAVE_PATCH_COMMAND_BYTE:
+    char filename[128];
+    strncpy(filename, (char *)payload, payload_length > 128 ? 128 : payload_length);
+    Serial.printf("Got patch save command with filename: %s\n", filename);
+    save_patch(filename);
+    break;
+  case SYSEX_SEND_PATCH_COMMAND_BYTE: {
+    uint8_t message[255] = {0};
+    message[0] = 0xF0;
+    message[1] = 0x11;
+    message[2] = SYSEX_SEND_PATCH_RESPONSE_BYTE;
+    message[254] = 0xF7;
 
-        thea::tfi::serialize(thea::synth::patch, &message[3]);
+    thea::tfi::serialize(thea::synth::patch, &message[3]);
 
-        usbMIDI.sendSysEx(sizeof(message) / sizeof(uint8_t), &message[0], false);
-        break;
-      }
-    default:
-      Serial.printf("Unknown SysEx command 0x%02x\n", command);
+    usbMIDI.sendSysEx(sizeof(message) / sizeof(uint8_t), &message[0], false);
+    break;
+  }
+  default:
+    Serial.printf("Unknown SysEx command 0x%02x\n", command);
   }
 }
 
