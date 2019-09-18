@@ -49,6 +49,25 @@ bool load(SdFile &file, SdFile *folder, thea::ym2612::ChannelPatch *patch) {
   return true;
 }
 
+
+void serialize(thea::ym2612::ChannelPatch &patch, uint8_t* dest) {
+  dest[0] = patch.algorithm;
+  dest[1] = patch.feedback;
+
+  for (int i = 0; i < 4; i++) {
+    size_t offset = 2 + (10 * i);
+    dest[offset + 0] = patch.operators[i].MUL;
+    dest[offset + 1] = patch.operators[i].DT1;
+    dest[offset + 2] = patch.operators[i].TL;
+    dest[offset + 3] = patch.operators[i].RS;
+    dest[offset + 4] = patch.operators[i].AR;
+    dest[offset + 5] = patch.operators[i].D1R;
+    dest[offset + 6] = patch.operators[i].D2R;
+    dest[offset + 7] = patch.operators[i].RR;
+    dest[offset + 8] = patch.operators[i].D1L;
+  }
+}
+
 void save(SdFile &file, thea::ym2612::ChannelPatch &patch) {
   if (!file.isOpen()) {
     Serial.println("Bad file, not open.");
@@ -57,21 +76,7 @@ void save(SdFile &file, thea::ym2612::ChannelPatch &patch) {
 
   uint8_t data[42] = {0};
 
-  data[0] = patch.algorithm;
-  data[1] = patch.feedback;
-
-  for (int i = 0; i < 4; i++) {
-    size_t offset = 2 + (10 * i);
-    data[offset + 0] = patch.operators[i].MUL;
-    data[offset + 1] = patch.operators[i].DT1;
-    data[offset + 2] = patch.operators[i].TL;
-    data[offset + 3] = patch.operators[i].RS;
-    data[offset + 4] = patch.operators[i].AR;
-    data[offset + 5] = patch.operators[i].D1R;
-    data[offset + 6] = patch.operators[i].D2R;
-    data[offset + 7] = patch.operators[i].RR;
-    data[offset + 8] = patch.operators[i].D1L;
-  }
+  serialize(patch, &data[0]);
 
   file.write(data, 42);
   file.sync();

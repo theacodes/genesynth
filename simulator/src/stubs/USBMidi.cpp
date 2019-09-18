@@ -11,6 +11,7 @@ bool USBMidi::read() {
   std::vector<uint8_t> message;
   simulator::get_midi_message(&message);
   int len = message.size();
+  uint8_t buf[len];
 
   if (len == 0)
     return false;
@@ -37,6 +38,12 @@ bool USBMidi::read() {
     control_change_handler(channel, message[1], message[2]);
     break;
 
+  case 0xF0:
+    // Sysex
+    std::copy(message.begin(), message.end(), buf);
+    sysex_handler(buf, len);
+    break;
+
   default:
     printf("Unknown MIDI message %02x\n", type);
     for (auto i = 0; i < len; i++) {
@@ -47,4 +54,8 @@ bool USBMidi::read() {
   }
 
   return true;
+}
+
+void USBMidi::sendSysEx(uint32_t length, uint8_t *data, bool hasTerm) {
+  simulator::send_midi_message(data, length);
 }
