@@ -167,14 +167,14 @@ protected:
  uses one voice. */
 class UnisonStrategy : public NoteStrategy {
 public:
-  virtual void reset() {
+  void reset() {
     note_stack.clear();
     for (uint8_t i = 0; i < YM_CHANNELS; i++) {
       thea::ym2612::stop_note(i);
     }
   }
 
-  virtual void update() {
+  void update() {
     // This is only needed if there's notes on the stack and if glide is enabled.
     if (note_stack.is_empty() || !glide)
       return;
@@ -203,7 +203,7 @@ public:
     }
   }
 
-  virtual void note_on(uint8_t note, float pitch) {
+  void note_on(uint8_t note, float pitch) {
     bool retrigger = !glide || note_stack.is_empty();
 
     // If glide is off, we'll need to stop
@@ -226,7 +226,7 @@ public:
     }
   }
 
-  virtual void note_off(uint8_t note) {
+  void note_off(uint8_t note) {
     // This situation shouldn't happen, but if it does, don't panic.
     if (note_stack.is_empty())
       return;
@@ -300,16 +300,16 @@ private:
 
 class PolyStrategy : public NoteStrategy {
 public:
-  virtual void reset() {
+  void reset() {
     for (uint8_t i = 0; i < YM_CHANNELS; i++) {
       thea::ym2612::stop_note(i);
       active_notes[i] = 0;
     }
   }
 
-  virtual void update() {}
+  void update() {}
 
-  virtual void note_on(uint8_t note, float pitch) {
+  void note_on(uint8_t note, float pitch) {
     for (uint8_t i = 0; i < YM_CHANNELS; i++) {
       if (active_notes[i] == 0) {
         thea::ym2612::stop_note(i);
@@ -322,7 +322,7 @@ public:
     }
   }
 
-  virtual void note_off(uint8_t note) {
+  void note_off(uint8_t note) {
     for (uint8_t i = 0; i < YM_CHANNELS; i++) {
       if (active_notes[i] == note) {
         thea::ym2612::stop_note(i);
@@ -347,11 +347,85 @@ private:
   float active_pitches[YM_CHANNELS] = {0, 0, 0, 0, 0, 0};
 };
 
+
+
+struct NoteDelayLineEntry {
+  uint8_t note;
+  float pitch;
+  bool state;
+  unsigned long long time;
+};
+
+class DelayStrategy : public NoteStrategy {
+public:
+  void reset() {
+    for (uint8_t i = 0; i < YM_CHANNELS; i++) {
+      thea::ym2612::stop_note(i);
+    }
+  }
+
+  void update() {
+    auto now = millis();
+    auto earliest = now - delay_time_ms;
+
+    for(auto i = delay_line_start; i != delay_line_end; i = (i + 1) % 255) {
+      auto value = delay_line[i];
+      if(value.time > earliest) break;
+
+      if(value.state) {
+        thea::ym2612::stop_note(1);
+        thea::ym2612::set_channel_freq(1, value.pitch);
+        thea::ym2612::play_note(1);
+      } else {
+        thea::ym2612::stop_note(1);
+      }
+
+      delay_line_start = (i + 1 % 255);
+    }
+  }
+
+  void note_on(uint8_t note, float pitch) {
+    thea::ym2612::stop_note(0);
+    thea::ym2612::set_channel_freq(0, pitch * pitch_bend_multiplier);
+    thea::ym2612::play_note(0);
+    current_note = note;
+
+    if(delay_line_end >= 255) return;
+    delay_line[delay_line_end].note = note;
+    delay_line[delay_line_end].pitch = pitch;
+    delay_line[delay_line_end].state = true;
+    delay_line[delay_line_end].time = millis();
+    delay_line_end = (delay_line_end + 1) % 255;
+  }
+
+  void note_off(uint8_t note) {
+    if(note != current_note) return;
+    
+    thea::ym2612::stop_note(0);
+
+    delay_line[delay_line_end].note = note;
+    delay_line[delay_line_end].state = false;
+    delay_line[delay_line_end].time = millis();
+    delay_line_end = (delay_line_end + 1) % 255;
+  }
+
+  void pitch_bend(float offset) {}
+
+private:
+  uint8_t current_note = 0;
+  uint32_t delay_time_ms = 300;
+  NoteDelayLineEntry delay_line[256];
+  size_t delay_line_start = 0;
+  size_t delay_line_end = 0;
+};
+
+
 UnisonStrategy unison;
 UnisonStrategy mono;
 PolyStrategy poly;
+DelayStrategy delay;
 NoteMode current_note_mode = NoteMode::POLY;
-NoteStrategy *current_note_strategy = &poly;
+NoteStrategy *current_note_strategy = &delay;
 
 void play_note(uint8_t note, float pitch) { current_note_strategy->note_on(note, pitch); }
 
