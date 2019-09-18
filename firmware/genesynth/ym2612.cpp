@@ -370,7 +370,7 @@ void ChannelPatch::set_parameter(ChannelPatch::WriteOption option, uint8_t value
   }
 
   /* Operator parameters */
-  if (option >= thea::ym2612::ChannelPatch::WriteOption::OP3_AM) {
+  if (option > thea::ym2612::ChannelPatch::WriteOption::OP3_AM) {
     /* Unknown option */
     return;
   }

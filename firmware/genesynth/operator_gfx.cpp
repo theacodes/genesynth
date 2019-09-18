@@ -8,12 +8,14 @@ inline void use_big_font(U8G2 &u8g2) { u8g2.setFont(u8g2_font_fub14_tf); }
 
 void draw_parameter_edit_screen(U8G2 &u8g2, const thea::ym2612::ChannelPatch &patch,
                                 thea::ym2612::ChannelPatch::WriteOption write_option) {
+
   uint8_t op_no = write_option / 10;
   auto op = patch.operators[op_no];
 
   bool detune_negative = op.DT1 & 0x4;
   signed int detune = op.DT1 & 0x3;
-
+  
+  u8g2.setDrawColor(1);
   u8g2.setCursor(0, 9 * 0);
   u8g2.printf("> Operator %i\n", op_no + 1);
 
